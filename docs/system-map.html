@@ -36,6 +36,7 @@
       --stage-2:  #4a9ff0;
       --stage-3:  #f0b54a;
       --stage-4:  #9d8cff;
+      --stage-45: #c084fc;
       --stage-5:  #e879a0;
       --stage-6:  #ff6b6b;
       --stage-7:  #f97316;
@@ -621,6 +622,7 @@
     <div class="legend-item"><div class="legend-dot" style="background:var(--stage-2)"></div> Stage 2 · Integrations</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--stage-3)"></div> Stage 3 · Notifications</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--stage-4)"></div> Stage 4 · AI</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--stage-45)"></div> Stage 4.5 · AI Actions</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--stage-5)"></div> Stage 5 · Knowledge</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--stage-6)"></div> Stage 6 · Agents</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--stage-7)"></div> Stage 7 · Automation</div>
@@ -699,6 +701,18 @@
           <span class="ts-tech">Anthropic</span>
           <span class="ts-tech">OpenAI</span>
           <span class="ts-tech">Ollama</span>
+        </div>
+        <span class="ts-status status-planned">planned</span>
+      </div>
+
+      <div class="timeline-stage">
+        <div class="ts-bar" style="background:var(--stage-45)"></div>
+        <div class="ts-label">Stage 4.5</div>
+        <div class="ts-name">AI Actions</div>
+        <div class="ts-stack">
+          <span class="ts-tech">Tool Use / CRUD</span>
+          <span class="ts-tech">Playwright</span>
+          <span class="ts-tech">Confirmation UI</span>
         </div>
         <span class="ts-status status-planned">planned</span>
       </div>
@@ -1040,14 +1054,17 @@
         <circle cx="975" cy="178" r="3" fill="#9d8cff" opacity="0.5"/>
         <text x="988" y="182" font-family="monospace" font-size="8" fill="rgba(157,140,255,0.5)">4 · AI Layer</text>
 
-        <circle cx="975" cy="198" r="3" fill="#e879a0" opacity="0.5"/>
-        <text x="988" y="202" font-family="monospace" font-size="8" fill="rgba(232,121,160,0.5)">5 · Knowledge</text>
+        <circle cx="975" cy="194" r="3" fill="#c084fc" opacity="0.5"/>
+        <text x="988" y="198" font-family="monospace" font-size="8" fill="rgba(192,132,252,0.5)">4.5 · AI Actions</text>
 
-        <circle cx="975" cy="218" r="3" fill="#ff6b6b" opacity="0.5"/>
-        <text x="988" y="222" font-family="monospace" font-size="8" fill="rgba(255,107,107,0.5)">6 · Agents</text>
+        <circle cx="975" cy="210" r="3" fill="#e879a0" opacity="0.5"/>
+        <text x="988" y="214" font-family="monospace" font-size="8" fill="rgba(232,121,160,0.5)">5 · Knowledge</text>
 
-        <circle cx="975" cy="238" r="3" fill="#f97316" opacity="0.5"/>
-        <text x="988" y="242" font-family="monospace" font-size="8" fill="rgba(249,115,22,0.5)">7 · Automation</text>
+        <circle cx="975" cy="226" r="3" fill="#ff6b6b" opacity="0.5"/>
+        <text x="988" y="230" font-family="monospace" font-size="8" fill="rgba(255,107,107,0.5)">6 · Agents</text>
+
+        <circle cx="975" cy="242" r="3" fill="#f97316" opacity="0.5"/>
+        <text x="988" y="246" font-family="monospace" font-size="8" fill="rgba(249,115,22,0.5)">7 · Automation</text>
 
         <circle cx="975" cy="258" r="3" fill="#a3e635" opacity="0.5"/>
         <text x="988" y="262" font-family="monospace" font-size="8" fill="rgba(163,230,53,0.5)">8 · Production</text>
@@ -1283,6 +1300,81 @@
         </ul>
       </div>
 
+      <!-- AI Actions (Stage 4.5) -->
+      <div class="layer-card" style="border-color:rgba(192,132,252,0.25)">
+        <div class="layer-header">
+          <div class="layer-dot" style="background:#c084fc;box-shadow:0 0 6px #c084fc"></div>
+          <div class="layer-name">AI Actions</div>
+          <div class="layer-tag">S4.5</div>
+        </div>
+        <ul class="module-list">
+          <li class="module-item">
+            <span class="module-icon">🛠️</span>
+            <div class="module-info">
+              <div class="module-name">Tool Registry</div>
+              <div class="module-path">tools/registry.py · maps names → services</div>
+            </div>
+            <span class="module-stage" style="background:rgba(192,132,252,0.1);color:#c084fc">S4.5</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">⚙️</span>
+            <div class="module-info">
+              <div class="module-name">Tool Executor</div>
+              <div class="module-path">services/tool_executor.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(192,132,252,0.1);color:#c084fc">S4.5</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">✅</span>
+            <div class="module-info">
+              <div class="module-name">Confirmation Service</div>
+              <div class="module-path">services/confirmation_service.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(192,132,252,0.1);color:#c084fc">S4.5</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🗂️</span>
+            <div class="module-info">
+              <div class="module-name">PendingAction Model</div>
+              <div class="module-path">models/pending_action.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(192,132,252,0.1);color:#c084fc">S4.5</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🌐</span>
+            <div class="module-info">
+              <div class="module-name">Browser Service</div>
+              <div class="module-path">services/browser_service.py · Playwright</div>
+            </div>
+            <span class="module-stage" style="background:rgba(192,132,252,0.1);color:#c084fc">S4.5</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">📤</span>
+            <div class="module-info">
+              <div class="module-name">Write Tools — Internal</div>
+              <div class="module-path">tools/internal/ create · update · delete</div>
+            </div>
+            <span class="module-stage" style="background:rgba(192,132,252,0.1);color:#c084fc">S4.5</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🔗</span>
+            <div class="module-info">
+              <div class="module-name">Write Tools — External</div>
+              <div class="module-path">tools/external/ Gmail · Calendar · Telegram</div>
+            </div>
+            <span class="module-stage" style="background:rgba(192,132,252,0.1);color:#c084fc">S4.5</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🪟</span>
+            <div class="module-info">
+              <div class="module-name">Confirmation Modal</div>
+              <div class="module-path">components/ai/ConfirmationModal.tsx</div>
+            </div>
+            <span class="module-stage" style="background:rgba(192,132,252,0.1);color:#c084fc">S4.5</span>
+          </li>
+        </ul>
+      </div>
+
       <!-- Agents & Automation -->
       <div class="layer-card" style="border-color:rgba(255,107,107,0.2)">
         <div class="layer-header">
@@ -1388,6 +1480,10 @@
         <tr><td class="tech-name">OpenAI API</td><td class="tech-role">AI</td><td class="tech-role">GPT models — secondary provider</td><td><span class="tech-stage-pill" style="background:rgba(157,140,255,0.1);color:#9d8cff">Stage 4</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">Ollama</td><td class="tech-role">AI</td><td class="tech-role">Local LLM inference (privacy-first)</td><td><span class="tech-stage-pill" style="background:rgba(157,140,255,0.1);color:#9d8cff">Stage 4</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">Open WebUI</td><td class="tech-role">AI</td><td class="tech-role">Chat interface for local models</td><td><span class="tech-stage-pill" style="background:rgba(157,140,255,0.1);color:#9d8cff">Stage 4</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">Playwright (Python)</td><td class="tech-role">AI Actions</td><td class="tech-role">Headless browser — web lookup (S4.5) and automation workflows (S7)</td><td><span class="tech-stage-pill" style="background:rgba(192,132,252,0.1);color:#c084fc">Stage 4.5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">Tool Use API</td><td class="tech-role">AI Actions</td><td class="tech-role">Anthropic function calling — AI invokes backend tools</td><td><span class="tech-stage-pill" style="background:rgba(192,132,252,0.1);color:#c084fc">Stage 4.5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">ToolExecutor</td><td class="tech-role">AI Actions</td><td class="tech-role">Backend service that routes tool calls through service layer</td><td><span class="tech-stage-pill" style="background:rgba(192,132,252,0.1);color:#c084fc">Stage 4.5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">ConfirmationService</td><td class="tech-role">AI Actions</td><td class="tech-role">PendingAction queue — holds destructive ops until user approves</td><td><span class="tech-stage-pill" style="background:rgba(192,132,252,0.1);color:#c084fc">Stage 4.5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">Qdrant</td><td class="tech-role">Knowledge</td><td class="tech-role">Vector database for semantic search</td><td><span class="tech-stage-pill" style="background:rgba(232,121,160,0.1);color:#e879a0">Stage 5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">sentence-transformers</td><td class="tech-role">Knowledge</td><td class="tech-role">Document embedding generation</td><td><span class="tech-stage-pill" style="background:rgba(232,121,160,0.1);color:#e879a0">Stage 5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">APScheduler</td><td class="tech-role">Automation</td><td class="tech-role">Cron jobs and scheduled tasks</td><td><span class="tech-stage-pill" style="background:rgba(249,115,22,0.1);color:#f97316">Stage 7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
@@ -1524,6 +1620,70 @@
       </div>
 
     </div>
+
+    <div class="flow-grid" style="margin-top:16px">
+
+      <div class="flow-card">
+        <div class="flow-title">
+          <span style="color:#c084fc">◆</span> Tool Use Loop (Stage 4.5)
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(192,132,252,0.1);color:#c084fc">User Message</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">POST /api/v1/ai/chat</div>
+          </div>
+          <span class="flow-node" style="background:rgba(192,132,252,0.1);color:#c084fc">AI Service</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(192,132,252,0.1);color:#c084fc">AI Service</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">tool_use response</div>
+          </div>
+          <span class="flow-node" style="background:rgba(192,132,252,0.1);color:#c084fc">ToolExecutor</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(192,132,252,0.1);color:#c084fc">ToolExecutor</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">service call → DB / API</div>
+          </div>
+          <span class="flow-node" style="background:rgba(192,132,252,0.1);color:#c084fc">Tool Result → AI</span>
+        </div>
+      </div>
+
+      <div class="flow-card">
+        <div class="flow-title">
+          <span style="color:#c084fc">◆</span> Confirmation Flow (Stage 4.5)
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(192,132,252,0.1);color:#c084fc">Destructive Tool Call</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">intercepted by ToolExecutor</div>
+          </div>
+          <span class="flow-node" style="background:rgba(192,132,252,0.1);color:#c084fc">ConfirmationService</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(192,132,252,0.1);color:#c084fc">PendingAction (DB)</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">SSE / polling</div>
+          </div>
+          <span class="flow-node" style="background:rgba(70,224,172,0.1);color:#46e0ac">ConfirmationModal</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(70,224,172,0.1);color:#46e0ac">User Approves</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">PATCH /pending-actions/:id</div>
+          </div>
+          <span class="flow-node" style="background:rgba(192,132,252,0.1);color:#c084fc">Execute + Return Result</span>
+        </div>
+      </div>
+
+    </div>
   </section>
 
   <!-- ══════════════ DIRECTORY TREE ══════════════ -->
@@ -1549,13 +1709,21 @@
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">user.py</span><span class="tree-comment" style="color:var(--cyan)">        S1</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">widget.py</span><span class="tree-comment" style="color:var(--cyan)">      S1</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">email.py</span><span class="tree-comment" style="color:var(--blue)">       S2</span></div>
-          <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-file py">event.py</span><span class="tree-comment" style="color:var(--blue)">       S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">event.py</span><span class="tree-comment" style="color:var(--blue)">       S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-file py">pending_action.py</span><span class="tree-comment" style="color:#c084fc">S4.5</span></div>
           <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">services/</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">auth_service.py</span><span class="tree-comment" style="color:var(--blue)"> S2</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">email_service.py</span><span class="tree-comment" style="color:var(--blue)">S2</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">notification_service.py</span><span class="tree-comment" style="color:var(--orange)">S3</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">ai_service.py</span><span class="tree-comment" style="color:var(--purple)">  S4</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">tool_executor.py</span><span class="tree-comment" style="color:#c084fc">S4.5</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">confirmation_service.py</span><span class="tree-comment" style="color:#c084fc">S4.5</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">browser_service.py</span><span class="tree-comment" style="color:#c084fc">S4.5 · Playwright</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-file py">embedding_service.py</span><span class="tree-comment" style="color:var(--pink)">S5</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">tools/</span><span class="tree-comment" style="color:#c084fc"> ← S4.5 tool definitions</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">registry.py</span><span class="tree-comment" style="color:#c084fc"> tool name → handler map</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-dir">internal/</span><span class="tree-comment" style="color:#c084fc"> create/update/delete tasks</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-dir">external/</span><span class="tree-comment" style="color:#c084fc"> Gmail · Calendar · Telegram</span></div>
           <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">agents/</span><span class="tree-comment" style="color:var(--red)"> ← S6</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">email_agent.py</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">calendar_agent.py</span></div>
@@ -1599,6 +1767,7 @@
           <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">email/</span><span class="tree-comment" style="color:var(--blue)">  S2</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">calendar/</span><span class="tree-comment" style="color:var(--blue)">S2</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">ai/</span><span class="tree-comment" style="color:var(--purple)">     S4</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  │  └─ </span><span class="tree-file tsx">ConfirmationModal.tsx</span><span class="tree-comment" style="color:#c084fc">S4.5</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-dir">knowledge/</span><span class="tree-comment" style="color:var(--pink)">S5</span></div>
           <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">store/</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file ts">useAppStore.ts</span><span class="tree-comment" style="color:var(--cyan)"> S1</span></div>
