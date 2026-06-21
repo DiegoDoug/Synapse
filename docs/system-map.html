@@ -37,6 +37,7 @@
       --stage-3:  #f0b54a;
       --stage-4:  #9d8cff;
       --stage-45: #c084fc;
+      --stage-47: #38bdf8;
       --stage-5:  #e879a0;
       --stage-6:  #ff6b6b;
       --stage-7:  #f97316;
@@ -623,6 +624,7 @@
     <div class="legend-item"><div class="legend-dot" style="background:var(--stage-3)"></div> Stage 3 · Notifications</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--stage-4)"></div> Stage 4 · AI</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--stage-45)"></div> Stage 4.5 · AI Actions</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--stage-47)"></div> Stage 4.7 · Voice</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--stage-5)"></div> Stage 5 · Knowledge</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--stage-6)"></div> Stage 6 · Agents</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--stage-7)"></div> Stage 7 · Automation</div>
@@ -713,6 +715,18 @@
           <span class="ts-tech">Tool Use / CRUD</span>
           <span class="ts-tech">Playwright</span>
           <span class="ts-tech">Confirmation UI</span>
+        </div>
+        <span class="ts-status status-planned">planned</span>
+      </div>
+
+      <div class="timeline-stage">
+        <div class="ts-bar" style="background:var(--stage-47)"></div>
+        <div class="ts-label">Stage 4.7</div>
+        <div class="ts-name">Voice</div>
+        <div class="ts-stack">
+          <span class="ts-tech">faster-whisper (STT)</span>
+          <span class="ts-tech">Kokoro (TTS)</span>
+          <span class="ts-tech">Porcupine (wake word)</span>
         </div>
         <span class="ts-status status-planned">planned</span>
       </div>
@@ -1057,17 +1071,20 @@
         <circle cx="975" cy="194" r="3" fill="#c084fc" opacity="0.5"/>
         <text x="988" y="198" font-family="monospace" font-size="8" fill="rgba(192,132,252,0.5)">4.5 · AI Actions</text>
 
-        <circle cx="975" cy="210" r="3" fill="#e879a0" opacity="0.5"/>
-        <text x="988" y="214" font-family="monospace" font-size="8" fill="rgba(232,121,160,0.5)">5 · Knowledge</text>
+        <circle cx="975" cy="210" r="3" fill="#38bdf8" opacity="0.5"/>
+        <text x="988" y="214" font-family="monospace" font-size="8" fill="rgba(56,189,248,0.5)">4.7 · Voice</text>
 
-        <circle cx="975" cy="226" r="3" fill="#ff6b6b" opacity="0.5"/>
-        <text x="988" y="230" font-family="monospace" font-size="8" fill="rgba(255,107,107,0.5)">6 · Agents</text>
+        <circle cx="975" cy="226" r="3" fill="#e879a0" opacity="0.5"/>
+        <text x="988" y="230" font-family="monospace" font-size="8" fill="rgba(232,121,160,0.5)">5 · Knowledge</text>
 
-        <circle cx="975" cy="242" r="3" fill="#f97316" opacity="0.5"/>
-        <text x="988" y="246" font-family="monospace" font-size="8" fill="rgba(249,115,22,0.5)">7 · Automation</text>
+        <circle cx="975" cy="242" r="3" fill="#ff6b6b" opacity="0.5"/>
+        <text x="988" y="246" font-family="monospace" font-size="8" fill="rgba(255,107,107,0.5)">6 · Agents</text>
 
-        <circle cx="975" cy="258" r="3" fill="#a3e635" opacity="0.5"/>
-        <text x="988" y="262" font-family="monospace" font-size="8" fill="rgba(163,230,53,0.5)">8 · Production</text>
+        <circle cx="975" cy="256" r="3" fill="#f97316" opacity="0.5"/>
+        <text x="988" y="260" font-family="monospace" font-size="8" fill="rgba(249,115,22,0.5)">7 · Automation</text>
+
+        <circle cx="975" cy="270" r="3" fill="#a3e635" opacity="0.5"/>
+        <text x="988" y="274" font-family="monospace" font-size="8" fill="rgba(163,230,53,0.5)">8 · Production</text>
 
         <!-- Legend key bottom-right -->
         <rect x="960" y="320" width="120" height="80" rx="8" fill="rgba(0,0,0,0.3)" stroke="rgba(56,217,230,0.08)" stroke-width="1"/>
@@ -1375,6 +1392,81 @@
         </ul>
       </div>
 
+      <!-- Voice Interface (Stage 4.7) -->
+      <div class="layer-card" style="border-color:rgba(56,189,248,0.25)">
+        <div class="layer-header">
+          <div class="layer-dot" style="background:#38bdf8;box-shadow:0 0 6px #38bdf8"></div>
+          <div class="layer-name">Voice Interface</div>
+          <div class="layer-tag">S4.7</div>
+        </div>
+        <ul class="module-list">
+          <li class="module-item">
+            <span class="module-icon">🎙️</span>
+            <div class="module-info">
+              <div class="module-name">STT Service</div>
+              <div class="module-path">services/stt_service.py · faster-whisper</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,189,248,0.1);color:#38bdf8">S4.7</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🔊</span>
+            <div class="module-info">
+              <div class="module-name">TTS Service</div>
+              <div class="module-path">services/tts_service.py · Kokoro</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,189,248,0.1);color:#38bdf8">S4.7</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🎤</span>
+            <div class="module-info">
+              <div class="module-name">Voice Router</div>
+              <div class="module-path">api/v1/voice.py · /transcribe · /synthesize</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,189,248,0.1);color:#38bdf8">S4.7</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🖲️</span>
+            <div class="module-info">
+              <div class="module-name">Push-to-Talk Button</div>
+              <div class="module-path">components/voice/VoiceButton.tsx</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,189,248,0.1);color:#38bdf8">S4.7</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">👂</span>
+            <div class="module-info">
+              <div class="module-name">Wake Word Listener</div>
+              <div class="module-path">components/voice/WakeWordListener.tsx · Porcupine</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,189,248,0.1);color:#38bdf8">S4.7</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">〰️</span>
+            <div class="module-info">
+              <div class="module-name">Voice Waveform</div>
+              <div class="module-path">components/voice/VoiceWaveform.tsx · Web Audio API</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,189,248,0.1);color:#38bdf8">S4.7</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🪝</span>
+            <div class="module-info">
+              <div class="module-name">useVoice Hook</div>
+              <div class="module-path">hooks/useVoice.ts · recording state machine</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,189,248,0.1);color:#38bdf8">S4.7</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">⚙️</span>
+            <div class="module-info">
+              <div class="module-name">Voice Settings</div>
+              <div class="module-path">features/voice/VoiceSettings.tsx · model + wake word</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,189,248,0.1);color:#38bdf8">S4.7</span>
+          </li>
+        </ul>
+      </div>
+
       <!-- Agents & Automation -->
       <div class="layer-card" style="border-color:rgba(255,107,107,0.2)">
         <div class="layer-header">
@@ -1484,6 +1576,11 @@
         <tr><td class="tech-name">Tool Use API</td><td class="tech-role">AI Actions</td><td class="tech-role">Anthropic function calling — AI invokes backend tools</td><td><span class="tech-stage-pill" style="background:rgba(192,132,252,0.1);color:#c084fc">Stage 4.5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">ToolExecutor</td><td class="tech-role">AI Actions</td><td class="tech-role">Backend service that routes tool calls through service layer</td><td><span class="tech-stage-pill" style="background:rgba(192,132,252,0.1);color:#c084fc">Stage 4.5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">ConfirmationService</td><td class="tech-role">AI Actions</td><td class="tech-role">PendingAction queue — holds destructive ops until user approves</td><td><span class="tech-stage-pill" style="background:rgba(192,132,252,0.1);color:#c084fc">Stage 4.5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">faster-whisper</td><td class="tech-role">Voice · STT</td><td class="tech-role">Local speech-to-text — 4× faster than original Whisper, CPU-only, no data leaves device</td><td><span class="tech-stage-pill" style="background:rgba(56,189,248,0.1);color:#38bdf8">Stage 4.7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">Kokoro (Python)</td><td class="tech-role">Voice · TTS</td><td class="tech-role">Local text-to-speech — natural quality, Apache 2.0, streams WAV, runs on CPU</td><td><span class="tech-stage-pill" style="background:rgba(56,189,248,0.1);color:#38bdf8">Stage 4.7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">MediaRecorder API</td><td class="tech-role">Voice · Frontend</td><td class="tech-role">Browser audio capture for push-to-talk; outputs WebM blob sent to STT endpoint</td><td><span class="tech-stage-pill" style="background:rgba(56,189,248,0.1);color:#38bdf8">Stage 4.7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">Web Audio API</td><td class="tech-role">Voice · Frontend</td><td class="tech-role">Waveform visualization during recording + TTS audio playback in browser</td><td><span class="tech-stage-pill" style="background:rgba(56,189,248,0.1);color:#38bdf8">Stage 4.7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">@picovoice/porcupine-web</td><td class="tech-role">Voice · Wake Word</td><td class="tech-role">Browser WASM wake-word detector — "Hey Synapse" — audio never leaves browser until triggered</td><td><span class="tech-stage-pill" style="background:rgba(56,189,248,0.1);color:#38bdf8">Stage 4.7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">Qdrant</td><td class="tech-role">Knowledge</td><td class="tech-role">Vector database for semantic search</td><td><span class="tech-stage-pill" style="background:rgba(232,121,160,0.1);color:#e879a0">Stage 5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">sentence-transformers</td><td class="tech-role">Knowledge</td><td class="tech-role">Document embedding generation</td><td><span class="tech-stage-pill" style="background:rgba(232,121,160,0.1);color:#e879a0">Stage 5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">APScheduler</td><td class="tech-role">Automation</td><td class="tech-role">Cron jobs and scheduled tasks</td><td><span class="tech-stage-pill" style="background:rgba(249,115,22,0.1);color:#f97316">Stage 7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
@@ -1655,6 +1752,36 @@
 
       <div class="flow-card">
         <div class="flow-title">
+          <span style="color:#38bdf8">◆</span> Voice Chat Loop (Stage 4.7)
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">Push-to-Talk / Wake Word</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">MediaRecorder → WebM blob</div>
+          </div>
+          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">POST /voice/transcribe</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">faster-whisper</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">transcript text → AI Service</div>
+          </div>
+          <span class="flow-node" style="background:rgba(157,140,255,0.1);color:#9d8cff">LLM Response</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(157,140,255,0.1);color:#9d8cff">Response text</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">POST /voice/synthesize → Kokoro</div>
+          </div>
+          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">WAV stream → playback</span>
+        </div>
+      </div>
+
+      <div class="flow-card">
+        <div class="flow-title">
           <span style="color:#c084fc">◆</span> Confirmation Flow (Stage 4.5)
         </div>
         <div class="flow-arrow">
@@ -1704,6 +1831,7 @@
           <div class="tree-line"><span class="tree-prefix">  │     ├─ </span><span class="tree-file py">email.py</span><span class="tree-comment" style="color:var(--blue)">   S2</span></div>
           <div class="tree-line"><span class="tree-prefix">  │     ├─ </span><span class="tree-file py">calendar.py</span><span class="tree-comment" style="color:var(--blue)"> S2</span></div>
           <div class="tree-line"><span class="tree-prefix">  │     ├─ </span><span class="tree-file py">ai.py</span><span class="tree-comment" style="color:var(--purple)">      S4</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │     ├─ </span><span class="tree-file py">voice.py</span><span class="tree-comment" style="color:#38bdf8">    S4.7 · /transcribe /synthesize</span></div>
           <div class="tree-line"><span class="tree-prefix">  │     └─ </span><span class="tree-file py">knowledge.py</span><span class="tree-comment" style="color:var(--pink)">S5</span></div>
           <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">models/</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">user.py</span><span class="tree-comment" style="color:var(--cyan)">        S1</span></div>
@@ -1719,6 +1847,8 @@
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">tool_executor.py</span><span class="tree-comment" style="color:#c084fc">S4.5</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">confirmation_service.py</span><span class="tree-comment" style="color:#c084fc">S4.5</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">browser_service.py</span><span class="tree-comment" style="color:#c084fc">S4.5 · Playwright</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">stt_service.py</span><span class="tree-comment" style="color:#38bdf8">   S4.7 · faster-whisper</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">tts_service.py</span><span class="tree-comment" style="color:#38bdf8">   S4.7 · Kokoro</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-file py">embedding_service.py</span><span class="tree-comment" style="color:var(--pink)">S5</span></div>
           <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">tools/</span><span class="tree-comment" style="color:#c084fc"> ← S4.5 tool definitions</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">registry.py</span><span class="tree-comment" style="color:#c084fc"> tool name → handler map</span></div>
@@ -1768,12 +1898,17 @@
           <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">calendar/</span><span class="tree-comment" style="color:var(--blue)">S2</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">ai/</span><span class="tree-comment" style="color:var(--purple)">     S4</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  │  └─ </span><span class="tree-file tsx">ConfirmationModal.tsx</span><span class="tree-comment" style="color:#c084fc">S4.5</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">voice/</span><span class="tree-comment" style="color:#38bdf8">  S4.7</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  │  ├─ </span><span class="tree-file tsx">VoiceButton.tsx</span><span class="tree-comment" style="color:#38bdf8">  push-to-talk</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  │  ├─ </span><span class="tree-file tsx">WakeWordListener.tsx</span><span class="tree-comment" style="color:#38bdf8">Porcupine WASM</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  │  └─ </span><span class="tree-file tsx">VoiceWaveform.tsx</span><span class="tree-comment" style="color:#38bdf8"> Web Audio API</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-dir">knowledge/</span><span class="tree-comment" style="color:var(--pink)">S5</span></div>
           <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">store/</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file ts">useAppStore.ts</span><span class="tree-comment" style="color:var(--cyan)"> S1</span></div>
           <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">hooks/</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-file ts">useHealth.ts</span><span class="tree-comment" style="color:var(--cyan)">   S1</span></div>
-          <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file ts">useEmail.ts</span><span class="tree-comment" style="color:var(--blue)">    S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-file ts">useEmail.ts</span><span class="tree-comment" style="color:var(--blue)">    S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file ts">useVoice.ts</span><span class="tree-comment" style="color:#38bdf8">    S4.7 · recording state machine</span></div>
           <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">lib/</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file ts">api.ts</span><span class="tree-comment"> ← axios client</span></div>
           <div class="tree-line"><span class="tree-prefix">     └─ </span><span class="tree-dir">types/</span></div>

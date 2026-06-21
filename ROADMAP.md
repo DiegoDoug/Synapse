@@ -158,6 +158,59 @@ Architecture:
 
 ---
 
+# Stage 4.7: Voice Interface
+
+Goals:
+
+- speech-to-text (STT) via local Whisper
+- text-to-speech (TTS) via local Kokoro
+- push-to-talk voice chat with the AI
+- wake word mode (opt-in, browser-side)
+- voice settings panel
+
+Stack:
+
+- faster-whisper (Python) — local STT, no data leaves device
+- kokoro (Python) — local TTS, Apache 2.0, natural quality
+- MediaRecorder API (browser) — audio capture
+- Web Audio API (browser) — waveform visualization + TTS playback
+- @picovoice/porcupine-web — wake word detection in browser WASM (free personal tier)
+
+Capabilities:
+
+- push-to-talk: hold button → record → release → transcribe → inject into AI chat
+- AI response auto-read: TTS plays back AI text response after transcription
+- wake word mode: "Hey Synapse" triggers recording without touching the UI
+  - opt-in toggle in settings
+  - detection runs in browser (audio never sent to backend until triggered)
+- voice session: STT transcript + AI response + TTS logged as a voice interaction
+
+Data flow:
+
+1. User activates (push-to-talk or wake word fires)
+2. MediaRecorder captures audio → WebM blob
+3. POST /api/v1/voice/transcribe → faster-whisper → returns text
+4. Text injected into AI chat → submitted to AI service
+5. AI response text returned
+6. POST /api/v1/voice/synthesize → Kokoro → streams WAV audio
+7. Browser plays audio response
+
+Architecture:
+
+- STTService (backend): faster-whisper wrapper, model loaded at startup
+- TTSService (backend): Kokoro wrapper, streams audio chunks
+- VoiceButton (frontend): push-to-talk UI with waveform animation
+- WakeWordListener (frontend): Porcupine WASM, opt-in, runs in background
+- useVoice hook: manages recording state, sends audio, plays response
+- VoiceSettings: model selector (tiny/small/medium), voice selector, wake word toggle
+
+Whisper model sizes (user selectable in settings):
+- tiny: fastest, lower accuracy (~75 MB)
+- small: default, good balance (~466 MB)
+- medium: high accuracy, slower (~1.5 GB)
+
+---
+
 # Stage 5: Knowledge System
 
 Goals:
@@ -245,12 +298,13 @@ Goals:
 
 # Future Features
 
-- voice assistant
 - local models (expanded Ollama support)
 - computer use (Anthropic API) for general UI control
-- mobile application
+- mobile application with voice (native STT/TTS)
 - multi-user support
 - browser extension for real-time page access
+- custom Kokoro voice fine-tuning
+- real-time streaming STT (word-by-word transcription)
 
 ---
 
