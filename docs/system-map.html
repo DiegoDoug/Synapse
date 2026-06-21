@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal OS — System Map</title>
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #06090d;
+      --bg-card:     #0c1117;
+      --bg-card-2:   #111820;
+      --border:      rgba(56, 217, 230, 0.12);
+      --border-2:    rgba(56, 217, 230, 0.25);
+
+      --cyan:        #38d9e6;
+      --purple:      #9d8cff;
+      --green:       #46e0ac;
+      --orange:      #f0b54a;
+      --red:         #ff6b6b;
+      --pink:        #e879a0;
+      --blue:        #4a9ff0;
+
+      --text-1:  #e2eaf0;
+      --text-2:  #8a9bb0;
+      --text-3:  #4a5a6b;
+
+      --mono: 'SF Mono', ui-monospace, 'Cascadia Code', monospace;
+      --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+      --stage-0:  #8a9bb0;
+      --stage-1:  #38d9e6;
+      --stage-15: #46e0ac;
+      --stage-2:  #4a9ff0;
+      --stage-3:  #f0b54a;
+      --stage-4:  #9d8cff;
+      --stage-5:  #e879a0;
+      --stage-6:  #ff6b6b;
+      --stage-7:  #f97316;
+      --stage-8:  #a3e635;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: var(--sans);
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ─── Scrollbar ─────────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #1e2d3a; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+    /* ─── Layout ────────────────────────────────────────────────────────── */
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* ─── Header ────────────────────────────────────────────────────────── */
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 0 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 34px;
+      height: 34px;
+      position: relative;
+    }
+
+    .logo-text {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 0.08em;
+    }
+
+    .logo-sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+
+    .badge-active { background: rgba(56, 217, 230, 0.12); color: var(--cyan); border: 1px solid rgba(56, 217, 230, 0.3); }
+    .badge-version { background: rgba(138, 155, 176, 0.1); color: var(--text-3); border: 1px solid var(--border); }
+
+    /* ─── Section Headings ──────────────────────────────────────────────── */
+    .section { margin-bottom: 56px; }
+    .section-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ─── Stage Timeline ────────────────────────────────────────────────── */
+    .timeline {
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+
+    .timeline-stage {
+      flex: 1;
+      min-width: 100px;
+      position: relative;
+      padding: 16px 14px 14px;
+      border: 1px solid var(--border);
+      border-right: none;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      background: var(--bg-card);
+    }
+
+    .timeline-stage:first-child { border-radius: 8px 0 0 8px; }
+    .timeline-stage:last-child { border-right: 1px solid var(--border); border-radius: 0 8px 8px 0; }
+
+    .timeline-stage:hover { background: var(--bg-card-2); }
+    .timeline-stage.active { background: var(--bg-card-2); }
+
+    .ts-bar {
+      height: 3px;
+      border-radius: 2px;
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+
+    .ts-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .ts-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 6px;
+    }
+
+    .ts-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .ts-tech {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-3);
+    }
+
+    .ts-status {
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+    .status-active { background: rgba(56, 217, 230, 0.12); color: var(--cyan); }
+    .status-planned { background: rgba(138, 155, 176, 0.08); color: var(--text-3); }
+    .status-done { background: rgba(70, 224, 172, 0.1); color: var(--green); }
+
+    /* ─── Architecture Diagram ──────────────────────────────────────────── */
+    .arch-diagram {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .arch-diagram::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      opacity: 0.4;
+    }
+
+    /* SVG Diagram */
+    .arch-svg { width: 100%; height: auto; display: block; }
+
+    /* ─── Layer Cards ───────────────────────────────────────────────────── */
+    .layers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .layer-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      position: relative;
+      transition: border-color 0.18s;
+    }
+
+    .layer-card:hover { border-color: var(--border-2); }
+
+    .layer-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 20px; right: 20px;
+      height: 1px;
+    }
+
+    .layer-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .layer-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .layer-name {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-1);
+    }
+
+    .layer-tag {
+      margin-left: auto;
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-3);
+      background: rgba(138, 155, 176, 0.08);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .module-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .module-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 7px 10px;
+      background: var(--bg-card-2);
+      border-radius: 6px;
+      border: 1px solid transparent;
+      transition: border-color 0.15s;
+    }
+
+    .module-item:hover { border-color: var(--border); }
+
+    .module-icon {
+      font-size: 11px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    .module-info { flex: 1; }
+
+    .module-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-1);
+    }
+
+    .module-path {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      margin-top: 1px;
+    }
+
+    .module-stage {
+      font-family: var(--mono);
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      align-self: flex-start;
+      margin-top: 2px;
+      white-space: nowrap;
+    }
+
+    /* ─── Stack Table ───────────────────────────────────────────────────── */
+    .stack-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .stack-table thead tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stack-table th {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-3);
+      padding: 12px 16px;
+      text-align: left;
+      background: var(--bg-card-2);
+    }
+
+    .stack-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      vertical-align: middle;
+    }
+
+    .stack-table tbody tr:last-child td { border-bottom: none; }
+    .stack-table tbody tr:hover td { background: var(--bg-card-2); }
+
+    .tech-name {
+      font-weight: 500;
+      color: var(--text-1);
+    }
+
+    .tech-role {
+      color: var(--text-2);
+    }
+
+    .tech-stage-pill {
+      font-family: var(--mono);
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* ─── Data Flow ─────────────────────────────────────────────────────── */
+    .flow-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 800px) { .flow-grid { grid-template-columns: 1fr; } }
+
+    .flow-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .flow-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+    }
+
+    .flow-arrow:last-child { border-bottom: none; }
+
+    .flow-node {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .flow-conn {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border-2), var(--border));
+      position: relative;
+    }
+
+    .flow-conn::after {
+      content: '›';
+      position: absolute;
+      right: -4px;
+      top: -8px;
+      color: var(--text-3);
+      font-size: 14px;
+    }
+
+    .flow-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-3);
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    /* ─── Directory Tree ────────────────────────────────────────────────── */
+    .tree-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .tree-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+
+    @media (max-width: 700px) { .tree-cols { grid-template-columns: 1fr; } }
+
+    .tree-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-3);
+      margin-bottom: 10px;
+    }
+
+    .tree-line { display: flex; align-items: baseline; gap: 0; }
+    .tree-prefix { color: var(--text-3); user-select: none; }
+    .tree-dir { color: var(--cyan); font-weight: 600; }
+    .tree-file { color: var(--text-2); }
+    .tree-file.py { color: var(--blue); }
+    .tree-file.ts { color: var(--purple); }
+    .tree-file.tsx { color: var(--pink); }
+    .tree-file.json { color: var(--orange); }
+    .tree-file.md { color: var(--green); }
+    .tree-file.html { color: var(--orange); }
+    .tree-comment {
+      color: var(--text-3);
+      font-size: 10px;
+      margin-left: 8px;
+    }
+
+    .tree-stage-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    /* ─── Legend ────────────────────────────────────────────────────────── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 16px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 32px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-2);
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ─── Footer ────────────────────────────────────────────────────────── */
+    .site-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-3);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+    }
+
+    /* ─── Utility ───────────────────────────────────────────────────────── */
+    .mt-8  { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+    .mt-24 { margin-top: 24px; }
+    .flex { display: flex; }
+    .gap-8 { gap: 8px; }
+    .items-center { align-items: center; }
+
+    .glow-text { text-shadow: 0 0 20px currentColor; }
+
+    .highlight-box {
+      background: rgba(56, 217, 230, 0.05);
+      border: 1px solid rgba(56, 217, 230, 0.2);
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 12px;
+      color: var(--text-2);
+      margin-top: 16px;
+    }
+
+    .highlight-box strong { color: var(--cyan); }
+  </style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- ══════════════ HEADER ══════════════ -->
+  <header class="site-header">
+    <div class="logo">
+      <svg class="logo-icon" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="17" cy="17" r="16" stroke="#38d9e6" stroke-width="1.5" opacity="0.3"/>
+        <circle cx="17" cy="17" r="10" stroke="#38d9e6" stroke-width="1.5" opacity="0.6"/>
+        <circle cx="17" cy="17" r="4" fill="#38d9e6"/>
+        <line x1="17" y1="1" x2="17" y2="8" stroke="#38d9e6" stroke-width="1" opacity="0.4"/>
+        <line x1="17" y1="26" x2="17" y2="33" stroke="#38d9e6" stroke-width="1" opacity="0.4"/>
+        <line x1="1" y1="17" x2="8" y2="17" stroke="#38d9e6" stroke-width="1" opacity="0.4"/>
+        <line x1="26" y1="17" x2="33" y2="17" stroke="#38d9e6" stroke-width="1" opacity="0.4"/>
+      </svg>
+      <div>
+        <div class="logo-text">PERSONAL OS</div>
+        <div class="logo-sub">System Map · Architecture</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="badge badge-active">Stage 1 — Active</span>
+      <span class="badge badge-version">v0.1.0</span>
+      <span class="badge badge-version" id="map-date">2026-06-21</span>
+    </div>
+  </header>
+
+  <!-- ══════════════ LEGEND ══════════════ -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--stage-0)"></div> Stage 0 · Prototype</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--stage-1)"></div> Stage 1 · Foundation</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--stage-15)"></div> Stage 1.5 · Dashboard</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--stage-2)"></div> Stage 2 · Integrations</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--stage-3)"></div> Stage 3 · Notifications</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--stage-4)"></div> Stage 4 · AI</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--stage-5)"></div> Stage 5 · Knowledge</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--stage-6)"></div> Stage 6 · Agents</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--stage-7)"></div> Stage 7 · Automation</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--stage-8)"></div> Stage 8 · Production</div>
+  </div>
+
+  <!-- ══════════════ STAGE TIMELINE ══════════════ -->
+  <section class="section">
+    <div class="section-title">Development Stages</div>
+    <div class="timeline">
+
+      <div class="timeline-stage">
+        <div class="ts-bar" style="background:var(--stage-0)"></div>
+        <div class="ts-label">Stage 0</div>
+        <div class="ts-name">Prototype</div>
+        <div class="ts-stack">
+          <span class="ts-tech">HTML</span>
+          <span class="ts-tech">SVG</span>
+          <span class="ts-tech">CSS</span>
+        </div>
+        <span class="ts-status status-done">done</span>
+      </div>
+
+      <div class="timeline-stage active">
+        <div class="ts-bar" style="background:var(--stage-1)"></div>
+        <div class="ts-label">Stage 1</div>
+        <div class="ts-name">Foundation</div>
+        <div class="ts-stack">
+          <span class="ts-tech">React · FastAPI</span>
+          <span class="ts-tech">SQLite · Zustand</span>
+          <span class="ts-tech">Tailwind · shadcn</span>
+        </div>
+        <span class="ts-status status-active">active</span>
+      </div>
+
+      <div class="timeline-stage">
+        <div class="ts-bar" style="background:var(--stage-15)"></div>
+        <div class="ts-label">Stage 1.5</div>
+        <div class="ts-name">Dashboard</div>
+        <div class="ts-stack">
+          <span class="ts-tech">react-grid-layout</span>
+          <span class="ts-tech">dnd-kit</span>
+          <span class="ts-tech">localStorage</span>
+        </div>
+        <span class="ts-status status-planned">planned</span>
+      </div>
+
+      <div class="timeline-stage">
+        <div class="ts-bar" style="background:var(--stage-2)"></div>
+        <div class="ts-label">Stage 2</div>
+        <div class="ts-name">Integrations</div>
+        <div class="ts-stack">
+          <span class="ts-tech">Google APIs</span>
+          <span class="ts-tech">OAuth 2.0</span>
+          <span class="ts-tech">Gmail · Calendar</span>
+        </div>
+        <span class="ts-status status-planned">planned</span>
+      </div>
+
+      <div class="timeline-stage">
+        <div class="ts-bar" style="background:var(--stage-3)"></div>
+        <div class="ts-label">Stage 3</div>
+        <div class="ts-name">Notifications</div>
+        <div class="ts-stack">
+          <span class="ts-tech">Telegram Bot</span>
+          <span class="ts-tech">Push Alerts</span>
+        </div>
+        <span class="ts-status status-planned">planned</span>
+      </div>
+
+      <div class="timeline-stage">
+        <div class="ts-bar" style="background:var(--stage-4)"></div>
+        <div class="ts-label">Stage 4</div>
+        <div class="ts-name">AI Layer</div>
+        <div class="ts-stack">
+          <span class="ts-tech">Anthropic</span>
+          <span class="ts-tech">OpenAI</span>
+          <span class="ts-tech">Ollama</span>
+        </div>
+        <span class="ts-status status-planned">planned</span>
+      </div>
+
+      <div class="timeline-stage">
+        <div class="ts-bar" style="background:var(--stage-5)"></div>
+        <div class="ts-label">Stage 5</div>
+        <div class="ts-name">Knowledge</div>
+        <div class="ts-stack">
+          <span class="ts-tech">Qdrant</span>
+          <span class="ts-tech">sentence-transformers</span>
+          <span class="ts-tech">RAG</span>
+        </div>
+        <span class="ts-status status-planned">planned</span>
+      </div>
+
+      <div class="timeline-stage">
+        <div class="ts-bar" style="background:var(--stage-6)"></div>
+        <div class="ts-label">Stage 6</div>
+        <div class="ts-name">Agents</div>
+        <div class="ts-stack">
+          <span class="ts-tech">Email Agent</span>
+          <span class="ts-tech">Calendar Agent</span>
+          <span class="ts-tech">Study Agent</span>
+        </div>
+        <span class="ts-status status-planned">planned</span>
+      </div>
+
+      <div class="timeline-stage">
+        <div class="ts-bar" style="background:var(--stage-7)"></div>
+        <div class="ts-label">Stage 7</div>
+        <div class="ts-name">Automation</div>
+        <div class="ts-stack">
+          <span class="ts-tech">APScheduler</span>
+          <span class="ts-tech">Workflows</span>
+          <span class="ts-tech">Triggers</span>
+        </div>
+        <span class="ts-status status-planned">planned</span>
+      </div>
+
+      <div class="timeline-stage">
+        <div class="ts-bar" style="background:var(--stage-8)"></div>
+        <div class="ts-label">Stage 8</div>
+        <div class="ts-name">Production</div>
+        <div class="ts-stack">
+          <span class="ts-tech">PostgreSQL</span>
+          <span class="ts-tech">Redis</span>
+          <span class="ts-tech">Docker</span>
+        </div>
+        <span class="ts-status status-planned">planned</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════ ARCHITECTURE DIAGRAM ══════════════ -->
+  <section class="section">
+    <div class="section-title">System Architecture</div>
+    <div class="arch-diagram">
+      <svg class="arch-svg" viewBox="0 0 1100 680" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Gradients -->
+          <linearGradient id="g-cyan" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#38d9e6" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#38d9e6" stop-opacity="0.2"/>
+          </linearGradient>
+          <linearGradient id="g-purple" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#9d8cff" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#9d8cff" stop-opacity="0.2"/>
+          </linearGradient>
+          <linearGradient id="g-green" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#46e0ac" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#46e0ac" stop-opacity="0.2"/>
+          </linearGradient>
+          <linearGradient id="g-bg-card" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0c1117"/>
+            <stop offset="100%" stop-color="#0a0f15"/>
+          </linearGradient>
+          <!-- Arrow markers -->
+          <marker id="arrow-cyan" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="#38d9e6" opacity="0.7"/>
+          </marker>
+          <marker id="arrow-blue" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="#4a9ff0" opacity="0.7"/>
+          </marker>
+          <marker id="arrow-purple" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="#9d8cff" opacity="0.7"/>
+          </marker>
+          <marker id="arrow-green" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="#46e0ac" opacity="0.7"/>
+          </marker>
+          <marker id="arrow-orange" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="#f0b54a" opacity="0.7"/>
+          </marker>
+          <!-- Glow filter -->
+          <filter id="glow-cyan">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- Background grid -->
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(56,217,230,0.03)" stroke-width="1"/>
+        </pattern>
+        <rect width="1100" height="680" fill="url(#grid)"/>
+
+        <!-- ═══ LAYER LABELS (left side) ═══ -->
+        <text x="16" y="108" font-family="monospace" font-size="9" fill="rgba(56,217,230,0.5)" letter-spacing="2" transform="rotate(-90,16,108)">USER</text>
+        <text x="16" y="230" font-family="monospace" font-size="9" fill="rgba(70,224,172,0.5)" letter-spacing="2" transform="rotate(-90,16,230)">FRONTEND</text>
+        <text x="16" y="370" font-family="monospace" font-size="9" fill="rgba(74,159,240,0.5)" letter-spacing="2" transform="rotate(-90,16,370)">BACKEND</text>
+        <text x="16" y="510" font-family="monospace" font-size="9" fill="rgba(157,140,255,0.5)" letter-spacing="2" transform="rotate(-90,16,510)">DATA</text>
+        <text x="16" y="630" font-family="monospace" font-size="9" fill="rgba(240,181,74,0.5)" letter-spacing="2" transform="rotate(-90,16,630)">EXTERNAL</text>
+
+        <!-- Horizontal lane separators -->
+        <line x1="40" y1="140" x2="1080" y2="140" stroke="rgba(56,217,230,0.06)" stroke-width="1" stroke-dasharray="4,8"/>
+        <line x1="40" y1="300" x2="1080" y2="300" stroke="rgba(70,224,172,0.06)" stroke-width="1" stroke-dasharray="4,8"/>
+        <line x1="40" y1="440" x2="1080" y2="440" stroke="rgba(74,159,240,0.06)" stroke-width="1" stroke-dasharray="4,8"/>
+        <line x1="40" y1="570" x2="1080" y2="570" stroke="rgba(157,140,255,0.06)" stroke-width="1" stroke-dasharray="4,8"/>
+
+        <!-- ═══ USER LAYER ═══ -->
+        <!-- Browser -->
+        <rect x="440" y="20" width="220" height="52" rx="8" fill="#0c1117" stroke="#38d9e6" stroke-width="1.5" opacity="0.9"/>
+        <text x="550" y="39" font-family="monospace" font-size="10" fill="#38d9e6" text-anchor="middle" font-weight="bold">Browser / Web App</text>
+        <text x="550" y="56" font-family="monospace" font-size="9" fill="rgba(56,217,230,0.5)" text-anchor="middle">React 18 · TypeScript · Vite</text>
+
+        <!-- Mobile (future) -->
+        <rect x="720" y="20" width="140" height="52" rx="8" fill="#0c1117" stroke="rgba(138,155,176,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="790" y="39" font-family="monospace" font-size="10" fill="rgba(138,155,176,0.5)" text-anchor="middle">Mobile App</text>
+        <text x="790" y="56" font-family="monospace" font-size="9" fill="rgba(138,155,176,0.3)" text-anchor="middle">future</text>
+
+        <!-- Telegram -->
+        <rect x="240" y="20" width="140" height="52" rx="8" fill="#0c1117" stroke="rgba(240,181,74,0.4)" stroke-width="1.5"/>
+        <text x="310" y="39" font-family="monospace" font-size="10" fill="#f0b54a" text-anchor="middle">Telegram</text>
+        <text x="310" y="56" font-family="monospace" font-size="9" fill="rgba(240,181,74,0.5)" text-anchor="middle">Stage 3 · python-telegram-bot</text>
+
+        <!-- ═══ FRONTEND LAYER ═══ -->
+        <!-- Main frontend container -->
+        <rect x="44" y="155" width="750" height="130" rx="10" fill="rgba(70,224,172,0.03)" stroke="rgba(70,224,172,0.15)" stroke-width="1"/>
+        <text x="60" y="173" font-family="monospace" font-size="9" fill="rgba(70,224,172,0.6)" letter-spacing="1">FRONTEND · React 18</text>
+
+        <!-- Router -->
+        <rect x="60" y="182" width="110" height="42" rx="6" fill="#0f1a14" stroke="rgba(70,224,172,0.4)" stroke-width="1"/>
+        <text x="115" y="199" font-family="monospace" font-size="9" fill="#46e0ac" text-anchor="middle">React Router</text>
+        <text x="115" y="212" font-family="monospace" font-size="8" fill="rgba(70,224,172,0.4)" text-anchor="middle">/dashboard /settings</text>
+
+        <!-- Zustand -->
+        <rect x="188" y="182" width="100" height="42" rx="6" fill="#0f1a14" stroke="rgba(70,224,172,0.4)" stroke-width="1"/>
+        <text x="238" y="199" font-family="monospace" font-size="9" fill="#46e0ac" text-anchor="middle">Zustand</text>
+        <text x="238" y="212" font-family="monospace" font-size="8" fill="rgba(70,224,172,0.4)" text-anchor="middle">useAppStore</text>
+
+        <!-- React Query -->
+        <rect x="304" y="182" width="110" height="42" rx="6" fill="#0f1a14" stroke="rgba(70,224,172,0.4)" stroke-width="1"/>
+        <text x="359" y="199" font-family="monospace" font-size="9" fill="#46e0ac" text-anchor="middle">React Query</text>
+        <text x="359" y="212" font-family="monospace" font-size="8" fill="rgba(70,224,172,0.4)" text-anchor="middle">server state</text>
+
+        <!-- shadcn/ui -->
+        <rect x="430" y="182" width="100" height="42" rx="6" fill="#0f1a14" stroke="rgba(70,224,172,0.4)" stroke-width="1"/>
+        <text x="480" y="199" font-family="monospace" font-size="9" fill="#46e0ac" text-anchor="middle">shadcn/ui</text>
+        <text x="480" y="212" font-family="monospace" font-size="8" fill="rgba(70,224,172,0.4)" text-anchor="middle">components</text>
+
+        <!-- Tailwind -->
+        <rect x="546" y="182" width="100" height="42" rx="6" fill="#0f1a14" stroke="rgba(70,224,172,0.4)" stroke-width="1"/>
+        <text x="596" y="199" font-family="monospace" font-size="9" fill="#46e0ac" text-anchor="middle">Tailwind CSS</text>
+        <text x="596" y="212" font-family="monospace" font-size="8" fill="rgba(70,224,172,0.4)" text-anchor="middle">dark mode</text>
+
+        <!-- react-grid-layout (1.5) -->
+        <rect x="662" y="182" width="120" height="42" rx="6" fill="#0f1a14" stroke="rgba(70,224,172,0.25)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="722" y="199" font-family="monospace" font-size="9" fill="rgba(70,224,172,0.5)" text-anchor="middle">grid-layout</text>
+        <text x="722" y="212" font-family="monospace" font-size="8" fill="rgba(70,224,172,0.3)" text-anchor="middle">Stage 1.5 · dnd-kit</text>
+
+        <!-- Pages row -->
+        <rect x="60" y="240" width="740" height="32" rx="6" fill="rgba(70,224,172,0.04)" stroke="rgba(70,224,172,0.1)" stroke-width="1"/>
+        <text x="80" y="253" font-family="monospace" font-size="8" fill="rgba(70,224,172,0.5)">pages/</text>
+        <text x="130" y="258" font-family="monospace" font-size="9" fill="#46e0ac">Dashboard</text>
+        <text x="220" y="258" font-family="monospace" font-size="8" fill="rgba(70,224,172,0.4)">Widgets ·</text>
+        <text x="274" y="258" font-family="monospace" font-size="9" fill="#46e0ac">Settings</text>
+        <text x="340" y="258" font-family="monospace" font-size="8" fill="rgba(70,224,172,0.4)">Sidebar ·</text>
+        <text x="390" y="258" font-family="monospace" font-size="9" fill="#46e0ac">Header</text>
+        <text x="460" y="258" font-family="monospace" font-size="8" fill="rgba(70,224,172,0.3)">→ Email (S2) · Calendar (S2) · AI Chat (S4) · Knowledge (S5)</text>
+
+        <!-- Open WebUI (future) -->
+        <rect x="812" y="155" width="130" height="60" rx="8" fill="#0c1117" stroke="rgba(157,140,255,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="877" y="178" font-family="monospace" font-size="9" fill="rgba(157,140,255,0.7)" text-anchor="middle">Open WebUI</text>
+        <text x="877" y="193" font-family="monospace" font-size="8" fill="rgba(157,140,255,0.4)" text-anchor="middle">Stage 4 · Ollama</text>
+        <text x="877" y="206" font-family="monospace" font-size="8" fill="rgba(157,140,255,0.3)" text-anchor="middle">local models</text>
+
+        <!-- ═══ BACKEND LAYER ═══ -->
+        <!-- FastAPI container -->
+        <rect x="44" y="315" width="580" height="110" rx="10" fill="rgba(74,159,240,0.03)" stroke="rgba(74,159,240,0.15)" stroke-width="1"/>
+        <text x="60" y="333" font-family="monospace" font-size="9" fill="rgba(74,159,240,0.6)" letter-spacing="1">BACKEND · FastAPI · Python 3.12</text>
+
+        <!-- API Router -->
+        <rect x="60" y="342" width="120" height="38" rx="6" fill="#0f1520" stroke="rgba(74,159,240,0.4)" stroke-width="1"/>
+        <text x="120" y="359" font-family="monospace" font-size="9" fill="#4a9ff0" text-anchor="middle">API Router</text>
+        <text x="120" y="372" font-family="monospace" font-size="8" fill="rgba(74,159,240,0.4)" text-anchor="middle">/api/v1/*</text>
+
+        <!-- Health -->
+        <rect x="196" y="342" width="90" height="38" rx="6" fill="#0f1520" stroke="rgba(74,159,240,0.4)" stroke-width="1"/>
+        <text x="241" y="359" font-family="monospace" font-size="9" fill="#4a9ff0" text-anchor="middle">Health</text>
+        <text x="241" y="372" font-family="monospace" font-size="8" fill="rgba(74,159,240,0.4)" text-anchor="middle">GET /health</text>
+
+        <!-- Auth (future) -->
+        <rect x="302" y="342" width="90" height="38" rx="6" fill="#0f1520" stroke="rgba(74,159,240,0.2)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="347" y="359" font-family="monospace" font-size="9" fill="rgba(74,159,240,0.5)" text-anchor="middle">Auth</text>
+        <text x="347" y="372" font-family="monospace" font-size="8" fill="rgba(74,159,240,0.3)" text-anchor="middle">OAuth · S2</text>
+
+        <!-- Email API -->
+        <rect x="408" y="342" width="90" height="38" rx="6" fill="#0f1520" stroke="rgba(74,159,240,0.2)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="453" y="359" font-family="monospace" font-size="9" fill="rgba(74,159,240,0.5)" text-anchor="middle">Email API</text>
+        <text x="453" y="372" font-family="monospace" font-size="8" fill="rgba(74,159,240,0.3)" text-anchor="middle">Gmail · S2</text>
+
+        <!-- AI Service -->
+        <rect x="514" y="342" width="100" height="38" rx="6" fill="#0f1520" stroke="rgba(157,140,255,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="564" y="359" font-family="monospace" font-size="9" fill="rgba(157,140,255,0.6)" text-anchor="middle">AI Service</text>
+        <text x="564" y="372" font-family="monospace" font-size="8" fill="rgba(157,140,255,0.3)" text-anchor="middle">LLM router · S4</text>
+
+        <!-- Service / Repo row -->
+        <rect x="60" y="396" width="555" height="22" rx="5" fill="rgba(74,159,240,0.04)" stroke="rgba(74,159,240,0.1)" stroke-width="1"/>
+        <text x="80" y="411" font-family="monospace" font-size="8" fill="rgba(74,159,240,0.4)">services/</text>
+        <text x="130" y="411" font-family="monospace" font-size="8" fill="rgba(74,159,240,0.6)">sync_service · notification_service · ai_service · agent_service · automation_service</text>
+
+        <!-- APScheduler -->
+        <rect x="640" y="315" width="120" height="52" rx="8" fill="#0c1117" stroke="rgba(249,115,22,0.35)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="700" y="336" font-family="monospace" font-size="9" fill="rgba(249,115,22,0.8)" text-anchor="middle">APScheduler</text>
+        <text x="700" y="350" font-family="monospace" font-size="8" fill="rgba(249,115,22,0.4)" text-anchor="middle">Stage 7</text>
+        <text x="700" y="362" font-family="monospace" font-size="8" fill="rgba(249,115,22,0.3)" text-anchor="middle">cron · triggers</text>
+
+        <!-- Agents -->
+        <rect x="640" y="380" width="120" height="42" rx="8" fill="#0c1117" stroke="rgba(255,107,107,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="700" y="398" font-family="monospace" font-size="9" fill="rgba(255,107,107,0.7)" text-anchor="middle">Agents</text>
+        <text x="700" y="411" font-family="monospace" font-size="8" fill="rgba(255,107,107,0.4)" text-anchor="middle">Email · Cal · Study</text>
+        <text x="700" y="417" font-family="monospace" font-size="7" fill="rgba(255,107,107,0.3)" text-anchor="middle">Stage 6</text>
+
+        <!-- ═══ DATA LAYER ═══ -->
+        <!-- SQLite -->
+        <rect x="60" y="458" width="120" height="60" rx="8" fill="#0c1117" stroke="rgba(56,217,230,0.4)" stroke-width="1.5"/>
+        <text x="120" y="480" font-family="monospace" font-size="10" fill="#38d9e6" text-anchor="middle" font-weight="bold">SQLite</text>
+        <text x="120" y="496" font-family="monospace" font-size="8" fill="rgba(56,217,230,0.5)" text-anchor="middle">SQLModel · Stage 1</text>
+        <text x="120" y="509" font-family="monospace" font-size="8" fill="rgba(56,217,230,0.3)" text-anchor="middle">User · Widget</text>
+
+        <!-- PostgreSQL (future) -->
+        <rect x="200" y="458" width="120" height="60" rx="8" fill="#0c1117" stroke="rgba(163,230,53,0.25)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="260" y="480" font-family="monospace" font-size="10" fill="rgba(163,230,53,0.7)" text-anchor="middle">PostgreSQL</text>
+        <text x="260" y="496" font-family="monospace" font-size="8" fill="rgba(163,230,53,0.4)" text-anchor="middle">Stage 8 · production</text>
+        <text x="260" y="509" font-family="monospace" font-size="8" fill="rgba(163,230,53,0.25)" text-anchor="middle">replaces SQLite</text>
+
+        <!-- Redis (future) -->
+        <rect x="340" y="458" width="100" height="60" rx="8" fill="#0c1117" stroke="rgba(163,230,53,0.2)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="390" y="480" font-family="monospace" font-size="10" fill="rgba(163,230,53,0.6)" text-anchor="middle">Redis</text>
+        <text x="390" y="496" font-family="monospace" font-size="8" fill="rgba(163,230,53,0.35)" text-anchor="middle">Stage 8</text>
+        <text x="390" y="509" font-family="monospace" font-size="8" fill="rgba(163,230,53,0.2)" text-anchor="middle">cache · queue</text>
+
+        <!-- Qdrant -->
+        <rect x="460" y="458" width="110" height="60" rx="8" fill="#0c1117" stroke="rgba(232,121,160,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="515" y="480" font-family="monospace" font-size="10" fill="rgba(232,121,160,0.7)" text-anchor="middle">Qdrant</text>
+        <text x="515" y="496" font-family="monospace" font-size="8" fill="rgba(232,121,160,0.4)" text-anchor="middle">Stage 5 · vectors</text>
+        <text x="515" y="509" font-family="monospace" font-size="8" fill="rgba(232,121,160,0.3)" text-anchor="middle">semantic search</text>
+
+        <!-- ═══ EXTERNAL LAYER ═══ -->
+        <!-- Gmail -->
+        <rect x="60" y="588" width="100" height="50" rx="8" fill="#0c1117" stroke="rgba(74,159,240,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="110" y="609" font-family="monospace" font-size="9" fill="rgba(74,159,240,0.7)" text-anchor="middle">Gmail API</text>
+        <text x="110" y="625" font-family="monospace" font-size="8" fill="rgba(74,159,240,0.35)" text-anchor="middle">Stage 2</text>
+
+        <!-- Google Calendar -->
+        <rect x="176" y="588" width="130" height="50" rx="8" fill="#0c1117" stroke="rgba(74,159,240,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="241" y="609" font-family="monospace" font-size="9" fill="rgba(74,159,240,0.7)" text-anchor="middle">Google Calendar</text>
+        <text x="241" y="625" font-family="monospace" font-size="8" fill="rgba(74,159,240,0.35)" text-anchor="middle">Stage 2</text>
+
+        <!-- Anthropic -->
+        <rect x="322" y="588" width="110" height="50" rx="8" fill="#0c1117" stroke="rgba(157,140,255,0.35)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="377" y="609" font-family="monospace" font-size="9" fill="rgba(157,140,255,0.7)" text-anchor="middle">Anthropic API</text>
+        <text x="377" y="625" font-family="monospace" font-size="8" fill="rgba(157,140,255,0.35)" text-anchor="middle">Stage 4 · Claude</text>
+
+        <!-- OpenAI -->
+        <rect x="448" y="588" width="90" height="50" rx="8" fill="#0c1117" stroke="rgba(157,140,255,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="493" y="609" font-family="monospace" font-size="9" fill="rgba(157,140,255,0.6)" text-anchor="middle">OpenAI API</text>
+        <text x="493" y="625" font-family="monospace" font-size="8" fill="rgba(157,140,255,0.3)" text-anchor="middle">Stage 4 · GPT</text>
+
+        <!-- Ollama -->
+        <rect x="554" y="588" width="90" height="50" rx="8" fill="#0c1117" stroke="rgba(157,140,255,0.25)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="599" y="609" font-family="monospace" font-size="9" fill="rgba(157,140,255,0.5)" text-anchor="middle">Ollama</text>
+        <text x="599" y="625" font-family="monospace" font-size="8" fill="rgba(157,140,255,0.25)" text-anchor="middle">Stage 4 · local</text>
+
+        <!-- Docker -->
+        <rect x="660" y="588" width="90" height="50" rx="8" fill="#0c1117" stroke="rgba(163,230,53,0.25)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="705" y="609" font-family="monospace" font-size="9" fill="rgba(163,230,53,0.6)" text-anchor="middle">Docker</text>
+        <text x="705" y="625" font-family="monospace" font-size="8" fill="rgba(163,230,53,0.3)" text-anchor="middle">Stage 8</text>
+
+        <!-- ═══ CONNECTIONS ═══ -->
+        <!-- Browser → Frontend -->
+        <path d="M550,72 L550,155" stroke="#38d9e6" stroke-width="1.5" fill="none" marker-end="url(#arrow-cyan)" opacity="0.6"/>
+
+        <!-- Telegram → Backend -->
+        <path d="M310,72 L310,200 L44,200 L44,360" stroke="#f0b54a" stroke-width="1" fill="none" stroke-dasharray="4,4" marker-end="url(#arrow-orange)" opacity="0.4"/>
+
+        <!-- Frontend → Backend (React Query HTTP) -->
+        <path d="M359,285 L359,315" stroke="#46e0ac" stroke-width="1.5" fill="none" marker-end="url(#arrow-green)" opacity="0.6"/>
+        <text x="365" y="303" font-family="monospace" font-size="8" fill="rgba(70,224,172,0.5)">HTTP/REST</text>
+
+        <!-- Backend → SQLite -->
+        <path d="M120,425 L120,458" stroke="#38d9e6" stroke-width="1.5" fill="none" marker-end="url(#arrow-cyan)" opacity="0.6"/>
+
+        <!-- Backend → Qdrant -->
+        <path d="M515,425 L515,458" stroke="#e879a0" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#arrow-purple)" opacity="0.4"/>
+
+        <!-- Backend → Gmail -->
+        <path d="M196,390 L110,390 L110,588" stroke="#4a9ff0" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#arrow-blue)" opacity="0.35"/>
+
+        <!-- AI Service → Anthropic -->
+        <path d="M564,390 L564,520 L377,520 L377,588" stroke="#9d8cff" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#arrow-purple)" opacity="0.35"/>
+
+        <!-- APScheduler ↔ Backend -->
+        <path d="M640,341 L624,341" stroke="#f97316" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#arrow-orange)" opacity="0.4"/>
+
+        <!-- Open WebUI ↔ Frontend -->
+        <path d="M812,185 L794,210" stroke="#9d8cff" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#arrow-purple)" opacity="0.3"/>
+
+        <!-- Stage indicators (top-right) -->
+        <rect x="960" y="20" width="120" height="280" rx="8" fill="rgba(0,0,0,0.3)" stroke="rgba(56,217,230,0.08)" stroke-width="1"/>
+        <text x="975" y="38" font-family="monospace" font-size="8" fill="rgba(56,217,230,0.4)" letter-spacing="1">ACTIVE STAGE</text>
+
+        <circle cx="975" cy="60" r="4" fill="#38d9e6"/>
+        <text x="988" y="64" font-family="monospace" font-size="9" fill="#38d9e6">Stage 1</text>
+        <text x="988" y="76" font-family="monospace" font-size="8" fill="rgba(56,217,230,0.4)">Foundation</text>
+
+        <text x="975" y="100" font-family="monospace" font-size="8" fill="rgba(138,155,176,0.4)" letter-spacing="1">PIPELINE</text>
+
+        <circle cx="975" cy="118" r="3" fill="#46e0ac" opacity="0.5"/>
+        <text x="988" y="122" font-family="monospace" font-size="8" fill="rgba(70,224,172,0.5)">1.5 · Dashboard</text>
+
+        <circle cx="975" cy="138" r="3" fill="#4a9ff0" opacity="0.5"/>
+        <text x="988" y="142" font-family="monospace" font-size="8" fill="rgba(74,159,240,0.5)">2 · Integrations</text>
+
+        <circle cx="975" cy="158" r="3" fill="#f0b54a" opacity="0.5"/>
+        <text x="988" y="162" font-family="monospace" font-size="8" fill="rgba(240,181,74,0.5)">3 · Notifications</text>
+
+        <circle cx="975" cy="178" r="3" fill="#9d8cff" opacity="0.5"/>
+        <text x="988" y="182" font-family="monospace" font-size="8" fill="rgba(157,140,255,0.5)">4 · AI Layer</text>
+
+        <circle cx="975" cy="198" r="3" fill="#e879a0" opacity="0.5"/>
+        <text x="988" y="202" font-family="monospace" font-size="8" fill="rgba(232,121,160,0.5)">5 · Knowledge</text>
+
+        <circle cx="975" cy="218" r="3" fill="#ff6b6b" opacity="0.5"/>
+        <text x="988" y="222" font-family="monospace" font-size="8" fill="rgba(255,107,107,0.5)">6 · Agents</text>
+
+        <circle cx="975" cy="238" r="3" fill="#f97316" opacity="0.5"/>
+        <text x="988" y="242" font-family="monospace" font-size="8" fill="rgba(249,115,22,0.5)">7 · Automation</text>
+
+        <circle cx="975" cy="258" r="3" fill="#a3e635" opacity="0.5"/>
+        <text x="988" y="262" font-family="monospace" font-size="8" fill="rgba(163,230,53,0.5)">8 · Production</text>
+
+        <!-- Legend key bottom-right -->
+        <rect x="960" y="320" width="120" height="80" rx="8" fill="rgba(0,0,0,0.3)" stroke="rgba(56,217,230,0.08)" stroke-width="1"/>
+        <text x="975" y="338" font-family="monospace" font-size="8" fill="rgba(138,155,176,0.4)" letter-spacing="1">LEGEND</text>
+        <line x1="975" y1="352" x2="1010" y2="352" stroke="#38d9e6" stroke-width="1.5"/>
+        <text x="1018" y="356" font-family="monospace" font-size="8" fill="rgba(138,155,176,0.6)">built</text>
+        <line x1="975" y1="368" x2="1010" y2="368" stroke="rgba(138,155,176,0.4)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="1018" y="372" font-family="monospace" font-size="8" fill="rgba(138,155,176,0.6)">planned</text>
+        <line x1="975" y1="384" x2="1010" y2="384" stroke="rgba(163,230,53,0.4)" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="1018" y="388" font-family="monospace" font-size="8" fill="rgba(138,155,176,0.6)">future</text>
+
+        <!-- Title watermark -->
+        <text x="1080" y="660" font-family="monospace" font-size="9" fill="rgba(56,217,230,0.2)" text-anchor="end">Personal OS · System Architecture</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ══════════════ MODULE BREAKDOWN ══════════════ -->
+  <section class="section">
+    <div class="section-title">Module Structure</div>
+    <div class="layers-grid">
+
+      <!-- Frontend -->
+      <div class="layer-card" style="border-color:rgba(70,224,172,0.2)">
+        <div class="layer-card" style="position:absolute;top:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,#46e0ac,transparent);opacity:0.3"></div>
+        <div class="layer-header">
+          <div class="layer-dot" style="background:#46e0ac;box-shadow:0 0 6px #46e0ac"></div>
+          <div class="layer-name">Frontend · React</div>
+          <div class="layer-tag">frontend/</div>
+        </div>
+        <ul class="module-list">
+          <li class="module-item">
+            <span class="module-icon">📄</span>
+            <div class="module-info">
+              <div class="module-name">Dashboard Page</div>
+              <div class="module-path">pages/Dashboard.tsx</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,217,230,0.1);color:var(--cyan)">S1</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🧩</span>
+            <div class="module-info">
+              <div class="module-name">Widget System</div>
+              <div class="module-path">components/widgets/</div>
+            </div>
+            <span class="module-stage" style="background:rgba(70,224,172,0.1);color:var(--green)">S1.5</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🗂️</span>
+            <div class="module-info">
+              <div class="module-name">Sidebar + Header</div>
+              <div class="module-path">components/layout/</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,217,230,0.1);color:var(--cyan)">S1</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">⚙️</span>
+            <div class="module-info">
+              <div class="module-name">Settings Page</div>
+              <div class="module-path">pages/Settings.tsx</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,217,230,0.1);color:var(--cyan)">S1</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🏪</span>
+            <div class="module-info">
+              <div class="module-name">App Store</div>
+              <div class="module-path">store/useAppStore.ts</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,217,230,0.1);color:var(--cyan)">S1</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">📧</span>
+            <div class="module-info">
+              <div class="module-name">Email Feature</div>
+              <div class="module-path">features/email/</div>
+            </div>
+            <span class="module-stage" style="background:rgba(74,159,240,0.1);color:var(--blue)">S2</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🗓️</span>
+            <div class="module-info">
+              <div class="module-name">Calendar Feature</div>
+              <div class="module-path">features/calendar/</div>
+            </div>
+            <span class="module-stage" style="background:rgba(74,159,240,0.1);color:var(--blue)">S2</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🤖</span>
+            <div class="module-info">
+              <div class="module-name">AI Chat Feature</div>
+              <div class="module-path">features/ai/</div>
+            </div>
+            <span class="module-stage" style="background:rgba(157,140,255,0.1);color:var(--purple)">S4</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Backend -->
+      <div class="layer-card" style="border-color:rgba(74,159,240,0.2)">
+        <div class="layer-header">
+          <div class="layer-dot" style="background:#4a9ff0;box-shadow:0 0 6px #4a9ff0"></div>
+          <div class="layer-name">Backend · FastAPI</div>
+          <div class="layer-tag">backend/</div>
+        </div>
+        <ul class="module-list">
+          <li class="module-item">
+            <span class="module-icon">🚀</span>
+            <div class="module-info">
+              <div class="module-name">App Entry</div>
+              <div class="module-path">main.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,217,230,0.1);color:var(--cyan)">S1</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🔌</span>
+            <div class="module-info">
+              <div class="module-name">Health Router</div>
+              <div class="module-path">api/v1/health.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,217,230,0.1);color:var(--cyan)">S1</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🗄️</span>
+            <div class="module-info">
+              <div class="module-name">Database Setup</div>
+              <div class="module-path">db/database.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,217,230,0.1);color:var(--cyan)">S1</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">📦</span>
+            <div class="module-info">
+              <div class="module-name">Models</div>
+              <div class="module-path">models/ User · Widget</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,217,230,0.1);color:var(--cyan)">S1</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">📧</span>
+            <div class="module-info">
+              <div class="module-name">Email Router + Service</div>
+              <div class="module-path">api/v1/email.py · services/email_service.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(74,159,240,0.1);color:var(--blue)">S2</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🔐</span>
+            <div class="module-info">
+              <div class="module-name">OAuth Handler</div>
+              <div class="module-path">services/auth_service.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(74,159,240,0.1);color:var(--blue)">S2</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🤖</span>
+            <div class="module-info">
+              <div class="module-name">AI Service</div>
+              <div class="module-path">services/ai_service.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(157,140,255,0.1);color:var(--purple)">S4</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🧠</span>
+            <div class="module-info">
+              <div class="module-name">Embedding Service</div>
+              <div class="module-path">services/embedding_service.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(232,121,160,0.1);color:var(--pink)">S5</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Data Layer -->
+      <div class="layer-card" style="border-color:rgba(157,140,255,0.2)">
+        <div class="layer-header">
+          <div class="layer-dot" style="background:#9d8cff;box-shadow:0 0 6px #9d8cff"></div>
+          <div class="layer-name">Data Layer</div>
+          <div class="layer-tag">persistence</div>
+        </div>
+        <ul class="module-list">
+          <li class="module-item">
+            <span class="module-icon">🗃️</span>
+            <div class="module-info">
+              <div class="module-name">SQLite (dev)</div>
+              <div class="module-path">local database · SQLModel ORM</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,217,230,0.1);color:var(--cyan)">S1</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">📊</span>
+            <div class="module-info">
+              <div class="module-name">User Model</div>
+              <div class="module-path">models/user.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,217,230,0.1);color:var(--cyan)">S1</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">📊</span>
+            <div class="module-info">
+              <div class="module-name">DashboardWidget Model</div>
+              <div class="module-path">models/widget.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,217,230,0.1);color:var(--cyan)">S1</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">📮</span>
+            <div class="module-info">
+              <div class="module-name">Email / Calendar Models</div>
+              <div class="module-path">models/email.py · models/event.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(74,159,240,0.1);color:var(--blue)">S2</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🔴</span>
+            <div class="module-info">
+              <div class="module-name">Redis Cache</div>
+              <div class="module-path">session · task queue</div>
+            </div>
+            <span class="module-stage" style="background:rgba(163,230,53,0.1);color:#a3e635">S8</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🔮</span>
+            <div class="module-info">
+              <div class="module-name">Qdrant Vector DB</div>
+              <div class="module-path">embeddings · semantic search</div>
+            </div>
+            <span class="module-stage" style="background:rgba(232,121,160,0.1);color:var(--pink)">S5</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Agents & Automation -->
+      <div class="layer-card" style="border-color:rgba(255,107,107,0.2)">
+        <div class="layer-header">
+          <div class="layer-dot" style="background:#ff6b6b;box-shadow:0 0 6px #ff6b6b"></div>
+          <div class="layer-name">Agents + Automation</div>
+          <div class="layer-tag">S6–S7</div>
+        </div>
+        <ul class="module-list">
+          <li class="module-item">
+            <span class="module-icon">📧</span>
+            <div class="module-info">
+              <div class="module-name">Email Agent</div>
+              <div class="module-path">agents/email_agent.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(255,107,107,0.1);color:var(--red)">S6</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🗓️</span>
+            <div class="module-info">
+              <div class="module-name">Calendar Agent</div>
+              <div class="module-path">agents/calendar_agent.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(255,107,107,0.1);color:var(--red)">S6</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">📚</span>
+            <div class="module-info">
+              <div class="module-name">Study Agent</div>
+              <div class="module-path">agents/study_agent.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(255,107,107,0.1);color:var(--red)">S6</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🔔</span>
+            <div class="module-info">
+              <div class="module-name">Notification Agent</div>
+              <div class="module-path">agents/notification_agent.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(255,107,107,0.1);color:var(--red)">S6</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">⏰</span>
+            <div class="module-info">
+              <div class="module-name">APScheduler Jobs</div>
+              <div class="module-path">automation/scheduler.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(249,115,22,0.1);color:#f97316">S7</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">⚡</span>
+            <div class="module-info">
+              <div class="module-name">Workflow Engine</div>
+              <div class="module-path">automation/workflows.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(249,115,22,0.1);color:#f97316">S7</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🎯</span>
+            <div class="module-info">
+              <div class="module-name">Trigger System</div>
+              <div class="module-path">automation/triggers.py</div>
+            </div>
+            <span class="module-stage" style="background:rgba(249,115,22,0.1);color:#f97316">S7</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════ TECH STACK TABLE ══════════════ -->
+  <section class="section">
+    <div class="section-title">Full Tech Stack</div>
+    <table class="stack-table">
+      <thead>
+        <tr>
+          <th style="width:18%">Technology</th>
+          <th style="width:10%">Category</th>
+          <th style="width:36%">Role</th>
+          <th style="width:10%">Stage</th>
+          <th style="width:12%">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="tech-name">React 18</td><td class="tech-role">Frontend</td><td class="tech-role">UI component framework, SPA shell</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">TypeScript</td><td class="tech-role">Frontend</td><td class="tech-role">Type safety across all frontend code</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">Vite</td><td class="tech-role">Frontend</td><td class="tech-role">Build tooling and dev server</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">Tailwind CSS</td><td class="tech-role">Frontend</td><td class="tech-role">Utility-first styling, dark mode</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">React Router</td><td class="tech-role">Frontend</td><td class="tech-role">Client-side routing /dashboard /settings</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">Zustand</td><td class="tech-role">Frontend</td><td class="tech-role">Global UI state — sidebar, theme, route</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">React Query</td><td class="tech-role">Frontend</td><td class="tech-role">Server state, caching, async data</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">shadcn/ui</td><td class="tech-role">Frontend</td><td class="tech-role">Accessible component primitives</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">react-grid-layout</td><td class="tech-role">Frontend</td><td class="tech-role">Draggable resizable widget grid</td><td><span class="tech-stage-pill" style="background:rgba(70,224,172,0.1);color:#46e0ac">Stage 1.5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">dnd-kit</td><td class="tech-role">Frontend</td><td class="tech-role">Drag-and-drop primitives</td><td><span class="tech-stage-pill" style="background:rgba(70,224,172,0.1);color:#46e0ac">Stage 1.5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">FastAPI</td><td class="tech-role">Backend</td><td class="tech-role">Async REST API framework</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">Python 3.12</td><td class="tech-role">Backend</td><td class="tech-role">Backend runtime</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">SQLModel</td><td class="tech-role">Backend</td><td class="tech-role">ORM bridging SQLAlchemy + Pydantic</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">Pydantic v2</td><td class="tech-role">Backend</td><td class="tech-role">Schema validation and serialization</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">SQLite</td><td class="tech-role">Data</td><td class="tech-role">Local dev database</td><td><span class="tech-stage-pill" style="background:rgba(56,217,230,0.1);color:#38d9e6">Stage 1</span></td><td><span class="ts-status status-active">active</span></td></tr>
+        <tr><td class="tech-name">Google APIs</td><td class="tech-role">Integration</td><td class="tech-role">Gmail + Calendar sync via OAuth 2.0</td><td><span class="tech-stage-pill" style="background:rgba(74,159,240,0.1);color:#4a9ff0">Stage 2</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">python-telegram-bot</td><td class="tech-role">Notifications</td><td class="tech-role">Telegram bot for alerts and commands</td><td><span class="tech-stage-pill" style="background:rgba(240,181,74,0.1);color:#f0b54a">Stage 3</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">Anthropic API</td><td class="tech-role">AI</td><td class="tech-role">Claude — primary LLM for reasoning</td><td><span class="tech-stage-pill" style="background:rgba(157,140,255,0.1);color:#9d8cff">Stage 4</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">OpenAI API</td><td class="tech-role">AI</td><td class="tech-role">GPT models — secondary provider</td><td><span class="tech-stage-pill" style="background:rgba(157,140,255,0.1);color:#9d8cff">Stage 4</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">Ollama</td><td class="tech-role">AI</td><td class="tech-role">Local LLM inference (privacy-first)</td><td><span class="tech-stage-pill" style="background:rgba(157,140,255,0.1);color:#9d8cff">Stage 4</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">Open WebUI</td><td class="tech-role">AI</td><td class="tech-role">Chat interface for local models</td><td><span class="tech-stage-pill" style="background:rgba(157,140,255,0.1);color:#9d8cff">Stage 4</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">Qdrant</td><td class="tech-role">Knowledge</td><td class="tech-role">Vector database for semantic search</td><td><span class="tech-stage-pill" style="background:rgba(232,121,160,0.1);color:#e879a0">Stage 5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">sentence-transformers</td><td class="tech-role">Knowledge</td><td class="tech-role">Document embedding generation</td><td><span class="tech-stage-pill" style="background:rgba(232,121,160,0.1);color:#e879a0">Stage 5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">APScheduler</td><td class="tech-role">Automation</td><td class="tech-role">Cron jobs and scheduled tasks</td><td><span class="tech-stage-pill" style="background:rgba(249,115,22,0.1);color:#f97316">Stage 7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">PostgreSQL</td><td class="tech-role">Data</td><td class="tech-role">Production database (replaces SQLite)</td><td><span class="tech-stage-pill" style="background:rgba(163,230,53,0.1);color:#a3e635">Stage 8</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">Redis</td><td class="tech-role">Data</td><td class="tech-role">Caching, sessions, task queues</td><td><span class="tech-stage-pill" style="background:rgba(163,230,53,0.1);color:#a3e635">Stage 8</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">Docker Compose</td><td class="tech-role">Infra</td><td class="tech-role">Container orchestration for production</td><td><span class="tech-stage-pill" style="background:rgba(163,230,53,0.1);color:#a3e635">Stage 8</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ══════════════ DATA FLOW ══════════════ -->
+  <section class="section">
+    <div class="section-title">Data Flow Patterns</div>
+    <div class="flow-grid">
+
+      <div class="flow-card">
+        <div class="flow-title">
+          <span style="color:var(--cyan)">◆</span> API Request (Stage 1)
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(70,224,172,0.1);color:#46e0ac">React Component</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">useQuery hook</div>
+          </div>
+          <span class="flow-node" style="background:rgba(70,224,172,0.1);color:#46e0ac">React Query</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(70,224,172,0.1);color:#46e0ac">React Query</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">HTTP GET /api/v1/*</div>
+          </div>
+          <span class="flow-node" style="background:rgba(74,159,240,0.1);color:#4a9ff0">FastAPI Router</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(74,159,240,0.1);color:#4a9ff0">FastAPI Router</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">Service call</div>
+          </div>
+          <span class="flow-node" style="background:rgba(56,217,230,0.1);color:#38d9e6">SQLite / SQLModel</span>
+        </div>
+      </div>
+
+      <div class="flow-card">
+        <div class="flow-title">
+          <span style="color:var(--blue)">◆</span> Email Sync (Stage 2)
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(74,159,240,0.1);color:#4a9ff0">OAuth Token</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">google-auth-oauthlib</div>
+          </div>
+          <span class="flow-node" style="background:rgba(74,159,240,0.1);color:#4a9ff0">Gmail API</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(74,159,240,0.1);color:#4a9ff0">Gmail API</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">EmailMessage model</div>
+          </div>
+          <span class="flow-node" style="background:rgba(56,217,230,0.1);color:#38d9e6">Database</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(56,217,230,0.1);color:#38d9e6">Database</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">REST response</div>
+          </div>
+          <span class="flow-node" style="background:rgba(70,224,172,0.1);color:#46e0ac">Email Widget</span>
+        </div>
+      </div>
+
+      <div class="flow-card">
+        <div class="flow-title">
+          <span style="color:var(--purple)">◆</span> AI Chat (Stage 4)
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(157,140,255,0.1);color:#9d8cff">User Prompt</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">POST /api/v1/ai/chat</div>
+          </div>
+          <span class="flow-node" style="background:rgba(157,140,255,0.1);color:#9d8cff">AI Service</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(157,140,255,0.1);color:#9d8cff">AI Service</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">provider router</div>
+          </div>
+          <span class="flow-node" style="background:rgba(157,140,255,0.1);color:#9d8cff">Anthropic / OpenAI / Ollama</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(157,140,255,0.1);color:#9d8cff">LLM Response</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">SSE stream</div>
+          </div>
+          <span class="flow-node" style="background:rgba(70,224,172,0.1);color:#46e0ac">Chat Widget</span>
+        </div>
+      </div>
+
+      <div class="flow-card">
+        <div class="flow-title">
+          <span style="color:var(--pink)">◆</span> RAG Pipeline (Stage 5)
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(232,121,160,0.1);color:#e879a0">Document Upload</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">POST /api/v1/knowledge</div>
+          </div>
+          <span class="flow-node" style="background:rgba(232,121,160,0.1);color:#e879a0">Embedding Service</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(232,121,160,0.1);color:#e879a0">Embedding Service</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">sentence-transformers</div>
+          </div>
+          <span class="flow-node" style="background:rgba(232,121,160,0.1);color:#e879a0">Qdrant</span>
+        </div>
+        <div class="flow-arrow">
+          <span class="flow-node" style="background:rgba(232,121,160,0.1);color:#e879a0">Search Query</span>
+          <div>
+            <div class="flow-conn"></div>
+            <div class="flow-label">similarity search</div>
+          </div>
+          <span class="flow-node" style="background:rgba(157,140,255,0.1);color:#9d8cff">AI Context</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════ DIRECTORY TREE ══════════════ -->
+  <section class="section">
+    <div class="section-title">Project Structure</div>
+    <div class="tree-container">
+      <div class="tree-cols">
+
+        <!-- Backend tree -->
+        <div>
+          <div class="tree-section-label" style="color:var(--blue)">Backend — Python / FastAPI</div>
+          <div class="tree-line"><span class="tree-prefix">  </span><span class="tree-dir">backend/</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file py">main.py</span><span class="tree-comment">← app entry, CORS, lifespan</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file json">requirements.txt</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">api/</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-dir">v1/</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │     ├─ </span><span class="tree-file py">health.py</span><span class="tree-comment" style="color:var(--cyan)">  S1</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │     ├─ </span><span class="tree-file py">email.py</span><span class="tree-comment" style="color:var(--blue)">   S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │     ├─ </span><span class="tree-file py">calendar.py</span><span class="tree-comment" style="color:var(--blue)"> S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │     ├─ </span><span class="tree-file py">ai.py</span><span class="tree-comment" style="color:var(--purple)">      S4</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │     └─ </span><span class="tree-file py">knowledge.py</span><span class="tree-comment" style="color:var(--pink)">S5</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">models/</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">user.py</span><span class="tree-comment" style="color:var(--cyan)">        S1</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">widget.py</span><span class="tree-comment" style="color:var(--cyan)">      S1</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">email.py</span><span class="tree-comment" style="color:var(--blue)">       S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-file py">event.py</span><span class="tree-comment" style="color:var(--blue)">       S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">services/</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">auth_service.py</span><span class="tree-comment" style="color:var(--blue)"> S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">email_service.py</span><span class="tree-comment" style="color:var(--blue)">S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">notification_service.py</span><span class="tree-comment" style="color:var(--orange)">S3</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">ai_service.py</span><span class="tree-comment" style="color:var(--purple)">  S4</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-file py">embedding_service.py</span><span class="tree-comment" style="color:var(--pink)">S5</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">agents/</span><span class="tree-comment" style="color:var(--red)"> ← S6</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">email_agent.py</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">calendar_agent.py</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">study_agent.py</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-file py">notification_agent.py</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">automation/</span><span class="tree-comment" style="color:#f97316"> ← S7</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">scheduler.py</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">workflows.py</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-file py">triggers.py</span></div>
+          <div class="tree-line"><span class="tree-prefix">  └─ </span><span class="tree-dir">db/</span></div>
+          <div class="tree-line"><span class="tree-prefix">     └─ </span><span class="tree-file py">database.py</span><span class="tree-comment" style="color:var(--cyan)"> S1</span></div>
+        </div>
+
+        <!-- Frontend tree -->
+        <div>
+          <div class="tree-section-label" style="color:var(--green)">Frontend — React / TypeScript</div>
+          <div class="tree-line"><span class="tree-prefix">  </span><span class="tree-dir">frontend/</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file json">package.json</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file json">vite.config.ts</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file json">tailwind.config.ts</span></div>
+          <div class="tree-line"><span class="tree-prefix">  └─ </span><span class="tree-dir">src/</span></div>
+          <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-file tsx">App.tsx</span><span class="tree-comment" style="color:var(--cyan)"> ← router shell</span></div>
+          <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-file tsx">main.tsx</span></div>
+          <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">pages/</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-file tsx">Dashboard.tsx</span><span class="tree-comment" style="color:var(--cyan)"> S1</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-file tsx">Settings.tsx</span><span class="tree-comment" style="color:var(--cyan)">  S1</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-file tsx">Email.tsx</span><span class="tree-comment" style="color:var(--blue)">     S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-file tsx">Calendar.tsx</span><span class="tree-comment" style="color:var(--blue)">  S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file tsx">AIChat.tsx</span><span class="tree-comment" style="color:var(--purple)">    S4</span></div>
+          <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">components/</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">layout/</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  │  ├─ </span><span class="tree-file tsx">Sidebar.tsx</span><span class="tree-comment" style="color:var(--cyan)"> S1</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  │  └─ </span><span class="tree-file tsx">Header.tsx</span><span class="tree-comment" style="color:var(--cyan)">  S1</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">widgets/</span><span class="tree-comment" style="color:var(--green)"> ← S1 placeholders, S1.5 grid</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  │  ├─ </span><span class="tree-file tsx">OverviewWidget.tsx</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  │  ├─ </span><span class="tree-file tsx">NotificationsWidget.tsx</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  │  ├─ </span><span class="tree-file tsx">EventsWidget.tsx</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  │  └─ </span><span class="tree-file tsx">ActivityWidget.tsx</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-dir">ui/</span><span class="tree-comment"> ← shadcn components</span></div>
+          <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">features/</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">email/</span><span class="tree-comment" style="color:var(--blue)">  S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">calendar/</span><span class="tree-comment" style="color:var(--blue)">S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">ai/</span><span class="tree-comment" style="color:var(--purple)">     S4</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-dir">knowledge/</span><span class="tree-comment" style="color:var(--pink)">S5</span></div>
+          <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">store/</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file ts">useAppStore.ts</span><span class="tree-comment" style="color:var(--cyan)"> S1</span></div>
+          <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">hooks/</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-file ts">useHealth.ts</span><span class="tree-comment" style="color:var(--cyan)">   S1</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file ts">useEmail.ts</span><span class="tree-comment" style="color:var(--blue)">    S2</span></div>
+          <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">lib/</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file ts">api.ts</span><span class="tree-comment"> ← axios client</span></div>
+          <div class="tree-line"><span class="tree-prefix">     └─ </span><span class="tree-dir">types/</span></div>
+          <div class="tree-line"><span class="tree-prefix">        └─ </span><span class="tree-file ts">index.ts</span></div>
+
+          <!-- Docs and Root -->
+          <div class="tree-section-label" style="color:var(--text-3);margin-top:20px">Repository Root</div>
+          <div class="tree-line"><span class="tree-prefix">  </span><span class="tree-dir">Synapse/</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file md">CLAUDE.md</span><span class="tree-comment"> ← engineering rules</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file md">ROADMAP.md</span><span class="tree-comment"> ← vision + all stages</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file md">CURRENT_SPRINT.md</span><span class="tree-comment"> ← active stage</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">docs/</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file html">system-map.html</span><span class="tree-comment" style="color:var(--cyan)"> ← this file</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-file md">stage-X-summary.md</span><span class="tree-comment"> ← per stage</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">backend/</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">frontend/</span></div>
+          <div class="tree-line"><span class="tree-prefix">  └─ </span><span class="tree-file json">docker-compose.yml</span><span class="tree-comment" style="color:#a3e635"> S8</span></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ FOOTER ══════════════ -->
+  <footer class="site-footer">
+    <span>Personal OS · System Map · docs/system-map.html</span>
+    <span id="footer-date">Updated: 2026-06-21</span>
+    <span>Stage 1 — Foundation</span>
+  </footer>
+
+</div>
+
+<script>
+  // Auto-update date display
+  const d = new Date();
+  const fmt = d.toISOString().split('T')[0];
+  const mapDate = document.getElementById('map-date');
+  const footerDate = document.getElementById('footer-date');
+  if (mapDate) mapDate.textContent = fmt;
+  if (footerDate) footerDate.textContent = 'Updated: ' + fmt;
+</script>
+
+</body>
+</html>
