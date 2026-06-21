@@ -172,9 +172,11 @@ Stack:
 
 - faster-whisper (Python) — local STT, no data leaves device
 - kokoro (Python) — local TTS, Apache 2.0, natural quality
-- MediaRecorder API (browser) — audio capture
+- openwakeword (Python) — open source wake word detection, Apache 2.0, server-side
+- MediaRecorder API (browser) — audio capture for push-to-talk
+- AudioWorklet (browser) — raw PCM streaming over WebSocket for wake word mode
 - Web Audio API (browser) — waveform visualization + TTS playback
-- @picovoice/porcupine-web — wake word detection in browser WASM (free personal tier)
+- FastAPI WebSocket — `/ws/voice` bidirectional audio + event channel
 
 Capabilities:
 
@@ -182,26 +184,40 @@ Capabilities:
 - AI response auto-read: TTS plays back AI text response after transcription
 - wake word mode: "Hey Synapse" triggers recording without touching the UI
   - opt-in toggle in settings
-  - detection runs in browser (audio never sent to backend until triggered)
+  - audio is streamed to backend continuously via WebSocket
+  - openWakeWord runs inference on each audio frame server-side
+  - on detection: backend sends {"event": "wake_word_detected"} back to browser
+  - browser enters recording mode; audio continues streaming until silence
 - voice session: STT transcript + AI response + TTS logged as a voice interaction
 
-Data flow:
+Data flow — Push-to-Talk:
 
-1. User activates (push-to-talk or wake word fires)
+1. User holds VoiceButton
 2. MediaRecorder captures audio → WebM blob
 3. POST /api/v1/voice/transcribe → faster-whisper → returns text
-4. Text injected into AI chat → submitted to AI service
-5. AI response text returned
-6. POST /api/v1/voice/synthesize → Kokoro → streams WAV audio
-7. Browser plays audio response
+4. Text injected into AI chat → AI service
+5. AI response text → POST /api/v1/voice/synthesize → Kokoro → WAV stream
+6. Browser plays audio response
+
+Data flow — Wake Word mode:
+
+1. AudioWorklet streams raw 16kHz PCM chunks → WebSocket /ws/voice
+2. Backend WakeWordService runs openWakeWord on each frame
+3. Wake word detected → WebSocket sends {"event": "wake_word_detected"}
+4. Browser enters recording mode; continues streaming audio
+5. WebrtcVAD or silence threshold detects end of utterance
+6. Buffered audio → faster-whisper → transcript returned via WebSocket
+7. Same AI → TTS pipeline as push-to-talk
 
 Architecture:
 
 - STTService (backend): faster-whisper wrapper, model loaded at startup
 - TTSService (backend): Kokoro wrapper, streams audio chunks
+- WakeWordService (backend): openWakeWord inference loop on PCM frames
+- VoiceWebSocket (backend): ws/voice.py — receives PCM, runs wake word, returns events
 - VoiceButton (frontend): push-to-talk UI with waveform animation
-- WakeWordListener (frontend): Porcupine WASM, opt-in, runs in background
-- useVoice hook: manages recording state, sends audio, plays response
+- AudioStreamer (frontend): AudioWorklet → encodes PCM → sends over WebSocket
+- useVoice hook: unified state machine for both push-to-talk and wake word modes
 - VoiceSettings: model selector (tiny/small/medium), voice selector, wake word toggle
 
 Whisper model sizes (user selectable in settings):
@@ -303,8 +319,9 @@ Goals:
 - mobile application with voice (native STT/TTS)
 - multi-user support
 - browser extension for real-time page access
+- custom openWakeWord model training for personalized wake phrases
 - custom Kokoro voice fine-tuning
-- real-time streaming STT (word-by-word transcription)
+- real-time streaming STT (word-by-word transcription via WebSocket)
 
 ---
 

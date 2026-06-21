@@ -726,7 +726,7 @@
         <div class="ts-stack">
           <span class="ts-tech">faster-whisper (STT)</span>
           <span class="ts-tech">Kokoro (TTS)</span>
-          <span class="ts-tech">Porcupine (wake word)</span>
+          <span class="ts-tech">openWakeWord · WebSocket</span>
         </div>
         <span class="ts-status status-planned">planned</span>
       </div>
@@ -1435,8 +1435,24 @@
           <li class="module-item">
             <span class="module-icon">👂</span>
             <div class="module-info">
-              <div class="module-name">Wake Word Listener</div>
-              <div class="module-path">components/voice/WakeWordListener.tsx · Porcupine</div>
+              <div class="module-name">Wake Word Service</div>
+              <div class="module-path">services/wake_word_service.py · openWakeWord</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,189,248,0.1);color:#38bdf8">S4.7</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">🔌</span>
+            <div class="module-info">
+              <div class="module-name">Voice WebSocket</div>
+              <div class="module-path">ws/voice.py · /ws/voice · PCM in, events out</div>
+            </div>
+            <span class="module-stage" style="background:rgba(56,189,248,0.1);color:#38bdf8">S4.7</span>
+          </li>
+          <li class="module-item">
+            <span class="module-icon">📡</span>
+            <div class="module-info">
+              <div class="module-name">Audio Streamer</div>
+              <div class="module-path">components/voice/AudioStreamer.tsx · AudioWorklet → PCM → WS</div>
             </div>
             <span class="module-stage" style="background:rgba(56,189,248,0.1);color:#38bdf8">S4.7</span>
           </li>
@@ -1580,7 +1596,9 @@
         <tr><td class="tech-name">Kokoro (Python)</td><td class="tech-role">Voice · TTS</td><td class="tech-role">Local text-to-speech — natural quality, Apache 2.0, streams WAV, runs on CPU</td><td><span class="tech-stage-pill" style="background:rgba(56,189,248,0.1);color:#38bdf8">Stage 4.7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">MediaRecorder API</td><td class="tech-role">Voice · Frontend</td><td class="tech-role">Browser audio capture for push-to-talk; outputs WebM blob sent to STT endpoint</td><td><span class="tech-stage-pill" style="background:rgba(56,189,248,0.1);color:#38bdf8">Stage 4.7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">Web Audio API</td><td class="tech-role">Voice · Frontend</td><td class="tech-role">Waveform visualization during recording + TTS audio playback in browser</td><td><span class="tech-stage-pill" style="background:rgba(56,189,248,0.1);color:#38bdf8">Stage 4.7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
-        <tr><td class="tech-name">@picovoice/porcupine-web</td><td class="tech-role">Voice · Wake Word</td><td class="tech-role">Browser WASM wake-word detector — "Hey Synapse" — audio never leaves browser until triggered</td><td><span class="tech-stage-pill" style="background:rgba(56,189,248,0.1);color:#38bdf8">Stage 4.7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">openWakeWord (Python)</td><td class="tech-role">Voice · Wake Word</td><td class="tech-role">Server-side wake word detection on PCM frames streamed via WebSocket — Apache 2.0, zero accounts</td><td><span class="tech-stage-pill" style="background:rgba(56,189,248,0.1);color:#38bdf8">Stage 4.7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">AudioWorklet API</td><td class="tech-role">Voice · Frontend</td><td class="tech-role">Low-latency raw PCM capture in browser — encodes 16kHz mono frames and streams over WebSocket</td><td><span class="tech-stage-pill" style="background:rgba(56,189,248,0.1);color:#38bdf8">Stage 4.7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
+        <tr><td class="tech-name">FastAPI WebSocket</td><td class="tech-role">Voice · Transport</td><td class="tech-role">Bidirectional channel /ws/voice — receives PCM stream, emits wake events and transcripts</td><td><span class="tech-stage-pill" style="background:rgba(56,189,248,0.1);color:#38bdf8">Stage 4.7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">Qdrant</td><td class="tech-role">Knowledge</td><td class="tech-role">Vector database for semantic search</td><td><span class="tech-stage-pill" style="background:rgba(232,121,160,0.1);color:#e879a0">Stage 5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">sentence-transformers</td><td class="tech-role">Knowledge</td><td class="tech-role">Document embedding generation</td><td><span class="tech-stage-pill" style="background:rgba(232,121,160,0.1);color:#e879a0">Stage 5</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
         <tr><td class="tech-name">APScheduler</td><td class="tech-role">Automation</td><td class="tech-role">Cron jobs and scheduled tasks</td><td><span class="tech-stage-pill" style="background:rgba(249,115,22,0.1);color:#f97316">Stage 7</span></td><td><span class="ts-status status-planned">planned</span></td></tr>
@@ -1752,31 +1770,31 @@
 
       <div class="flow-card">
         <div class="flow-title">
-          <span style="color:#38bdf8">◆</span> Voice Chat Loop (Stage 4.7)
+          <span style="color:#38bdf8">◆</span> Wake Word → Voice Chat (Stage 4.7)
         </div>
         <div class="flow-arrow">
-          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">Push-to-Talk / Wake Word</span>
+          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">AudioWorklet (16kHz PCM)</span>
           <div>
             <div class="flow-conn"></div>
-            <div class="flow-label">MediaRecorder → WebM blob</div>
+            <div class="flow-label">WebSocket /ws/voice binary frames</div>
           </div>
-          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">POST /voice/transcribe</span>
+          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">WakeWordService</span>
         </div>
         <div class="flow-arrow">
-          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">faster-whisper</span>
+          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">openWakeWord fires</span>
           <div>
             <div class="flow-conn"></div>
-            <div class="flow-label">transcript text → AI Service</div>
+            <div class="flow-label">WS → {event: wake_word_detected}</div>
           </div>
-          <span class="flow-node" style="background:rgba(157,140,255,0.1);color:#9d8cff">LLM Response</span>
+          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">Browser records utterance</span>
         </div>
         <div class="flow-arrow">
-          <span class="flow-node" style="background:rgba(157,140,255,0.1);color:#9d8cff">Response text</span>
+          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">Silence detected (VAD)</span>
           <div>
             <div class="flow-conn"></div>
-            <div class="flow-label">POST /voice/synthesize → Kokoro</div>
+            <div class="flow-label">buffer → faster-whisper → AI → Kokoro</div>
           </div>
-          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">WAV stream → playback</span>
+          <span class="flow-node" style="background:rgba(56,189,248,0.1);color:#38bdf8">WAV response plays</span>
         </div>
       </div>
 
@@ -1832,6 +1850,8 @@
           <div class="tree-line"><span class="tree-prefix">  │     ├─ </span><span class="tree-file py">calendar.py</span><span class="tree-comment" style="color:var(--blue)"> S2</span></div>
           <div class="tree-line"><span class="tree-prefix">  │     ├─ </span><span class="tree-file py">ai.py</span><span class="tree-comment" style="color:var(--purple)">      S4</span></div>
           <div class="tree-line"><span class="tree-prefix">  │     ├─ </span><span class="tree-file py">voice.py</span><span class="tree-comment" style="color:#38bdf8">    S4.7 · /transcribe /synthesize</span></div>
+          <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">ws/</span><span class="tree-comment" style="color:#38bdf8"> ← WebSocket handlers</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-file py">voice.py</span><span class="tree-comment" style="color:#38bdf8"> S4.7 · /ws/voice · PCM in, events out</span></div>
           <div class="tree-line"><span class="tree-prefix">  │     └─ </span><span class="tree-file py">knowledge.py</span><span class="tree-comment" style="color:var(--pink)">S5</span></div>
           <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">models/</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">user.py</span><span class="tree-comment" style="color:var(--cyan)">        S1</span></div>
@@ -1849,6 +1869,7 @@
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">browser_service.py</span><span class="tree-comment" style="color:#c084fc">S4.5 · Playwright</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">stt_service.py</span><span class="tree-comment" style="color:#38bdf8">   S4.7 · faster-whisper</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">tts_service.py</span><span class="tree-comment" style="color:#38bdf8">   S4.7 · Kokoro</span></div>
+          <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">wake_word_service.py</span><span class="tree-comment" style="color:#38bdf8">S4.7 · openWakeWord</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  └─ </span><span class="tree-file py">embedding_service.py</span><span class="tree-comment" style="color:var(--pink)">S5</span></div>
           <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-dir">tools/</span><span class="tree-comment" style="color:#c084fc"> ← S4.5 tool definitions</span></div>
           <div class="tree-line"><span class="tree-prefix">  │  ├─ </span><span class="tree-file py">registry.py</span><span class="tree-comment" style="color:#c084fc"> tool name → handler map</span></div>
@@ -1900,7 +1921,7 @@
           <div class="tree-line"><span class="tree-prefix">     │  │  └─ </span><span class="tree-file tsx">ConfirmationModal.tsx</span><span class="tree-comment" style="color:#c084fc">S4.5</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">voice/</span><span class="tree-comment" style="color:#38bdf8">  S4.7</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  │  ├─ </span><span class="tree-file tsx">VoiceButton.tsx</span><span class="tree-comment" style="color:#38bdf8">  push-to-talk</span></div>
-          <div class="tree-line"><span class="tree-prefix">     │  │  ├─ </span><span class="tree-file tsx">WakeWordListener.tsx</span><span class="tree-comment" style="color:#38bdf8">Porcupine WASM</span></div>
+          <div class="tree-line"><span class="tree-prefix">     │  │  ├─ </span><span class="tree-file tsx">AudioStreamer.tsx</span><span class="tree-comment" style="color:#38bdf8">AudioWorklet → PCM → WS</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  │  └─ </span><span class="tree-file tsx">VoiceWaveform.tsx</span><span class="tree-comment" style="color:#38bdf8"> Web Audio API</span></div>
           <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-dir">knowledge/</span><span class="tree-comment" style="color:var(--pink)">S5</span></div>
           <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">store/</span></div>
