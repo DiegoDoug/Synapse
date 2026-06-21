@@ -2,24 +2,7 @@
 
 You are the lead software engineer, software architect, and technical advisor for Personal OS.
 
-Before performing any task, ALWAYS read:
-
-1. ROADMAP.md
-2. CURRENT_SPRINT.md
-
-The hierarchy of instructions is:
-
-1. CURRENT_SPRINT.md
-2. ROADMAP.md
-3. CLAUDE.md
-
-If conflicts exist, CURRENT_SPRINT.md overrides all other files.
-
----
-
-# Project
-
-Personal OS is an AI-powered personal operating system that centralizes communication, information, documents, schedules, tasks, and AI services into a unified dashboard.
+**Personal OS** is an AI-powered personal operating system that centralizes communication, information, documents, schedules, tasks, and AI services into a unified dashboard.
 
 The system should eventually provide:
 
@@ -32,136 +15,59 @@ The system should eventually provide:
 
 ---
 
-# Engineering Philosophy
+## Documentation Structure
 
-Act as a senior staff engineer.
+This project has separate documents for different concerns. **Always consult them in this order:**
 
-Prioritize:
+1. **CURRENT_SPRINT.md** — the active development stage (overrides all others)
+2. **ROADMAP.md** — product vision and future stages
+3. **ARCHITECTURE.md** — runtime system design (components, dependencies, tech stack)
+4. **GOVERNANCE.md** — development principles, standards, and philosophy
+5. **CLAUDE.md** — this file (instructions and workflow)
 
-- maintainability
-- modularity
-- simplicity
-- scalability
-- developer experience
-
-Never optimize prematurely.
-
-Build only what the current sprint requires.
-
-Avoid unnecessary abstractions.
+**Instruction hierarchy:** If conflicts exist, CURRENT_SPRINT.md > ROADMAP.md > ARCHITECTURE.md > GOVERNANCE.md > CLAUDE.md
 
 ---
 
-# Development Workflow
+## Development Workflow
 
 Before writing code:
 
-1. Read ROADMAP.md.
-2. Read CURRENT_SPRINT.md.
-3. Explain the plan.
-4. List files to create or modify.
-5. Wait for approval when requested.
-
-Never implement future stages.
-
----
-
-# Architecture
-
-The application follows a modular monolith architecture.
-
-Backend:
-- FastAPI
-- SQLModel
-- service layer
-- repository pattern where useful
-
-Frontend:
-- React
-- feature-based structure
-- reusable components
-- centralized state
+1. Read ROADMAP.md (understand the product direction)
+2. Read CURRENT_SPRINT.md (understand the active stage)
+3. Read ARCHITECTURE.md (understand the system design)
+4. Explain your plan to the user
+5. List files to create or modify
+6. Wait for approval if requested
+7. Implement incrementally
+8. Do not implement future stages beyond CURRENT_SPRINT.md
 
 ---
 
-# Backend Stack
+## Governance
 
-- Python 3.12
-- FastAPI
-- SQLModel
-- SQLite
-- APScheduler
-- Pydantic v2
-
-Future:
-- PostgreSQL
-- Redis
-- Qdrant
+See **GOVERNANCE.md** for:
+- Engineering philosophy
+- Design principles
+- Coding standards
+- Output rules
 
 ---
 
-# Frontend Stack
+## Architecture
 
-- React 18
-- TypeScript
-- Vite
-- Tailwind CSS
-- React Query
-- Zustand
-- React Router
-- shadcn/ui
-- Magic UI
-
----
-
-# Design Principles
-
-- Dark mode first.
-- Mobile responsive.
-- Minimal design.
-- Small components.
-- Strong typing.
-- Async APIs.
-- Clear separation of concerns.
-
-Design inspiration:
-
-- Linear
-- Vercel
-- Arc Browser
-- Raycast
+See **ARCHITECTURE.md** for:
+- System overview
+- Backend stack (FastAPI, SQLModel, SQLite, etc.)
+- Frontend stack (React, TypeScript, Zustand, etc.)
+- Database schema
+- Integrations (Gmail, Calendar, etc.)
+- Agents (AI layer)
+- Deployment strategy
 
 ---
 
-# Coding Standards
-
-Python:
-- type hints everywhere
-- small functions
-- dependency injection
-
-TypeScript:
-- strict mode
-- avoid any
-- functional components
-
----
-
-# Output Rules
-
-Explain architectural decisions.
-
-Show affected files.
-
-Keep files small.
-
-Do not generate unnecessary code.
-
-Always build incrementally.
-
-Do not proceed beyond CURRENT_SPRINT.md
-
-# Sprint Completion and Stage Transition
+## Sprint Completion and Stage Transition
 
 When all deliverables defined in CURRENT_SPRINT.md have been fully implemented, tested, documented, and approved by the user, the current sprint is considered complete.
 
@@ -176,7 +82,7 @@ The user approval phrases include:
 
 Before beginning the next stage, perform the following actions.
 
-## 1. Generate Sprint Summary
+### 1. Generate Sprint Summary
 
 Create a completion summary including:
 
@@ -194,7 +100,7 @@ docs/stage-X-summary.md
 
 ---
 
-## 2. Update CURRENT_SPRINT.md
+### 2. Update CURRENT_SPRINT.md
 
 Replace the completed sprint information with the next stage.
 
@@ -210,7 +116,7 @@ The new CURRENT_SPRINT.md must only contain the active stage.
 
 ---
 
-## 3. Update Progress Section
+### 3. Update Progress Section
 
 If ROADMAP.md contains a progress section, update:
 
@@ -220,7 +126,7 @@ If ROADMAP.md contains a progress section, update:
 
 ---
 
-## 4. Create Git Commit
+### 4. Create Git Commit
 
 Create a commit after the stage transition.
 
@@ -236,7 +142,7 @@ Stage 2 complete: integrations
 
 ---
 
-## 5. Push Changes
+### 5. Push Changes
 
 Push the updated repository to the active branch.
 
@@ -248,7 +154,7 @@ git push
 
 ---
 
-## Rules
+### Rules
 
 - Never advance to the next stage without user approval.
 - Never modify future stages.
@@ -258,3 +164,15 @@ git push
 - Always keep CURRENT_SPRINT.md synchronized with the active stage.
 
 The repository state should always reflect the current development stage.
+
+---
+
+## Quick Reference
+
+| Document | Purpose |
+| -------- | ------- |
+| **ROADMAP.md** | Product vision, stages 1–7, future features |
+| **CURRENT_SPRINT.md** | Active development stage, deliverables, tasks |
+| **ARCHITECTURE.md** | System design, tech stack, component structure |
+| **GOVERNANCE.md** | Principles, standards, philosophy, output rules |
+| **CLAUDE.md** | This file (instructions, workflow, sprint process) |
