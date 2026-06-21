@@ -1,0 +1,22 @@
+{
+  "/home/user/Synapse/CLAUDE.md": {
+    "mtime": 1782031816.5471551,
+    "ast_hash": "2644cfe17f0c3c4c9eeeaddfec40610a",
+    "semantic_hash": "2644cfe17f0c3c4c9eeeaddfec40610a"
+  },
+  "/home/user/Synapse/CURRENT_SPRINT.md": {
+    "mtime": 1782031816.5471551,
+    "ast_hash": "2a4c60b3f389fe6b567a491f7ec4eb3d",
+    "semantic_hash": "2a4c60b3f389fe6b567a491f7ec4eb3d"
+  },
+  "/home/user/Synapse/README.md": {
+    "mtime": 1781967105.3880146,
+    "ast_hash": "190fefb1c0ae23a8bbe5eb2782b00112",
+    "semantic_hash": "190fefb1c0ae23a8bbe5eb2782b00112"
+  },
+  "/home/user/Synapse/ROADMAP.md": {
+    "mtime": 1782031816.5471551,
+    "ast_hash": "749d6a1b98491fa37c8c53bf32379730",
+    "semantic_hash": "749d6a1b98491fa37c8c53bf32379730"
+  }
+}
