@@ -4,38 +4,16 @@
   "graph": {
     "hyperedges": [
       {
-        "id": "backend_tech_stack",
-        "label": "Backend Technology Stack",
+        "id": "stage1_models",
+        "label": "Stage 1 Database Models",
         "nodes": [
-          "claude_fastapi",
-          "claude_sqlmodel",
-          "claude_sqlite",
-          "claude_apscheduler",
-          "claude_pydantic"
+          "current_sprint_user_model",
+          "current_sprint_dashboardwidget_model"
         ],
-        "relation": "form",
+        "relation": "implement",
         "confidence": "EXTRACTED",
         "confidence_score": 1.0,
-        "source_file": "/home/user/Synapse/CLAUDE.md"
-      },
-      {
-        "id": "frontend_tech_stack",
-        "label": "Frontend Technology Stack",
-        "nodes": [
-          "claude_react",
-          "claude_typescript",
-          "claude_vite",
-          "claude_tailwind",
-          "claude_react_query",
-          "claude_zustand",
-          "claude_react_router",
-          "claude_shadcn",
-          "claude_magicui"
-        ],
-        "relation": "form",
-        "confidence": "EXTRACTED",
-        "confidence_score": 1.0,
-        "source_file": "/home/user/Synapse/CLAUDE.md"
+        "source_file": "/home/user/Synapse/CURRENT_SPRINT.md"
       },
       {
         "id": "roadmap_stages",
@@ -55,296 +33,144 @@
         "source_file": "/home/user/Synapse/ROADMAP.md"
       },
       {
-        "id": "stage1_models",
-        "label": "Stage 1 Database Models",
+        "id": "backend_tech_stack",
+        "label": "Backend Technology Stack",
         "nodes": [
-          "current_sprint_user_model",
-          "current_sprint_dashboardwidget_model"
+          "architecture_python_312",
+          "architecture_fastapi",
+          "architecture_sqlmodel",
+          "architecture_pydantic_v2",
+          "architecture_apscheduler"
         ],
-        "relation": "implement",
+        "relation": "form",
         "confidence": "EXTRACTED",
         "confidence_score": 1.0,
-        "source_file": "/home/user/Synapse/CURRENT_SPRINT.md"
+        "source_file": "/home/user/Synapse/ARCHITECTURE.md"
+      },
+      {
+        "id": "frontend_tech_stack",
+        "label": "Frontend Technology Stack",
+        "nodes": [
+          "architecture_react_18",
+          "architecture_typescript",
+          "architecture_vite",
+          "architecture_tailwind",
+          "architecture_zustand",
+          "architecture_react_query",
+          "architecture_react_router",
+          "architecture_shadcn_ui",
+          "architecture_magic_ui"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "/home/user/Synapse/ARCHITECTURE.md"
+      },
+      {
+        "id": "database_options",
+        "label": "Database Options",
+        "nodes": [
+          "architecture_sqlite",
+          "architecture_postgresql",
+          "architecture_redis",
+          "architecture_qdrant"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "/home/user/Synapse/ARCHITECTURE.md"
+      },
+      {
+        "id": "core_integrations",
+        "label": "Core Integrations",
+        "nodes": [
+          "architecture_gmail_integration",
+          "architecture_google_calendar_integration",
+          "architecture_telegram_integration",
+          "architecture_llm_apis_integration"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "/home/user/Synapse/ARCHITECTURE.md"
+      },
+      {
+        "id": "personal_os_capabilities",
+        "label": "Personal OS Core Capabilities",
+        "nodes": [
+          "claude_unified_information_access",
+          "claude_contextual_ai_assistance",
+          "claude_automation_workflows",
+          "claude_agent_systems",
+          "claude_notification_systems",
+          "claude_personal_knowledge_management"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "/home/user/Synapse/CLAUDE.md"
+      },
+      {
+        "id": "engineering_priorities",
+        "label": "Engineering Priorities",
+        "nodes": [
+          "governance_maintainability",
+          "governance_modularity",
+          "governance_simplicity",
+          "governance_scalability",
+          "governance_developer_experience"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "/home/user/Synapse/GOVERNANCE.md"
+      },
+      {
+        "id": "design_system",
+        "label": "Design System Principles",
+        "nodes": [
+          "governance_dark_mode_first",
+          "governance_mobile_responsive",
+          "governance_minimal_design",
+          "governance_small_components"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "/home/user/Synapse/GOVERNANCE.md"
+      },
+      {
+        "id": "documentation_structure",
+        "label": "Documentation Structure and Hierarchy",
+        "nodes": [
+          "claude_current_sprint_md",
+          "claude_roadmap_md",
+          "claude_architecture_md",
+          "claude_governance_md",
+          "claude_instruction_hierarchy"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "/home/user/Synapse/CLAUDE.md"
+      },
+      {
+        "id": "backend_architecture",
+        "label": "Backend Layered Architecture",
+        "nodes": [
+          "architecture_backend_layer",
+          "architecture_service_layer",
+          "architecture_integration_layer",
+          "architecture_repository_layer"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "/home/user/Synapse/ARCHITECTURE.md"
       }
     ]
   },
   "nodes": [
-    {
-      "label": "Personal OS",
-      "file_type": "document",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 1",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_personal_os",
-      "community": 5,
-      "norm_label": "personal os"
-    },
-    {
-      "label": "Engineering Philosophy",
-      "file_type": "rationale",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 36",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "rationale": "Prioritize maintainability, modularity, simplicity, scalability, and developer experience. Never optimize prematurely. Build only what the current sprint requires. Avoid unnecessary abstractions.",
-      "id": "claude_engineering_philosophy",
-      "community": 5,
-      "norm_label": "engineering philosophy"
-    },
-    {
-      "label": "Modular Monolith Architecture",
-      "file_type": "rationale",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 69",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "rationale": "Application follows a modular monolith architecture with a service layer and repository pattern on the backend, and feature-based structure with reusable components and centralized state on the frontend.",
-      "id": "claude_modular_monolith",
-      "community": 5,
-      "norm_label": "modular monolith architecture"
-    },
-    {
-      "label": "Backend Stack",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 87",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_backend_stack",
-      "community": 4,
-      "norm_label": "backend stack"
-    },
-    {
-      "label": "Frontend Stack",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 102",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_frontend_stack",
-      "community": 0,
-      "norm_label": "frontend stack"
-    },
-    {
-      "label": "Design Principles",
-      "file_type": "rationale",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 116",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "rationale": "Dark mode first, mobile responsive, minimal design, small components, strong typing, async APIs, clear separation of concerns. Inspired by Linear, Vercel, Arc Browser, Raycast.",
-      "id": "claude_design_principles",
-      "community": 5,
-      "norm_label": "design principles"
-    },
-    {
-      "label": "Sprint Completion Workflow",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 164",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_sprint_workflow",
-      "community": 6,
-      "norm_label": "sprint completion workflow"
-    },
-    {
-      "label": "FastAPI",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 90",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_fastapi",
-      "community": 4,
-      "norm_label": "fastapi"
-    },
-    {
-      "label": "SQLModel",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 91",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_sqlmodel",
-      "community": 3,
-      "norm_label": "sqlmodel"
-    },
-    {
-      "label": "SQLite",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 93",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_sqlite",
-      "community": 4,
-      "norm_label": "sqlite"
-    },
-    {
-      "label": "APScheduler",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 94",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_apscheduler",
-      "community": 4,
-      "norm_label": "apscheduler"
-    },
-    {
-      "label": "Pydantic v2",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 95",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_pydantic",
-      "community": 4,
-      "norm_label": "pydantic v2"
-    },
-    {
-      "label": "React 18",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 103",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_react",
-      "community": 0,
-      "norm_label": "react 18"
-    },
-    {
-      "label": "TypeScript",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 104",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_typescript",
-      "community": 0,
-      "norm_label": "typescript"
-    },
-    {
-      "label": "Vite",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 105",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_vite",
-      "community": 0,
-      "norm_label": "vite"
-    },
-    {
-      "label": "Tailwind CSS",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 106",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_tailwind",
-      "community": 0,
-      "norm_label": "tailwind css"
-    },
-    {
-      "label": "React Query",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 107",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_react_query",
-      "community": 0,
-      "norm_label": "react query"
-    },
-    {
-      "label": "Zustand",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 108",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_zustand",
-      "community": 0,
-      "norm_label": "zustand"
-    },
-    {
-      "label": "React Router",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 109",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_react_router",
-      "community": 0,
-      "norm_label": "react router"
-    },
-    {
-      "label": "shadcn/ui",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 110",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_shadcn",
-      "community": 0,
-      "norm_label": "shadcn/ui"
-    },
-    {
-      "label": "Magic UI",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": "line 111",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "claude_magicui",
-      "community": 0,
-      "norm_label": "magic ui"
-    },
     {
       "label": "Stage 1: Foundation Sprint",
       "file_type": "document",
@@ -355,7 +181,7 @@
       "author": null,
       "contributor": null,
       "id": "current_sprint_stage1",
-      "community": 3,
+      "community": 6,
       "norm_label": "stage 1: foundation sprint"
     },
     {
@@ -368,7 +194,7 @@
       "author": null,
       "contributor": null,
       "id": "current_sprint_dashboard_widgets",
-      "community": 3,
+      "community": 6,
       "norm_label": "dashboard widgets"
     },
     {
@@ -381,7 +207,7 @@
       "author": null,
       "contributor": null,
       "id": "current_sprint_health_endpoint",
-      "community": 3,
+      "community": 6,
       "norm_label": "health endpoint"
     },
     {
@@ -394,7 +220,7 @@
       "author": null,
       "contributor": null,
       "id": "current_sprint_useappstore",
-      "community": 0,
+      "community": 6,
       "norm_label": "useappstore"
     },
     {
@@ -407,7 +233,7 @@
       "author": null,
       "contributor": null,
       "id": "current_sprint_user_model",
-      "community": 3,
+      "community": 6,
       "norm_label": "user model"
     },
     {
@@ -420,7 +246,7 @@
       "author": null,
       "contributor": null,
       "id": "current_sprint_dashboardwidget_model",
-      "community": 3,
+      "community": 6,
       "norm_label": "dashboardwidget model"
     },
     {
@@ -433,7 +259,7 @@
       "author": null,
       "contributor": null,
       "id": "readme_synapse",
-      "community": 5,
+      "community": 1,
       "norm_label": "synapse"
     },
     {
@@ -446,7 +272,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_personal_os",
-      "community": 1,
+      "community": 2,
       "norm_label": "personal os roadmap"
     },
     {
@@ -459,7 +285,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_stage1",
-      "community": 3,
+      "community": 6,
       "norm_label": "stage 1: foundation"
     },
     {
@@ -472,7 +298,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_stage2",
-      "community": 2,
+      "community": 4,
       "norm_label": "stage 2: integrations"
     },
     {
@@ -485,7 +311,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_stage3",
-      "community": 1,
+      "community": 2,
       "norm_label": "stage 3: notifications"
     },
     {
@@ -498,7 +324,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_stage4",
-      "community": 1,
+      "community": 2,
       "norm_label": "stage 4: ai layer"
     },
     {
@@ -511,7 +337,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_stage5",
-      "community": 1,
+      "community": 2,
       "norm_label": "stage 5: knowledge system"
     },
     {
@@ -524,7 +350,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_stage6",
-      "community": 2,
+      "community": 4,
       "norm_label": "stage 6: agents"
     },
     {
@@ -537,7 +363,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_stage7",
-      "community": 1,
+      "community": 2,
       "norm_label": "stage 7: automation"
     },
     {
@@ -550,7 +376,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_future_features",
-      "community": 1,
+      "community": 2,
       "norm_label": "future features"
     },
     {
@@ -563,7 +389,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_gmail",
-      "community": 2,
+      "community": 4,
       "norm_label": "gmail integration"
     },
     {
@@ -576,7 +402,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_google_calendar",
-      "community": 2,
+      "community": 4,
       "norm_label": "google calendar integration"
     },
     {
@@ -589,7 +415,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_telegram",
-      "community": 1,
+      "community": 2,
       "norm_label": "telegram bot"
     },
     {
@@ -602,7 +428,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_qdrant",
-      "community": 1,
+      "community": 2,
       "norm_label": "qdrant"
     },
     {
@@ -615,7 +441,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_rag",
-      "community": 1,
+      "community": 2,
       "norm_label": "rag pipelines"
     },
     {
@@ -628,7 +454,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_email_agent",
-      "community": 2,
+      "community": 4,
       "norm_label": "email agent"
     },
     {
@@ -641,7 +467,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_calendar_agent",
-      "community": 2,
+      "community": 4,
       "norm_label": "calendar agent"
     },
     {
@@ -654,7 +480,7 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_study_agent",
-      "community": 2,
+      "community": 4,
       "norm_label": "study agent"
     },
     {
@@ -667,261 +493,843 @@
       "author": null,
       "contributor": null,
       "id": "roadmap_notification_agent",
-      "community": 2,
+      "community": 4,
       "norm_label": "notification agent"
+    },
+    {
+      "label": "Personal OS",
+      "file_type": "concept",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 5",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_personal_os",
+      "community": 1,
+      "norm_label": "personal os"
+    },
+    {
+      "label": "Unified Dashboard",
+      "file_type": "rationale",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 5",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_unified_dashboard",
+      "community": 1,
+      "norm_label": "unified dashboard"
+    },
+    {
+      "label": "Unified Information Access",
+      "file_type": "rationale",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 9",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_unified_information_access",
+      "community": 1,
+      "norm_label": "unified information access"
+    },
+    {
+      "label": "Contextual AI Assistance",
+      "file_type": "rationale",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 10",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_contextual_ai_assistance",
+      "community": 1,
+      "norm_label": "contextual ai assistance"
+    },
+    {
+      "label": "Automation Workflows",
+      "file_type": "rationale",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 11",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_automation_workflows",
+      "community": 1,
+      "norm_label": "automation workflows"
+    },
+    {
+      "label": "Agent Systems",
+      "file_type": "rationale",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 12",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_agent_systems",
+      "community": 1,
+      "norm_label": "agent systems"
+    },
+    {
+      "label": "Notification Systems",
+      "file_type": "rationale",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 13",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_notification_systems",
+      "community": 1,
+      "norm_label": "notification systems"
+    },
+    {
+      "label": "Personal Knowledge Management",
+      "file_type": "rationale",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 14",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_personal_knowledge_management",
+      "community": 1,
+      "norm_label": "personal knowledge management"
+    },
+    {
+      "label": "CURRENT_SPRINT.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 22",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_current_sprint_md",
+      "community": 8,
+      "norm_label": "current_sprint.md"
+    },
+    {
+      "label": "ROADMAP.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 22",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_roadmap_md",
+      "community": 8,
+      "norm_label": "roadmap.md"
+    },
+    {
+      "label": "ARCHITECTURE.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 23",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_architecture_md",
+      "community": 8,
+      "norm_label": "architecture.md"
+    },
+    {
+      "label": "GOVERNANCE.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 24",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_governance_md",
+      "community": 8,
+      "norm_label": "governance.md"
+    },
+    {
+      "label": "Instruction Hierarchy",
+      "file_type": "rationale",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 28",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_instruction_hierarchy",
+      "community": 8,
+      "norm_label": "instruction hierarchy"
+    },
+    {
+      "label": "Development Workflow",
+      "file_type": "rationale",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 32",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_development_workflow",
+      "community": 8,
+      "norm_label": "development workflow"
+    },
+    {
+      "label": "Sprint Completion Process",
+      "file_type": "rationale",
+      "source_file": "CLAUDE.md",
+      "source_location": "line 70",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "claude_sprint_completion",
+      "community": 19,
+      "norm_label": "sprint completion process"
+    },
+    {
+      "label": "Modular Monolith Architecture",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 44",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_modular_monolith",
+      "community": 7,
+      "norm_label": "modular monolith architecture"
+    },
+    {
+      "label": "System Overview",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 13",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_system_overview",
+      "community": 7,
+      "norm_label": "system overview"
+    },
+    {
+      "label": "Frontend Layer",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 21",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_frontend_layer",
+      "community": 5,
+      "norm_label": "frontend layer"
+    },
+    {
+      "label": "Backend Layer",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 21",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_backend_layer",
+      "community": 0,
+      "norm_label": "backend layer"
+    },
+    {
+      "label": "Database Layer",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 21",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_database_layer",
+      "community": 7,
+      "norm_label": "database layer"
+    },
+    {
+      "label": "Service Layer",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 24",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_service_layer",
+      "community": 0,
+      "norm_label": "service layer"
+    },
+    {
+      "label": "Integration Layer",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 28",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_integration_layer",
+      "community": 0,
+      "norm_label": "integration layer"
+    },
+    {
+      "label": "Repository Layer",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 29",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_repository_layer",
+      "community": 0,
+      "norm_label": "repository layer"
+    },
+    {
+      "label": "Agents (AI Layer)",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 36",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_agents_layer",
+      "community": 7,
+      "norm_label": "agents (ai layer)"
+    },
+    {
+      "label": "Python 3.12",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 59",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_python_312",
+      "community": 0,
+      "norm_label": "python 3.12"
+    },
+    {
+      "label": "FastAPI",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 60",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_fastapi",
+      "community": 0,
+      "norm_label": "fastapi"
+    },
+    {
+      "label": "SQLModel",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 61",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_sqlmodel",
+      "community": 0,
+      "norm_label": "sqlmodel"
+    },
+    {
+      "label": "Pydantic v2",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 62",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_pydantic_v2",
+      "community": 0,
+      "norm_label": "pydantic v2"
+    },
+    {
+      "label": "SQLite",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 66",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_sqlite",
+      "community": 7,
+      "norm_label": "sqlite"
+    },
+    {
+      "label": "PostgreSQL",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 67",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_postgresql",
+      "community": 7,
+      "norm_label": "postgresql"
+    },
+    {
+      "label": "Redis",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 68",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_redis",
+      "community": 15,
+      "norm_label": "redis"
+    },
+    {
+      "label": "Qdrant",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 69",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_qdrant",
+      "community": 14,
+      "norm_label": "qdrant"
+    },
+    {
+      "label": "APScheduler",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 73",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_apscheduler",
+      "community": 11,
+      "norm_label": "apscheduler"
+    },
+    {
+      "label": "React 18",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 108",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_react_18",
+      "community": 5,
+      "norm_label": "react 18"
+    },
+    {
+      "label": "TypeScript",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 109",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_typescript",
+      "community": 5,
+      "norm_label": "typescript"
+    },
+    {
+      "label": "Vite",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 110",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_vite",
+      "community": 18,
+      "norm_label": "vite"
+    },
+    {
+      "label": "Tailwind CSS",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 114",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_tailwind",
+      "community": 5,
+      "norm_label": "tailwind css"
+    },
+    {
+      "label": "Zustand",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 118",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_zustand",
+      "community": 5,
+      "norm_label": "zustand"
+    },
+    {
+      "label": "React Query",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 119",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_react_query",
+      "community": 5,
+      "norm_label": "react query"
+    },
+    {
+      "label": "React Router",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 120",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_react_router",
+      "community": 5,
+      "norm_label": "react router"
+    },
+    {
+      "label": "shadcn/ui",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 124",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_shadcn_ui",
+      "community": 16,
+      "norm_label": "shadcn/ui"
+    },
+    {
+      "label": "Magic UI",
+      "file_type": "concept",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 125",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_magic_ui",
+      "community": 13,
+      "norm_label": "magic ui"
+    },
+    {
+      "label": "Gmail Integration",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 219",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_gmail_integration",
+      "community": 0,
+      "norm_label": "gmail integration"
+    },
+    {
+      "label": "Google Calendar Integration",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 220",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_google_calendar_integration",
+      "community": 0,
+      "norm_label": "google calendar integration"
+    },
+    {
+      "label": "Telegram Integration",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 221",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_telegram_integration",
+      "community": 17,
+      "norm_label": "telegram integration"
+    },
+    {
+      "label": "LLM APIs Integration",
+      "file_type": "rationale",
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 222",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "architecture_llm_apis_integration",
+      "community": 12,
+      "norm_label": "llm apis integration"
+    },
+    {
+      "label": "Engineering Philosophy",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 13",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_engineering_philosophy",
+      "community": 9,
+      "norm_label": "engineering philosophy"
+    },
+    {
+      "label": "Maintainability",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 19",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_maintainability",
+      "community": 9,
+      "norm_label": "maintainability"
+    },
+    {
+      "label": "Modularity",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 20",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_modularity",
+      "community": 9,
+      "norm_label": "modularity"
+    },
+    {
+      "label": "Simplicity",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 21",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_simplicity",
+      "community": 9,
+      "norm_label": "simplicity"
+    },
+    {
+      "label": "Scalability",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 22",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_scalability",
+      "community": 9,
+      "norm_label": "scalability"
+    },
+    {
+      "label": "Developer Experience",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 23",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_developer_experience",
+      "community": 9,
+      "norm_label": "developer experience"
+    },
+    {
+      "label": "Design Principles",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 34",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_design_principles",
+      "community": 3,
+      "norm_label": "design principles"
+    },
+    {
+      "label": "Dark Mode First",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 38",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_dark_mode_first",
+      "community": 3,
+      "norm_label": "dark mode first"
+    },
+    {
+      "label": "Mobile Responsive",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 39",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_mobile_responsive",
+      "community": 3,
+      "norm_label": "mobile responsive"
+    },
+    {
+      "label": "Minimal Design",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 40",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_minimal_design",
+      "community": 3,
+      "norm_label": "minimal design"
+    },
+    {
+      "label": "Small Components",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 41",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_small_components",
+      "community": 3,
+      "norm_label": "small components"
+    },
+    {
+      "label": "Strong Typing",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 42",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_strong_typing",
+      "community": 3,
+      "norm_label": "strong typing"
+    },
+    {
+      "label": "Async APIs",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 43",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_async_apis",
+      "community": 3,
+      "norm_label": "async apis"
+    },
+    {
+      "label": "Clear Separation of Concerns",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 44",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_clear_separation_of_concerns",
+      "community": 3,
+      "norm_label": "clear separation of concerns"
+    },
+    {
+      "label": "Coding Standards",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 55",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_coding_standards",
+      "community": 10,
+      "norm_label": "coding standards"
+    },
+    {
+      "label": "Python Standards",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 57",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_python_standards",
+      "community": 10,
+      "norm_label": "python standards"
+    },
+    {
+      "label": "TypeScript Standards",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 63",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_typescript_standards",
+      "community": 10,
+      "norm_label": "typescript standards"
+    },
+    {
+      "label": "Output Rules",
+      "file_type": "rationale",
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 71",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "governance_output_rules",
+      "community": 20,
+      "norm_label": "output rules"
     }
   ],
   "links": [
-    {
-      "relation": "implements",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 87",
-      "weight": 1.0,
-      "source": "claude_personal_os",
-      "target": "claude_backend_stack"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 116",
-      "weight": 1.0,
-      "source": "claude_personal_os",
-      "target": "claude_design_principles"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 36",
-      "weight": 1.0,
-      "source": "claude_personal_os",
-      "target": "claude_engineering_philosophy"
-    },
-    {
-      "relation": "implements",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 102",
-      "weight": 1.0,
-      "source": "claude_personal_os",
-      "target": "claude_frontend_stack"
-    },
-    {
-      "relation": "implements",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 71",
-      "weight": 1.0,
-      "source": "claude_personal_os",
-      "target": "claude_modular_monolith"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 8",
-      "weight": 1.0,
-      "source": "claude_personal_os",
-      "target": "current_sprint_stage1"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 7",
-      "weight": 1.0,
-      "source": "claude_personal_os",
-      "target": "roadmap_personal_os"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "line 1",
-      "weight": 1.0,
-      "source": "readme_synapse",
-      "target": "claude_personal_os"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 94",
-      "weight": 1.0,
-      "source": "claude_backend_stack",
-      "target": "claude_apscheduler"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 90",
-      "weight": 1.0,
-      "source": "claude_backend_stack",
-      "target": "claude_fastapi"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 95",
-      "weight": 1.0,
-      "source": "claude_backend_stack",
-      "target": "claude_pydantic"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 93",
-      "weight": 1.0,
-      "source": "claude_backend_stack",
-      "target": "claude_sqlite"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 91",
-      "weight": 1.0,
-      "source": "claude_backend_stack",
-      "target": "claude_sqlmodel"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 111",
-      "weight": 1.0,
-      "source": "claude_frontend_stack",
-      "target": "claude_magicui"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 103",
-      "weight": 1.0,
-      "source": "claude_frontend_stack",
-      "target": "claude_react"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 107",
-      "weight": 1.0,
-      "source": "claude_frontend_stack",
-      "target": "claude_react_query"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 109",
-      "weight": 1.0,
-      "source": "claude_frontend_stack",
-      "target": "claude_react_router"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 110",
-      "weight": 1.0,
-      "source": "claude_frontend_stack",
-      "target": "claude_shadcn"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 106",
-      "weight": 1.0,
-      "source": "claude_frontend_stack",
-      "target": "claude_tailwind"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 104",
-      "weight": 1.0,
-      "source": "claude_frontend_stack",
-      "target": "claude_typescript"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 105",
-      "weight": 1.0,
-      "source": "claude_frontend_stack",
-      "target": "claude_vite"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": "line 108",
-      "weight": 1.0,
-      "source": "claude_frontend_stack",
-      "target": "claude_zustand"
-    },
-    {
-      "relation": "implements",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CURRENT_SPRINT.md",
-      "source_location": "line 59",
-      "weight": 1.0,
-      "source": "current_sprint_dashboardwidget_model",
-      "target": "claude_sqlmodel"
-    },
-    {
-      "relation": "implements",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CURRENT_SPRINT.md",
-      "source_location": "line 58",
-      "weight": 1.0,
-      "source": "current_sprint_user_model",
-      "target": "claude_sqlmodel"
-    },
-    {
-      "relation": "implements",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CURRENT_SPRINT.md",
-      "source_location": "line 70",
-      "weight": 1.0,
-      "source": "current_sprint_useappstore",
-      "target": "claude_zustand"
-    },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
@@ -981,6 +1389,16 @@
       "weight": 1.0,
       "source": "roadmap_stage1",
       "target": "current_sprint_stage1"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "line 1",
+      "weight": 1.0,
+      "source": "readme_synapse",
+      "target": "claude_personal_os"
     },
     {
       "relation": "references",
@@ -1171,42 +1589,530 @@
       "weight": 1.0,
       "source": "roadmap_stage6",
       "target": "roadmap_study_agent"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 12",
+      "weight": 1.0,
+      "source": "claude_personal_os",
+      "target": "claude_agent_systems"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 11",
+      "weight": 1.0,
+      "source": "claude_personal_os",
+      "target": "claude_automation_workflows"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 10",
+      "weight": 1.0,
+      "source": "claude_personal_os",
+      "target": "claude_contextual_ai_assistance"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 13",
+      "weight": 1.0,
+      "source": "claude_personal_os",
+      "target": "claude_notification_systems"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 14",
+      "weight": 1.0,
+      "source": "claude_personal_os",
+      "target": "claude_personal_knowledge_management"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 5",
+      "weight": 1.0,
+      "source": "claude_personal_os",
+      "target": "claude_unified_dashboard"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 9",
+      "weight": 1.0,
+      "source": "claude_personal_os",
+      "target": "claude_unified_information_access"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 37",
+      "weight": 1.0,
+      "source": "claude_development_workflow",
+      "target": "claude_current_sprint_md"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 28",
+      "weight": 1.0,
+      "source": "claude_instruction_hierarchy",
+      "target": "claude_current_sprint_md"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 36",
+      "weight": 1.0,
+      "source": "claude_development_workflow",
+      "target": "claude_roadmap_md"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 28",
+      "weight": 1.0,
+      "source": "claude_instruction_hierarchy",
+      "target": "claude_roadmap_md"
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 7",
+      "weight": 1.0,
+      "source": "claude_architecture_md",
+      "target": "claude_governance_md"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 28",
+      "weight": 1.0,
+      "source": "claude_instruction_hierarchy",
+      "target": "claude_architecture_md"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": "line 28",
+      "weight": 1.0,
+      "source": "claude_instruction_hierarchy",
+      "target": "claude_governance_md"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 51",
+      "weight": 1.0,
+      "source": "architecture_modular_monolith",
+      "target": "architecture_postgresql"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 48",
+      "weight": 1.0,
+      "source": "architecture_modular_monolith",
+      "target": "architecture_sqlite"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 36",
+      "weight": 1.0,
+      "source": "architecture_system_overview",
+      "target": "architecture_agents_layer"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 21",
+      "weight": 1.0,
+      "source": "architecture_system_overview",
+      "target": "architecture_backend_layer"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 21",
+      "weight": 1.0,
+      "source": "architecture_system_overview",
+      "target": "architecture_database_layer"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 21",
+      "weight": 1.0,
+      "source": "architecture_system_overview",
+      "target": "architecture_frontend_layer"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 22",
+      "weight": 1.0,
+      "source": "architecture_frontend_layer",
+      "target": "architecture_react_18"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 114",
+      "weight": 1.0,
+      "source": "architecture_frontend_layer",
+      "target": "architecture_tailwind"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 22",
+      "weight": 1.0,
+      "source": "architecture_frontend_layer",
+      "target": "architecture_typescript"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 22",
+      "weight": 1.0,
+      "source": "architecture_backend_layer",
+      "target": "architecture_fastapi"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 59",
+      "weight": 1.0,
+      "source": "architecture_backend_layer",
+      "target": "architecture_python_312"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 24",
+      "weight": 1.0,
+      "source": "architecture_backend_layer",
+      "target": "architecture_service_layer"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 67",
+      "weight": 1.0,
+      "source": "architecture_database_layer",
+      "target": "architecture_postgresql"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 66",
+      "weight": 1.0,
+      "source": "architecture_database_layer",
+      "target": "architecture_sqlite"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 28",
+      "weight": 1.0,
+      "source": "architecture_service_layer",
+      "target": "architecture_integration_layer"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 29",
+      "weight": 1.0,
+      "source": "architecture_service_layer",
+      "target": "architecture_repository_layer"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 33",
+      "weight": 1.0,
+      "source": "architecture_integration_layer",
+      "target": "architecture_gmail_integration"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 34",
+      "weight": 1.0,
+      "source": "architecture_integration_layer",
+      "target": "architecture_google_calendar_integration"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 62",
+      "weight": 1.0,
+      "source": "architecture_fastapi",
+      "target": "architecture_pydantic_v2"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 61",
+      "weight": 1.0,
+      "source": "architecture_fastapi",
+      "target": "architecture_sqlmodel"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 119",
+      "weight": 1.0,
+      "source": "architecture_react_18",
+      "target": "architecture_react_query"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 120",
+      "weight": 1.0,
+      "source": "architecture_react_18",
+      "target": "architecture_react_router"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "ARCHITECTURE.md",
+      "source_location": "line 118",
+      "weight": 1.0,
+      "source": "architecture_react_18",
+      "target": "architecture_zustand"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 23",
+      "weight": 1.0,
+      "source": "governance_engineering_philosophy",
+      "target": "governance_developer_experience"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 19",
+      "weight": 1.0,
+      "source": "governance_engineering_philosophy",
+      "target": "governance_maintainability"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 20",
+      "weight": 1.0,
+      "source": "governance_engineering_philosophy",
+      "target": "governance_modularity"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 22",
+      "weight": 1.0,
+      "source": "governance_engineering_philosophy",
+      "target": "governance_scalability"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 21",
+      "weight": 1.0,
+      "source": "governance_engineering_philosophy",
+      "target": "governance_simplicity"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 43",
+      "weight": 1.0,
+      "source": "governance_design_principles",
+      "target": "governance_async_apis"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 44",
+      "weight": 1.0,
+      "source": "governance_design_principles",
+      "target": "governance_clear_separation_of_concerns"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 38",
+      "weight": 1.0,
+      "source": "governance_design_principles",
+      "target": "governance_dark_mode_first"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 40",
+      "weight": 1.0,
+      "source": "governance_design_principles",
+      "target": "governance_minimal_design"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 39",
+      "weight": 1.0,
+      "source": "governance_design_principles",
+      "target": "governance_mobile_responsive"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 41",
+      "weight": 1.0,
+      "source": "governance_design_principles",
+      "target": "governance_small_components"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 42",
+      "weight": 1.0,
+      "source": "governance_design_principles",
+      "target": "governance_strong_typing"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 57",
+      "weight": 1.0,
+      "source": "governance_coding_standards",
+      "target": "governance_python_standards"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GOVERNANCE.md",
+      "source_location": "line 63",
+      "weight": 1.0,
+      "source": "governance_coding_standards",
+      "target": "governance_typescript_standards"
     }
   ],
   "hyperedges": [
     {
-      "id": "backend_tech_stack",
-      "label": "Backend Technology Stack",
+      "id": "stage1_models",
+      "label": "Stage 1 Database Models",
       "nodes": [
-        "claude_fastapi",
-        "claude_sqlmodel",
-        "claude_sqlite",
-        "claude_apscheduler",
-        "claude_pydantic"
+        "current_sprint_user_model",
+        "current_sprint_dashboardwidget_model"
       ],
-      "relation": "form",
+      "relation": "implement",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "/home/user/Synapse/CLAUDE.md"
-    },
-    {
-      "id": "frontend_tech_stack",
-      "label": "Frontend Technology Stack",
-      "nodes": [
-        "claude_react",
-        "claude_typescript",
-        "claude_vite",
-        "claude_tailwind",
-        "claude_react_query",
-        "claude_zustand",
-        "claude_react_router",
-        "claude_shadcn",
-        "claude_magicui"
-      ],
-      "relation": "form",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "/home/user/Synapse/CLAUDE.md"
+      "source_file": "/home/user/Synapse/CURRENT_SPRINT.md"
     },
     {
       "id": "roadmap_stages",
@@ -1226,17 +2132,141 @@
       "source_file": "/home/user/Synapse/ROADMAP.md"
     },
     {
-      "id": "stage1_models",
-      "label": "Stage 1 Database Models",
+      "id": "backend_tech_stack",
+      "label": "Backend Technology Stack",
       "nodes": [
-        "current_sprint_user_model",
-        "current_sprint_dashboardwidget_model"
+        "architecture_python_312",
+        "architecture_fastapi",
+        "architecture_sqlmodel",
+        "architecture_pydantic_v2",
+        "architecture_apscheduler"
       ],
-      "relation": "implement",
+      "relation": "form",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "/home/user/Synapse/CURRENT_SPRINT.md"
+      "source_file": "/home/user/Synapse/ARCHITECTURE.md"
+    },
+    {
+      "id": "frontend_tech_stack",
+      "label": "Frontend Technology Stack",
+      "nodes": [
+        "architecture_react_18",
+        "architecture_typescript",
+        "architecture_vite",
+        "architecture_tailwind",
+        "architecture_zustand",
+        "architecture_react_query",
+        "architecture_react_router",
+        "architecture_shadcn_ui",
+        "architecture_magic_ui"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/user/Synapse/ARCHITECTURE.md"
+    },
+    {
+      "id": "database_options",
+      "label": "Database Options",
+      "nodes": [
+        "architecture_sqlite",
+        "architecture_postgresql",
+        "architecture_redis",
+        "architecture_qdrant"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/user/Synapse/ARCHITECTURE.md"
+    },
+    {
+      "id": "core_integrations",
+      "label": "Core Integrations",
+      "nodes": [
+        "architecture_gmail_integration",
+        "architecture_google_calendar_integration",
+        "architecture_telegram_integration",
+        "architecture_llm_apis_integration"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/user/Synapse/ARCHITECTURE.md"
+    },
+    {
+      "id": "personal_os_capabilities",
+      "label": "Personal OS Core Capabilities",
+      "nodes": [
+        "claude_unified_information_access",
+        "claude_contextual_ai_assistance",
+        "claude_automation_workflows",
+        "claude_agent_systems",
+        "claude_notification_systems",
+        "claude_personal_knowledge_management"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/user/Synapse/CLAUDE.md"
+    },
+    {
+      "id": "engineering_priorities",
+      "label": "Engineering Priorities",
+      "nodes": [
+        "governance_maintainability",
+        "governance_modularity",
+        "governance_simplicity",
+        "governance_scalability",
+        "governance_developer_experience"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/user/Synapse/GOVERNANCE.md"
+    },
+    {
+      "id": "design_system",
+      "label": "Design System Principles",
+      "nodes": [
+        "governance_dark_mode_first",
+        "governance_mobile_responsive",
+        "governance_minimal_design",
+        "governance_small_components"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/user/Synapse/GOVERNANCE.md"
+    },
+    {
+      "id": "documentation_structure",
+      "label": "Documentation Structure and Hierarchy",
+      "nodes": [
+        "claude_current_sprint_md",
+        "claude_roadmap_md",
+        "claude_architecture_md",
+        "claude_governance_md",
+        "claude_instruction_hierarchy"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/user/Synapse/CLAUDE.md"
+    },
+    {
+      "id": "backend_architecture",
+      "label": "Backend Layered Architecture",
+      "nodes": [
+        "architecture_backend_layer",
+        "architecture_service_layer",
+        "architecture_integration_layer",
+        "architecture_repository_layer"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/user/Synapse/ARCHITECTURE.md"
     }
   ],
-  "built_at_commit": "68eee437b8ab136dcbd4b9d8fa006955316361ec"
+  "built_at_commit": "5a77c32256bfb12e0e7019da9b117871cf28bcf5"
 }
