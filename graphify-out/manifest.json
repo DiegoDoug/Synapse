@@ -1,0 +1,32 @@
+{
+  "/home/user/Synapse/CLAUDE.md": {
+    "mtime": 1782034059.3192258,
+    "ast_hash": "4dffecd26571f856280019e2df531a01",
+    "semantic_hash": "4dffecd26571f856280019e2df531a01"
+  },
+  "/home/user/Synapse/CURRENT_SPRINT.md": {
+    "mtime": 1782031816.5471551,
+    "ast_hash": "2a4c60b3f389fe6b567a491f7ec4eb3d",
+    "semantic_hash": "2a4c60b3f389fe6b567a491f7ec4eb3d"
+  },
+  "/home/user/Synapse/README.md": {
+    "mtime": 1781967105.3880146,
+    "ast_hash": "190fefb1c0ae23a8bbe5eb2782b00112",
+    "semantic_hash": "190fefb1c0ae23a8bbe5eb2782b00112"
+  },
+  "/home/user/Synapse/ROADMAP.md": {
+    "mtime": 1782031816.5471551,
+    "ast_hash": "749d6a1b98491fa37c8c53bf32379730",
+    "semantic_hash": "749d6a1b98491fa37c8c53bf32379730"
+  },
+  "/home/user/Synapse/ARCHITECTURE.md": {
+    "mtime": 1782290432.6042402,
+    "ast_hash": "68f8f7d299e8f910920b60684aa393bc",
+    "semantic_hash": "68f8f7d299e8f910920b60684aa393bc"
+  },
+  "/home/user/Synapse/GOVERNANCE.md": {
+    "mtime": 1782290408.1362405,
+    "ast_hash": "0f20f596edce501d5847682f09fd907d",
+    "semantic_hash": "0f20f596edce501d5847682f09fd907d"
+  }
+}
