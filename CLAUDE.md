@@ -186,7 +186,7 @@ Small PRs are preferred over large PRs.
 ### Example Session
 
 ```
-You:
+User:
 Begin Stage 1 Step 3.
 
 Claude:
