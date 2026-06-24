@@ -6,6 +6,8 @@ import { BrowserRouter } from "react-router-dom";
 import App from "@/App";
 import { queryClient } from "@/lib/queryClient";
 import { useAppStore } from "@/store/useAppStore";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 import "@/styles/globals.css";
 
 // Apply the initial theme class (dark-mode first per GOVERNANCE).

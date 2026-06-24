@@ -1,66 +1,40 @@
 # Current Sprint
 
-Current Stage: Stage 2
+Current Stage: Stage 1.5
 
 Objective:
 
-Connect Personal OS to external accounts and synchronize their data —
-starting with Gmail and Google Calendar — through a clean service +
-integration layer.
+Turn the Stage 1 placeholder dashboard into a fully customizable,
+drag-and-drop widget grid. Users arrange, resize, add, and remove widgets in
+an explicit edit mode, and their layout persists locally across reloads.
+
+This is a frontend-only stage between the Stage 1 foundation and the Stage 2
+integrations.
 
 ---
 
 # Allowed Features
 
-Backend:
-
-- OAuth account connection (Google)
-- Gmail integration (read/sync messages)
-- Google Calendar integration (read/sync events)
-- Connection management (connect, list, disconnect)
-- Synchronization services
-- Models for connected accounts and synced data
-
 Frontend:
 
-- Connections / accounts management UI
-- Connection status indicators
-- Surface synced email and calendar data in existing dashboard widgets
+- react-grid-layout integration (responsive widget grid)
+- drag-and-drop widget repositioning
+- resize support (per-widget minimum sizes)
+- edit mode (toggle drag/resize/remove on and off)
+- widget configuration (add / remove which widgets appear)
+- local layout persistence (browser storage)
 
 ---
 
 # Architecture Contract
 
-Each external system must follow ARCHITECTURE.md:
+Per ARCHITECTURE.md (frontend, feature-based):
 
-- A named Service (e.g. EmailService, CalendarService) — business logic, no HTTP
-- A named Integration (e.g. GmailIntegration, GoogleCalendarIntegration) — HTTP client, no business logic
-
-Create the backend/integrations/ package in this stage.
-
-Services never call external APIs directly; they call integrations.
-Integrations contain no business logic.
-
----
-
-# Database Models
-
-Create:
-
-- Connection (linked external account: provider, tokens, status)
-- EmailMessage (synced email metadata)
-- CalendarEvent (synced calendar event)
-
----
-
-# API
-
-Implement (under /api/v1):
-
-- account connection + OAuth callback endpoints
-- list / disconnect connections
-- list synced emails
-- list synced calendar events
+- A registry is the single source of truth for available widgets
+  (metadata + component + default size).
+- Dashboard layout state lives in a dedicated feature store (Zustand),
+  separate from the global UI store.
+- Server state (React Query) is untouched in this stage.
 
 ---
 
@@ -68,44 +42,35 @@ Implement (under /api/v1):
 
 DO NOT implement:
 
-- AI systems / agents
-- Telegram or notifications
-- embeddings / vector databases / RAG
-- voice
-- write actions to external services (send email, create events) — read/sync only
+- backend persistence of layouts (browser-local only)
+- new backend models, routes, or services
+- integrations / external APIs (Stage 2)
+- AI systems / agents, notifications, embeddings, voice
 
-Do not implement future stages beyond Stage 2.
+Do not implement future stages beyond Stage 1.5.
 
 ---
 
 # Deliverables
 
-- Google account connection works (OAuth)
-- email synchronization
-- calendar synchronization
-- connection management (connect / list / disconnect)
-- secrets handled via configuration (no committed credentials)
+- react-grid-layout grid replacing the static placeholder grid
+- drag-and-drop repositioning in edit mode
+- resize support
+- edit mode toggle with reset
+- widget configuration (add / remove widgets)
+- layouts saved locally and restored on reload
 
 ---
 
 # Development Process
 
-Step 1:
-Integration layer scaffolding + Connection model + OAuth config.
+Major Feature 1:
+react-grid-layout grid + drag-and-drop + resize + edit mode + local persistence.
 
-Step 2:
-Google OAuth connection flow + connection management.
+Major Feature 2:
+Widget configuration (add-widget library; inline removal).
 
-Step 3:
-Gmail integration + EmailService + email sync.
-
-Step 4:
-Google Calendar integration + CalendarService + event sync.
-
-Step 5:
-Frontend connections UI + surface synced data.
-
-After each step:
+After each major feature:
 
 - explain decisions
 - list files created
