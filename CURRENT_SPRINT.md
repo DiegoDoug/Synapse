@@ -1,10 +1,12 @@
 # Current Sprint
 
-Current Stage: Stage 1
+Current Stage: Stage 2
 
 Objective:
 
-Build the technical foundation of Personal OS.
+Connect Personal OS to external accounts and synchronize their data —
+starting with Gmail and Google Calendar — through a clean service +
+integration layer.
 
 ---
 
@@ -12,83 +14,53 @@ Build the technical foundation of Personal OS.
 
 Backend:
 
-- FastAPI application
-- SQLite setup
-- SQLModel configuration
-- health endpoint
-- configuration system
+- OAuth account connection (Google)
+- Gmail integration (read/sync messages)
+- Google Calendar integration (read/sync events)
+- Connection management (connect, list, disconnect)
+- Synchronization services
+- Models for connected accounts and synced data
 
 Frontend:
 
-- React application
-- routing
-- sidebar
-- header
-- dashboard page
-- settings page
-- dark mode
-- Zustand store
+- Connections / accounts management UI
+- Connection status indicators
+- Surface synced email and calendar data in existing dashboard widgets
 
 ---
 
-# Dashboard Widgets
+# Architecture Contract
 
-- Today's Overview
-- Notifications
-- Upcoming Events
-- Recent Activity
+Each external system must follow ARCHITECTURE.md:
 
-These are visual placeholders only.
+- A named Service (e.g. EmailService, CalendarService) — business logic, no HTTP
+- A named Integration (e.g. GmailIntegration, GoogleCalendarIntegration) — HTTP client, no business logic
 
-No backend logic.
+Create the backend/integrations/ package in this stage.
 
----
-
-# Routes
-
-/dashboard
-/settings
-
-Future routes may exist as placeholders.
+Services never call external APIs directly; they call integrations.
+Integrations contain no business logic.
 
 ---
 
 # Database Models
 
-Create only:
-
-- User
-- DashboardWidget
-
-No business logic.
-
----
-
-# State Management
-
 Create:
 
-useAppStore
-
-Store:
-
-- sidebar collapsed
-- theme mode
-- active route
+- Connection (linked external account: provider, tokens, status)
+- EmailMessage (synced email metadata)
+- CalendarEvent (synced calendar event)
 
 ---
 
 # API
 
-Implement:
+Implement (under /api/v1):
 
-GET /api/v1/health
-
-Response:
-
-{
-    "status": "healthy"
-}
+- account connection + OAuth callback endpoints
+- list / disconnect connections
+- list synced emails
+- list synced calendar events
 
 ---
 
@@ -96,51 +68,45 @@ Response:
 
 DO NOT implement:
 
-- authentication
-- Gmail
-- calendar
-- AI systems
-- agents
-- Telegram
-- embeddings
-- vector databases
-- RAG
-- notifications
+- AI systems / agents
+- Telegram or notifications
+- embeddings / vector databases / RAG
+- voice
+- write actions to external services (send email, create events) — read/sync only
+
+Do not implement future stages beyond Stage 2.
 
 ---
 
 # Deliverables
 
-- backend runs
-- frontend runs
-- responsive dashboard
-- dark mode
-- API connection structure
+- Google account connection works (OAuth)
+- email synchronization
+- calendar synchronization
+- connection management (connect / list / disconnect)
+- secrets handled via configuration (no committed credentials)
 
 ---
 
 # Development Process
 
 Step 1:
-Project structure.
+Integration layer scaffolding + Connection model + OAuth config.
 
 Step 2:
-Dependencies.
+Google OAuth connection flow + connection management.
 
 Step 3:
-Backend.
+Gmail integration + EmailService + email sync.
 
 Step 4:
-Frontend.
+Google Calendar integration + CalendarService + event sync.
 
 Step 5:
-Layout.
-
-Step 6:
-Dashboard.
+Frontend connections UI + surface synced data.
 
 After each step:
 
 - explain decisions
 - list files created
-- wait for approval 
+- wait for approval
