@@ -1,17 +1,16 @@
 # Current Sprint
 
-Current Stage: Stage 2
+Current Stage: Stage 3
 
 Objective:
 
-Connect Personal OS to external accounts and bring real data in. This stage
-adds Google account connections (OAuth), Gmail and Google Calendar
-integrations, and the synchronization services that keep local copies of
-emails and events up to date.
+Add a notification layer on top of the Stage 2 integrations: a Telegram bot,
+push notifications, and an in-app notification center. The system should turn
+synced data (emails, calendar events) into timely, useful messages — daily
+summaries, reminders, and alerts — and accept simple commands.
 
-This is a backend stage. It establishes the Service → Integration contract
-defined in ARCHITECTURE.md so that later stages (AI, agents, automation) have a
-stable data and service layer to build on.
+This is a backend-plus-frontend stage. It builds directly on the Stage 2
+synchronization services and the Service → Integration contract.
 
 ---
 
@@ -19,12 +18,16 @@ stable data and service layer to build on.
 
 Backend:
 
-- account connections via Google OAuth 2.0 (connect / list / disconnect)
-- Gmail integration (read-only ingestion of message metadata)
-- Google Calendar integration (read-only ingestion of events)
-- synchronization services (incremental sync with per-account cursors)
-- connection management (token storage + refresh)
-- REST endpoints exposing connections, emails, and calendar events
+- Telegram bot integration (delivery + simple inbound commands)
+- a `NotificationService` that composes notifications from synced data
+- a `Notification` model + persistence (notification history / center)
+- scheduled jobs (APScheduler) for daily summaries and reminders
+- REST endpoints for the notification center (list / mark read)
+
+Frontend:
+
+- notification center UI (list, unread state, mark read)
+- surfacing alerts/reminders in the dashboard shell
 
 ---
 
@@ -32,25 +35,13 @@ Backend:
 
 Per ARCHITECTURE.md (Service → Integration contract):
 
-- **Integration layer** (`backend/integrations/`) — thin external API clients
-  (`GoogleOAuthClient`, `GmailIntegration`, `GoogleCalendarIntegration`).
-  HTTP/SDK calls only, no business logic, no DB access.
-- **Service layer** (`backend/services/`) — business logic
-  (`ConnectionService`, `EmailService`, `CalendarService`, `SyncService`).
-  Orchestrates repositories and integrations. No direct HTTP.
-- **Repository layer** (`backend/repositories/`) — data access only.
-- **Interfaces** (`backend/services/interfaces.py`,
-  `backend/integrations/base.py`) — explicit contracts so implementations are
-  swappable and testable via dependency injection.
-- Agents are **not** introduced in this stage (Stage 6). Integrations must
-  never be called by agents; services must never make HTTP calls directly.
-
-Data model (`backend/models/`):
-
-- `Account` — a connected external account (provider, email, OAuth tokens).
-- `SyncState` — per-account, per-resource sync cursor + status.
-- `EmailMessage` — synced Gmail message metadata.
-- `CalendarEvent` — synced Google Calendar event.
+- **Integration layer** — `TelegramIntegration` (HTTP only, no business logic).
+- **Service layer** — `NotificationService` composes and dispatches
+  notifications; orchestrates repositories and the Telegram integration.
+- **Repository layer** — `NotificationRepository` for persistence.
+- **Scheduling** — APScheduler triggers run sync (Stage 2 `SyncService`) and
+  then compose notifications; no notification logic lives in the scheduler.
+- Agents are **not** introduced in this stage (Stage 6).
 
 ---
 
@@ -60,45 +51,39 @@ DO NOT implement:
 
 - AI systems (chat, LLM routing, prompts, tool use) — Stage 4
 - agents / agent orchestration — Stage 6
-- notifications / Telegram — Stage 3
 - embeddings, vector search, RAG — Stage 5
 - voice — Stage 4.7
-- write operations to external APIs (send email, create event) — Stage 4.5
-  (this stage is read-only ingestion + connection management only)
+- write operations to external APIs beyond Telegram delivery
+  (no send-email / create-event — Stage 4.5)
 - PostgreSQL / Redis / Docker — Stage 8
 
-Do not implement future stages beyond Stage 2.
+Do not implement future stages beyond Stage 3.
 
 ---
 
 # Deliverables
 
-- Integration architecture and service interfaces
-- Google OAuth connection flow + connection management
-- Gmail integration with incremental email synchronization
-- Google Calendar integration with incremental event synchronization
-- Synchronization services (manual trigger now; scheduled sync deferred)
-- REST endpoints for connections, emails, and calendar events
+- Telegram bot integration (delivery + basic commands)
+- notification composition from synced emails/events
+- notification center (model, persistence, REST endpoints, UI)
+- scheduled daily summaries and reminders (APScheduler)
 
 ---
 
 # Development Process
 
-Phase A — Foundation:
-Integration architecture, service interfaces, shared data models
-(`Account`, `SyncState`, `EmailMessage`, `CalendarEvent`), repositories, DTO
-schemas, configuration, and dependencies.
+Build incrementally and pause for approval between major features:
 
-Phase B — Gmail (requires approval):
-Google OAuth + connection management, `GmailIntegration`, `EmailService`,
-email synchronization, and connection/email routes.
+Major Feature 1:
+Notification model + `NotificationService` + notification-center REST endpoints
+and UI (in-app notifications, no external delivery yet).
 
-Phase C — Google Calendar (requires approval):
-`GoogleCalendarIntegration`, `CalendarService`, event synchronization, and
-calendar routes.
+Major Feature 2:
+`TelegramIntegration` + delivery + scheduled daily summaries / reminders
+(APScheduler), plus basic inbound commands.
 
-After each phase:
+After each major feature:
 
 - explain decisions
 - list files created / modified
-- wait for approval before the next integration
+- wait for approval
