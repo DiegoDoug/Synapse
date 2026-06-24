@@ -6,10 +6,14 @@ import pytest
 from backend.main import app
 from backend.models.account import Account
 from backend.repositories.account_repository import AccountRepository
+from backend.repositories.calendar_repository import CalendarRepository
 from backend.repositories.email_repository import EmailRepository
 from backend.repositories.sync_state_repository import SyncStateRepository
+from backend.services import calendar_service as calendar_service_module
 from backend.services import email_service as email_service_module
+from backend.services.calendar_service import CalendarService
 from backend.services.email_service import EmailService
+from backend.services.sync_service import SyncService
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine
@@ -41,6 +45,10 @@ def test_stage2_routes_registered():
     assert "/api/v1/connections/google/authorize" in paths
     assert "/api/v1/accounts/{account_id}/emails" in paths
     assert "/api/v1/accounts/{account_id}/emails/sync" in paths
+    assert "/api/v1/accounts/{account_id}/events" in paths
+    assert "/api/v1/accounts/{account_id}/events/sync" in paths
+    assert "/api/v1/accounts/{account_id}/sync" in paths
+    assert "/api/v1/accounts/{account_id}/sync/status" in paths
 
 
 def test_connections_require_google_config():
@@ -161,3 +169,88 @@ def test_second_sync_updates_existing(session, monkeypatch):
     assert second.created == 0
     assert second.updated == 1
     assert SyncStateRepository(session).get(account.id, "gmail").cursor == "43"
+
+
+# --- Calendar sync logic -----------------------------------------------------
+
+
+class _FakeCalendar:
+    """Stands in for GoogleCalendarIntegration; canned responses, no HTTP."""
+
+    def __init__(self, credentials):
+        pass
+
+    def list_events(self, calendar_id="primary", sync_token=None, max_results=250):
+        events = [
+            {
+                "id": "evt-1",
+                "summary": "Standup",
+                "location": "Room 1",
+                "status": "confirmed",
+                "start": {"dateTime": "2026-06-25T09:00:00+00:00"},
+                "end": {"dateTime": "2026-06-25T09:30:00+00:00"},
+            },
+            {
+                "id": "evt-2",
+                "summary": "Holiday",
+                "status": "confirmed",
+                "start": {"date": "2026-07-04"},
+                "end": {"date": "2026-07-05"},
+            },
+        ]
+        return events, "sync-token-1"
+
+
+def _calendar_service(session: Session) -> CalendarService:
+    return CalendarService(
+        AccountRepository(session),
+        CalendarRepository(session),
+        SyncStateRepository(session),
+        _FakeOAuth(),
+    )
+
+
+def test_calendar_sync_maps_timed_and_all_day(session, monkeypatch):
+    monkeypatch.setattr(
+        calendar_service_module, "GoogleCalendarIntegration", _FakeCalendar
+    )
+    account = _make_account(session)
+    service = _calendar_service(session)
+
+    result = service.sync(account.id)
+    assert result.status == "ok"
+    assert result.created == 2
+
+    events = {e.external_id: e for e in service.list_events(account.id)}
+    assert events["evt-1"].all_day is False
+    assert events["evt-2"].all_day is True
+    assert events["evt-2"].summary == "Holiday"
+
+    state = SyncStateRepository(session).get(account.id, "calendar")
+    assert state is not None and state.cursor == "sync-token-1"
+
+
+def test_sync_service_runs_both_resources(session, monkeypatch):
+    monkeypatch.setattr(email_service_module, "GmailIntegration", _FakeGmail)
+    monkeypatch.setattr(
+        calendar_service_module, "GoogleCalendarIntegration", _FakeCalendar
+    )
+    account = _make_account(session)
+
+    email_service = EmailService(
+        AccountRepository(session),
+        EmailRepository(session),
+        SyncStateRepository(session),
+        _FakeOAuth(),
+    )
+    sync_service = SyncService(
+        email_service, _calendar_service(session), SyncStateRepository(session)
+    )
+
+    results = sync_service.sync_account(account.id)
+    assert {r.resource for r in results} == {"gmail", "calendar"}
+    assert all(r.status == "ok" for r in results)
+
+    statuses = {s.resource: s for s in sync_service.get_status(account.id)}
+    assert set(statuses) == {"gmail", "calendar"}
+    assert all(s.status == "idle" for s in statuses.values())
