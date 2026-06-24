@@ -1,9 +1,10 @@
 import { Check, Pencil, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { WidgetLibrary } from "@/features/dashboard/components/WidgetLibrary";
 import { useDashboardStore } from "@/features/dashboard/stores/useDashboardStore";
 
-/** Controls for the dashboard: toggle edit mode and reset the layout. */
+/** Controls for the dashboard: toggle edit mode, add widgets, and reset. */
 export function DashboardToolbar() {
   const isEditing = useDashboardStore((state) => state.isEditing);
   const toggleEditing = useDashboardStore((state) => state.toggleEditing);
@@ -12,10 +13,13 @@ export function DashboardToolbar() {
   return (
     <div className="flex items-center gap-2">
       {isEditing && (
-        <Button variant="outline" size="sm" onClick={resetDashboard}>
-          <RotateCcw className="h-4 w-4" />
-          Reset
-        </Button>
+        <>
+          <WidgetLibrary />
+          <Button variant="outline" size="sm" onClick={resetDashboard}>
+            <RotateCcw className="h-4 w-4" />
+            Reset
+          </Button>
+        </>
       )}
       <Button
         variant={isEditing ? "default" : "outline"}
