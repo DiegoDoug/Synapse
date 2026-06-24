@@ -7,12 +7,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   composeNotifications,
+  deliverPendingNotifications,
   fetchNotificationCounts,
   fetchNotifications,
+  fetchTelegramStatus,
   markAllNotificationsRead,
   markNotificationRead,
+  sendNotification,
   type NotificationCounts,
   type NotificationDto,
+  type TelegramStatus,
 } from "@/features/notifications/api";
 
 const KEYS = {
@@ -20,6 +24,7 @@ const KEYS = {
   list: (unreadOnly: boolean, limit: number) =>
     ["notifications", "list", { unreadOnly, limit }] as const,
   counts: ["notifications", "counts"] as const,
+  telegram: ["notifications", "telegram"] as const,
 };
 
 interface UseNotificationsOptions {
@@ -68,6 +73,29 @@ export function useComposeNotifications() {
   const invalidate = useInvalidateNotifications();
   return useMutation({
     mutationFn: composeNotifications,
+    onSuccess: invalidate,
+  });
+}
+
+export function useTelegramStatus() {
+  return useQuery<TelegramStatus>({
+    queryKey: KEYS.telegram,
+    queryFn: fetchTelegramStatus,
+  });
+}
+
+export function useSendNotification() {
+  const invalidate = useInvalidateNotifications();
+  return useMutation({
+    mutationFn: (id: number) => sendNotification(id),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeliverPending() {
+  const invalidate = useInvalidateNotifications();
+  return useMutation({
+    mutationFn: deliverPendingNotifications,
     onSuccess: invalidate,
   });
 }

@@ -8,6 +8,9 @@ interface NotificationListProps {
   isLoading?: boolean;
   isError?: boolean;
   onMarkRead?: (id: number) => void;
+  onSend?: (id: number) => void;
+  /** Whether Telegram delivery is available (controls the send action). */
+  canSend?: boolean;
   busyId?: number;
   /** Message shown when there are no notifications. */
   emptyLabel?: string;
@@ -19,6 +22,8 @@ export function NotificationList({
   isLoading = false,
   isError = false,
   onMarkRead,
+  onSend,
+  canSend = false,
   busyId,
   emptyLabel = "You're all caught up.",
 }: NotificationListProps) {
@@ -59,6 +64,8 @@ export function NotificationList({
           key={notification.id}
           notification={notification}
           onMarkRead={onMarkRead}
+          onSend={onSend}
+          canSend={canSend}
           busy={busyId === notification.id}
         />
       ))}

@@ -4,6 +4,7 @@ Builds the app, configures CORS, creates database tables on startup, and
 mounts the versioned API router. No business logic.
 """
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -12,15 +13,26 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.api.routes import api_router
 from backend.config import get_settings
 from backend.database import create_db_and_tables
+from backend.scheduler import create_scheduler
 
+logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan: create database tables on startup."""
+    """Application lifespan: create tables and run the notification scheduler."""
     create_db_and_tables()
-    yield
+    scheduler = create_scheduler(settings)
+    if scheduler is not None:
+        scheduler.start()
+        logger.info("Notification scheduler started.")
+    app.state.scheduler = scheduler
+    try:
+        yield
+    finally:
+        if scheduler is not None:
+            scheduler.shutdown(wait=False)
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)

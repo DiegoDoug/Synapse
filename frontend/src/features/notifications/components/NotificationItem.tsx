@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { NotificationDto } from "@/features/notifications/api";
@@ -12,7 +12,11 @@ interface NotificationItemProps {
   notification: NotificationDto;
   /** Called when the user marks this notification read. Omit to hide the action. */
   onMarkRead?: (id: number) => void;
-  /** Disable the action while a mutation is in flight. */
+  /** Called to deliver this notification to Telegram. Omit to hide the action. */
+  onSend?: (id: number) => void;
+  /** Whether Telegram delivery is available (controls the send action). */
+  canSend?: boolean;
+  /** Disable the actions while a mutation is in flight. */
   busy?: boolean;
 }
 
@@ -20,10 +24,13 @@ interface NotificationItemProps {
 export function NotificationItem({
   notification,
   onMarkRead,
+  onSend,
+  canSend = false,
   busy = false,
 }: NotificationItemProps) {
   const Icon = notificationIcon(notification);
   const unread = !notification.is_read;
+  const showSend = canSend && onSend && !notification.is_delivered;
 
   return (
     <div
@@ -65,21 +72,42 @@ export function NotificationItem({
             {notification.body}
           </p>
         )}
+        {notification.is_delivered && (
+          <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+            <Send className="h-3 w-3" />
+            Sent to Telegram
+          </span>
+        )}
       </div>
 
-      {unread && onMarkRead && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 shrink-0"
-          disabled={busy}
-          aria-label="Mark as read"
-          title="Mark as read"
-          onClick={() => onMarkRead(notification.id)}
-        >
-          <Check className="h-4 w-4" />
-        </Button>
-      )}
+      <div className="flex shrink-0 items-center gap-1">
+        {showSend && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            disabled={busy}
+            aria-label="Send to Telegram"
+            title="Send to Telegram"
+            onClick={() => onSend(notification.id)}
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        )}
+        {unread && onMarkRead && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            disabled={busy}
+            aria-label="Mark as read"
+            title="Mark as read"
+            onClick={() => onMarkRead(notification.id)}
+          >
+            <Check className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

@@ -31,6 +31,11 @@ class Notification(SQLModel, table=True):
     is_read: bool = Field(default=False, index=True)
     read_at: datetime | None = Field(default=None)
 
+    # External delivery (Telegram). In-app notifications start undelivered; the
+    # service dispatches them and stamps these on success.
+    is_delivered: bool = Field(default=False, index=True)
+    delivered_at: datetime | None = Field(default=None)
+
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC), index=True
     )
