@@ -1,40 +1,56 @@
 # Current Sprint
 
-Current Stage: Stage 1.5
+Current Stage: Stage 2
 
 Objective:
 
-Turn the Stage 1 placeholder dashboard into a fully customizable,
-drag-and-drop widget grid. Users arrange, resize, add, and remove widgets in
-an explicit edit mode, and their layout persists locally across reloads.
+Connect Personal OS to external accounts and bring real data in. This stage
+adds Google account connections (OAuth), Gmail and Google Calendar
+integrations, and the synchronization services that keep local copies of
+emails and events up to date.
 
-This is a frontend-only stage between the Stage 1 foundation and the Stage 2
-integrations.
+This is a backend stage. It establishes the Service → Integration contract
+defined in ARCHITECTURE.md so that later stages (AI, agents, automation) have a
+stable data and service layer to build on.
 
 ---
 
 # Allowed Features
 
-Frontend:
+Backend:
 
-- react-grid-layout integration (responsive widget grid)
-- drag-and-drop widget repositioning
-- resize support (per-widget minimum sizes)
-- edit mode (toggle drag/resize/remove on and off)
-- widget configuration (add / remove which widgets appear)
-- local layout persistence (browser storage)
+- account connections via Google OAuth 2.0 (connect / list / disconnect)
+- Gmail integration (read-only ingestion of message metadata)
+- Google Calendar integration (read-only ingestion of events)
+- synchronization services (incremental sync with per-account cursors)
+- connection management (token storage + refresh)
+- REST endpoints exposing connections, emails, and calendar events
 
 ---
 
 # Architecture Contract
 
-Per ARCHITECTURE.md (frontend, feature-based):
+Per ARCHITECTURE.md (Service → Integration contract):
 
-- A registry is the single source of truth for available widgets
-  (metadata + component + default size).
-- Dashboard layout state lives in a dedicated feature store (Zustand),
-  separate from the global UI store.
-- Server state (React Query) is untouched in this stage.
+- **Integration layer** (`backend/integrations/`) — thin external API clients
+  (`GoogleOAuthClient`, `GmailIntegration`, `GoogleCalendarIntegration`).
+  HTTP/SDK calls only, no business logic, no DB access.
+- **Service layer** (`backend/services/`) — business logic
+  (`ConnectionService`, `EmailService`, `CalendarService`, `SyncService`).
+  Orchestrates repositories and integrations. No direct HTTP.
+- **Repository layer** (`backend/repositories/`) — data access only.
+- **Interfaces** (`backend/services/interfaces.py`,
+  `backend/integrations/base.py`) — explicit contracts so implementations are
+  swappable and testable via dependency injection.
+- Agents are **not** introduced in this stage (Stage 6). Integrations must
+  never be called by agents; services must never make HTTP calls directly.
+
+Data model (`backend/models/`):
+
+- `Account` — a connected external account (provider, email, OAuth tokens).
+- `SyncState` — per-account, per-resource sync cursor + status.
+- `EmailMessage` — synced Gmail message metadata.
+- `CalendarEvent` — synced Google Calendar event.
 
 ---
 
@@ -42,36 +58,47 @@ Per ARCHITECTURE.md (frontend, feature-based):
 
 DO NOT implement:
 
-- backend persistence of layouts (browser-local only)
-- new backend models, routes, or services
-- integrations / external APIs (Stage 2)
-- AI systems / agents, notifications, embeddings, voice
+- AI systems (chat, LLM routing, prompts, tool use) — Stage 4
+- agents / agent orchestration — Stage 6
+- notifications / Telegram — Stage 3
+- embeddings, vector search, RAG — Stage 5
+- voice — Stage 4.7
+- write operations to external APIs (send email, create event) — Stage 4.5
+  (this stage is read-only ingestion + connection management only)
+- PostgreSQL / Redis / Docker — Stage 8
 
-Do not implement future stages beyond Stage 1.5.
+Do not implement future stages beyond Stage 2.
 
 ---
 
 # Deliverables
 
-- react-grid-layout grid replacing the static placeholder grid
-- drag-and-drop repositioning in edit mode
-- resize support
-- edit mode toggle with reset
-- widget configuration (add / remove widgets)
-- layouts saved locally and restored on reload
+- Integration architecture and service interfaces
+- Google OAuth connection flow + connection management
+- Gmail integration with incremental email synchronization
+- Google Calendar integration with incremental event synchronization
+- Synchronization services (manual trigger now; scheduled sync deferred)
+- REST endpoints for connections, emails, and calendar events
 
 ---
 
 # Development Process
 
-Major Feature 1:
-react-grid-layout grid + drag-and-drop + resize + edit mode + local persistence.
+Phase A — Foundation:
+Integration architecture, service interfaces, shared data models
+(`Account`, `SyncState`, `EmailMessage`, `CalendarEvent`), repositories, DTO
+schemas, configuration, and dependencies.
 
-Major Feature 2:
-Widget configuration (add-widget library; inline removal).
+Phase B — Gmail (requires approval):
+Google OAuth + connection management, `GmailIntegration`, `EmailService`,
+email synchronization, and connection/email routes.
 
-After each major feature:
+Phase C — Google Calendar (requires approval):
+`GoogleCalendarIntegration`, `CalendarService`, event synchronization, and
+calendar routes.
+
+After each phase:
 
 - explain decisions
-- list files created
-- wait for approval
+- list files created / modified
+- wait for approval before the next integration
