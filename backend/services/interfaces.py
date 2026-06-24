@@ -14,6 +14,12 @@ from abc import ABC, abstractmethod
 from backend.schemas.calendar import EventDetail, EventSummary
 from backend.schemas.connection import AuthorizationUrlResponse, ConnectionRead
 from backend.schemas.email import EmailDetail, EmailSummary
+from backend.schemas.notification import (
+    ComposeResult,
+    NotificationCounts,
+    NotificationCreate,
+    NotificationRead,
+)
 from backend.schemas.sync import SyncResult, SyncStatusRead
 
 
@@ -80,6 +86,41 @@ class CalendarServiceInterface(ABC):
     @abstractmethod
     def sync(self, account_id: int) -> SyncResult:
         """Pull new/changed events from the provider into local storage."""
+
+
+class NotificationServiceInterface(ABC):
+    """Compose, list, and update in-app notifications for a user."""
+
+    @abstractmethod
+    def list(
+        self,
+        user_id: int,
+        *,
+        limit: int = 50,
+        offset: int = 0,
+        unread_only: bool = False,
+    ) -> list[NotificationRead]:
+        """List a user's notifications, newest first."""
+
+    @abstractmethod
+    def counts(self, user_id: int) -> NotificationCounts:
+        """Return unread/total counts for the notification badge."""
+
+    @abstractmethod
+    def create(self, user_id: int, data: NotificationCreate) -> NotificationRead:
+        """Create a manual in-app notification."""
+
+    @abstractmethod
+    def mark_read(self, user_id: int, notification_id: int) -> NotificationRead | None:
+        """Mark one notification read, or None if it does not belong to the user."""
+
+    @abstractmethod
+    def mark_all_read(self, user_id: int) -> int:
+        """Mark every unread notification read; return how many changed."""
+
+    @abstractmethod
+    def compose(self, user_id: int) -> ComposeResult:
+        """Compose notifications from recently synced emails and events."""
 
 
 class SyncServiceInterface(ABC):
