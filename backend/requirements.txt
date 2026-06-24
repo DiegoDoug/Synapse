@@ -1,0 +1,17 @@
+# Synapse backend — runtime dependencies (Stage 1)
+# Curated top-level deps only; transitive deps resolved by pip.
+
+# Web framework (async HTTP, OpenAPI docs, dependency injection)
+fastapi>=0.115,<1.0
+
+# ASGI server ([standard] adds uvloop, httptools, websockets)
+uvicorn[standard]>=0.34,<1.0
+
+# ORM + schema validation (unifies SQLAlchemy + Pydantic)
+sqlmodel>=0.0.22,<0.1
+
+# Runtime validation / serialization (pinned for clarity; pulled by fastapi)
+pydantic>=2.9,<3.0
+
+# Settings management for the configuration system (.env support)
+pydantic-settings>=2.6,<3.0
