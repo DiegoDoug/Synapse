@@ -57,3 +57,41 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* react-grid-layout theming (dashboard customization) */
+.react-grid-item.react-grid-placeholder {
+  @apply rounded-lg bg-primary/20;
+  opacity: 1;
+}
+
+.react-grid-item.react-draggable-dragging,
+.react-grid-item.resizing {
+  @apply z-20 shadow-lg;
+}
+
+/* Highlight editable widgets while in edit mode. */
+.dashboard-grid-editing .react-grid-item:not(.react-grid-placeholder) {
+  @apply rounded-lg outline-dashed outline-1 outline-offset-2 outline-border;
+}
+
+/* Recolor the default resize handle to fit the theme. */
+.react-grid-item > .react-resizable-handle {
+  display: none;
+}
+
+.dashboard-grid-editing .react-grid-item > .react-resizable-handle.react-resizable-handle-se {
+  display: block;
+  background: none;
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-se::after {
+  @apply border-muted-foreground;
+  content: "";
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid;
+  border-bottom: 2px solid;
+}
