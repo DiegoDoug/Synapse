@@ -20,12 +20,25 @@ export interface NotificationDto {
   source: string | null;
   is_read: boolean;
   read_at: string | null;
+  is_delivered: boolean;
+  delivered_at: string | null;
   created_at: string;
 }
 
 export interface NotificationCounts {
   unread: number;
   total: number;
+}
+
+export interface TelegramStatus {
+  configured: boolean;
+  chat_configured: boolean;
+}
+
+export interface DeliveryResult {
+  configured: boolean;
+  delivered: number;
+  skipped: number;
 }
 
 export interface ComposeResult {
@@ -68,4 +81,16 @@ export function markAllNotificationsRead(): Promise<MarkAllReadResult> {
 
 export function composeNotifications(): Promise<ComposeResult> {
   return apiPost<ComposeResult>("/notifications/compose");
+}
+
+export function fetchTelegramStatus(): Promise<TelegramStatus> {
+  return apiGet<TelegramStatus>("/notifications/telegram");
+}
+
+export function sendNotification(id: number): Promise<DeliveryResult> {
+  return apiPost<DeliveryResult>(`/notifications/${id}/send`);
+}
+
+export function deliverPendingNotifications(): Promise<DeliveryResult> {
+  return apiPost<DeliveryResult>("/notifications/deliver");
 }

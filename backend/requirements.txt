@@ -25,8 +25,10 @@ google-auth-oauthlib>=1.2,<2.0
 # Google API client (Gmail + Calendar REST clients used by integrations)
 google-api-python-client>=2.150,<3.0
 
-# Scheduling — incremental sync jobs (per ARCHITECTURE.md)
+# Scheduling — incremental sync jobs + Stage 3 notification jobs (compose,
+# deliver, daily summary, Telegram command polling)
 apscheduler>=3.10,<4.0
 
-# HTTP client (integrations + Starlette TestClient)
+# HTTP client (Google + Telegram integrations + Starlette TestClient). Stage 3
+# Telegram delivery uses httpx directly rather than a heavier bot framework.
 httpx>=0.28,<1.0

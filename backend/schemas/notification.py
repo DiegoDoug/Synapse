@@ -16,6 +16,8 @@ class NotificationRead(BaseModel):
     source: str | None = None
     is_read: bool = False
     read_at: datetime | None = None
+    is_delivered: bool = False
+    delivered_at: datetime | None = None
     created_at: datetime
 
 
@@ -46,3 +48,18 @@ class MarkAllReadResult(BaseModel):
     """Number of notifications transitioned to read."""
 
     updated: int
+
+
+class DeliveryResult(BaseModel):
+    """Outcome of dispatching notifications to Telegram."""
+
+    configured: bool  # whether a Telegram bot/chat is set up
+    delivered: int = 0
+    skipped: int = 0
+
+
+class TelegramStatus(BaseModel):
+    """Whether Telegram delivery is ready to use."""
+
+    configured: bool
+    chat_configured: bool

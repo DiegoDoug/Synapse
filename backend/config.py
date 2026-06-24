@@ -48,6 +48,23 @@ class Settings(BaseSettings):
     # Synchronization
     sync_interval_minutes: int = 5
 
+    # Telegram (Stage 3 — notification delivery + inbound commands). Empty by
+    # default so the app boots without a bot; delivery is skipped when unset.
+    telegram_bot_token: str = ""
+    telegram_default_chat_id: str = ""
+    telegram_api_base: str = "https://api.telegram.org"
+
+    # Notification scheduling (Stage 3 — APScheduler). The scheduler starts in
+    # the app lifespan; tests that don't enter the lifespan never start it.
+    scheduler_enabled: bool = True
+    notification_poll_minutes: int = 15  # compose + deliver cadence
+    daily_summary_hour: int = 8  # UTC hour for the daily summary (0-23)
+
+    @property
+    def telegram_enabled(self) -> bool:
+        """True when a bot token is configured."""
+        return bool(self.telegram_bot_token)
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse the comma-separated CORS origins into a list."""

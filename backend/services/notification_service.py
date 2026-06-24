@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
+from backend.integrations.telegram.bot import TelegramIntegration
 from backend.models.calendar_event import CalendarEvent
 from backend.models.email_message import EmailMessage
 from backend.models.notification import Notification
@@ -26,9 +27,11 @@ from backend.repositories.email_repository import EmailRepository
 from backend.repositories.notification_repository import NotificationRepository
 from backend.schemas.notification import (
     ComposeResult,
+    DeliveryResult,
     NotificationCounts,
     NotificationCreate,
     NotificationRead,
+    TelegramStatus,
 )
 from backend.services.interfaces import NotificationServiceInterface
 
@@ -50,11 +53,16 @@ class NotificationService(NotificationServiceInterface):
         accounts: AccountRepository,
         emails: EmailRepository,
         events: CalendarRepository,
+        *,
+        telegram: TelegramIntegration | None = None,
+        default_chat_id: str | None = None,
     ) -> None:
         self._notifications = notifications
         self._accounts = accounts
         self._emails = emails
         self._events = events
+        self._telegram = telegram
+        self._default_chat_id = default_chat_id or None
 
     # --- Reads -------------------------------------------------------------
 
@@ -102,6 +110,65 @@ class NotificationService(NotificationServiceInterface):
 
     def mark_all_read(self, user_id: int) -> int:
         return self._notifications.mark_all_read(user_id)
+
+    # --- Delivery (Telegram) ----------------------------------------------
+
+    def telegram_status(self) -> TelegramStatus:
+        return TelegramStatus(
+            configured=self._telegram is not None,
+            chat_configured=bool(self._default_chat_id),
+        )
+
+    def send(self, user_id: int, notification_id: int) -> DeliveryResult | None:
+        row = self._notifications.get(notification_id)
+        if row is None or row.user_id != user_id:
+            return None
+        if not self._can_deliver():
+            return DeliveryResult(configured=False, skipped=1)
+        self._dispatch(self._format(row))
+        self._mark_delivered(row)
+        return DeliveryResult(configured=True, delivered=1)
+
+    def deliver_pending(self, user_id: int) -> DeliveryResult:
+        if not self._can_deliver():
+            pending = self._notifications.list_undelivered(user_id)
+            return DeliveryResult(configured=False, skipped=len(pending))
+        delivered = 0
+        for row in self._notifications.list_undelivered(user_id):
+            self._dispatch(self._format(row))
+            self._mark_delivered(row)
+            delivered += 1
+        return DeliveryResult(configured=True, delivered=delivered)
+
+    def compose_and_deliver(self, user_id: int) -> DeliveryResult:
+        self.compose(user_id)
+        return self.deliver_pending(user_id)
+
+    def daily_summary(self, user_id: int) -> DeliveryResult:
+        """Persist a once-per-day summary notification and deliver it."""
+        source_key = f"summary:{datetime.now(UTC).date().isoformat()}"
+        existing = self._notifications.get_by_source_key(user_id, source_key)
+        text = self.summary_text(user_id)
+        if existing is None:
+            notification = self._persist(
+                user_id,
+                category="summary",
+                priority="normal",
+                title="Daily summary",
+                body=text,
+                source="system",
+                source_key=source_key,
+            )
+            row = self._notifications.get(notification.id)
+        else:
+            row = existing
+        if not self._can_deliver():
+            return DeliveryResult(configured=False, skipped=1)
+        if row.is_delivered:
+            return DeliveryResult(configured=True, delivered=0, skipped=1)
+        self._dispatch(f"📊 Daily summary\n{text}")
+        self._mark_delivered(row)
+        return DeliveryResult(configured=True, delivered=1)
 
     # --- Composition -------------------------------------------------------
 
@@ -169,6 +236,49 @@ class NotificationService(NotificationServiceInterface):
 
     # --- Internals ---------------------------------------------------------
 
+    def _can_deliver(self) -> bool:
+        return self._telegram is not None and self._default_chat_id is not None
+
+    def _dispatch(self, text: str) -> None:
+        # Guarded by _can_deliver() at the call sites.
+        self._telegram.send_message(self._default_chat_id, text)
+
+    def _mark_delivered(self, row: Notification) -> None:
+        row.is_delivered = True
+        row.delivered_at = datetime.now(UTC)
+        self._notifications.update(row)
+
+    def summary_text(self, user_id: int) -> str:
+        """Human-readable one-line summary of synced activity (no side effects)."""
+        now = datetime.now(UTC)
+        end_of_day = now + timedelta(hours=24)
+        unread_email = 0
+        upcoming = 0
+        for account in self._accounts.list_for_user(user_id):
+            unread_email += len(
+                self._emails.list_for_account(account.id, limit=200, unread_only=True)
+            )
+            for event in self._events.list_for_account(account.id, limit=200):
+                start = self._ensure_aware(event.start)
+                if start is not None and now <= start <= end_of_day:
+                    upcoming += 1
+        return (
+            f"{unread_email} unread email(s), "
+            f"{upcoming} event(s) in the next 24h."
+        )
+
+    @staticmethod
+    def _format(row: Notification) -> str:
+        prefix = "🔔"
+        if row.source == "calendar":
+            prefix = "📅"
+        elif row.source == "email":
+            prefix = "✉️"
+        elif row.priority == "high":
+            prefix = "⚠️"
+        body = f"\n{row.body}" if row.body else ""
+        return f"{prefix} {row.title}{body}"
+
     def _persist(
         self,
         user_id: int,
@@ -225,5 +335,7 @@ class NotificationService(NotificationServiceInterface):
             source=row.source,
             is_read=row.is_read,
             read_at=row.read_at,
+            is_delivered=row.is_delivered,
+            delivered_at=row.delivered_at,
             created_at=row.created_at,
         )

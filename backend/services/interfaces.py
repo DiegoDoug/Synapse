@@ -16,9 +16,11 @@ from backend.schemas.connection import AuthorizationUrlResponse, ConnectionRead
 from backend.schemas.email import EmailDetail, EmailSummary
 from backend.schemas.notification import (
     ComposeResult,
+    DeliveryResult,
     NotificationCounts,
     NotificationCreate,
     NotificationRead,
+    TelegramStatus,
 )
 from backend.schemas.sync import SyncResult, SyncStatusRead
 
@@ -121,6 +123,26 @@ class NotificationServiceInterface(ABC):
     @abstractmethod
     def compose(self, user_id: int) -> ComposeResult:
         """Compose notifications from recently synced emails and events."""
+
+    @abstractmethod
+    def telegram_status(self) -> TelegramStatus:
+        """Report whether Telegram delivery is configured."""
+
+    @abstractmethod
+    def send(self, user_id: int, notification_id: int) -> DeliveryResult | None:
+        """Deliver one notification to Telegram, or None if it does not exist."""
+
+    @abstractmethod
+    def deliver_pending(self, user_id: int) -> DeliveryResult:
+        """Deliver all undelivered notifications to Telegram."""
+
+    @abstractmethod
+    def compose_and_deliver(self, user_id: int) -> DeliveryResult:
+        """Compose from synced data, then deliver anything undelivered."""
+
+    @abstractmethod
+    def daily_summary(self, user_id: int) -> DeliveryResult:
+        """Compose and deliver a daily summary of synced activity."""
 
 
 class SyncServiceInterface(ABC):

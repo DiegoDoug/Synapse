@@ -41,6 +41,18 @@ class NotificationRepository:
         )
         return list(self._session.exec(statement).all())
 
+    def list_undelivered(self, user_id: int, *, limit: int = 50) -> list[Notification]:
+        statement = (
+            select(Notification)
+            .where(
+                Notification.user_id == user_id,
+                Notification.is_delivered == False,  # noqa: E712
+            )
+            .order_by(Notification.created_at.asc())  # type: ignore[union-attr]
+            .limit(limit)
+        )
+        return list(self._session.exec(statement).all())
+
     def count(self, user_id: int, *, unread_only: bool = False) -> int:
         statement = select(Notification).where(Notification.user_id == user_id)
         if unread_only:

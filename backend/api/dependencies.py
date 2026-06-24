@@ -15,11 +15,11 @@ from backend.models.user import User
 from backend.repositories.account_repository import AccountRepository
 from backend.repositories.calendar_repository import CalendarRepository
 from backend.repositories.email_repository import EmailRepository
-from backend.repositories.notification_repository import NotificationRepository
 from backend.repositories.sync_state_repository import SyncStateRepository
 from backend.services.calendar_service import CalendarService
 from backend.services.connection_service import ConnectionService
 from backend.services.email_service import EmailService
+from backend.services.factory import build_notification_service
 from backend.services.notification_service import NotificationService
 from backend.services.sync_service import SyncService
 
@@ -100,11 +100,8 @@ def get_sync_service(
 
 def get_notification_service(
     session: Session = Depends(get_session),
+    settings: Settings = Depends(get_settings),
 ) -> NotificationService:
-    # Composition reads already-synced rows, so no OAuth client is required.
-    return NotificationService(
-        NotificationRepository(session),
-        AccountRepository(session),
-        EmailRepository(session),
-        CalendarRepository(session),
-    )
+    # Composition reads already-synced rows (no OAuth needed); the factory also
+    # wires the optional Telegram integration for delivery endpoints.
+    return build_notification_service(session, settings)
