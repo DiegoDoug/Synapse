@@ -15,10 +15,12 @@ from backend.models.user import User
 from backend.repositories.account_repository import AccountRepository
 from backend.repositories.calendar_repository import CalendarRepository
 from backend.repositories.email_repository import EmailRepository
+from backend.repositories.notification_repository import NotificationRepository
 from backend.repositories.sync_state_repository import SyncStateRepository
 from backend.services.calendar_service import CalendarService
 from backend.services.connection_service import ConnectionService
 from backend.services.email_service import EmailService
+from backend.services.notification_service import NotificationService
 from backend.services.sync_service import SyncService
 
 # Default owner identity for the single-user Personal OS. A dedicated auth
@@ -94,3 +96,15 @@ def get_sync_service(
     calendar: CalendarService = Depends(get_calendar_service),
 ) -> SyncService:
     return SyncService(email, calendar, SyncStateRepository(session))
+
+
+def get_notification_service(
+    session: Session = Depends(get_session),
+) -> NotificationService:
+    # Composition reads already-synced rows, so no OAuth client is required.
+    return NotificationService(
+        NotificationRepository(session),
+        AccountRepository(session),
+        EmailRepository(session),
+        CalendarRepository(session),
+    )

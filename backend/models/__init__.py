@@ -8,6 +8,7 @@ from backend.models.account import Account
 from backend.models.calendar_event import CalendarEvent
 from backend.models.dashboard_widget import DashboardWidget
 from backend.models.email_message import EmailMessage
+from backend.models.notification import Notification
 from backend.models.sync_state import SyncState
 from backend.models.user import User
 
@@ -16,6 +17,7 @@ __all__ = [
     "CalendarEvent",
     "DashboardWidget",
     "EmailMessage",
+    "Notification",
     "SyncState",
     "User",
 ]

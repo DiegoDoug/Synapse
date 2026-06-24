@@ -1,11 +1,13 @@
-import { LayoutDashboard, Settings, Zap } from "lucide-react";
+import { Bell, LayoutDashboard, Settings, Zap } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
+import { useNotificationCounts } from "@/features/notifications/useNotifications";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -19,6 +21,8 @@ interface SidebarProps {
 /** Collapsible left navigation. Off-canvas drawer on mobile, fixed rail on desktop. */
 export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   const collapsed = useAppStore((state) => state.sidebarCollapsed);
+  const { data: counts } = useNotificationCounts();
+  const unread = counts?.unread ?? 0;
 
   return (
     <>
@@ -65,8 +69,23 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                 )
               }
             >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className={cn(collapsed && "md:hidden")}>{label}</span>
+              <span className="relative shrink-0">
+                <Icon className="h-4 w-4" />
+                {to === "/notifications" && unread > 0 && collapsed && (
+                  <span className="absolute -right-1 -top-1 hidden h-2 w-2 rounded-full bg-primary md:block" />
+                )}
+              </span>
+              <span className={cn("flex-1", collapsed && "md:hidden")}>{label}</span>
+              {to === "/notifications" && unread > 0 && (
+                <span
+                  className={cn(
+                    "ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground",
+                    collapsed && "md:hidden",
+                  )}
+                >
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
