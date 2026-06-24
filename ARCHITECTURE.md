@@ -1,12 +1,14 @@
 # Personal OS — System Architecture
 
-This document describes the runtime architecture of Personal OS: the layers, components, and dependencies that form the application.
+**Instruction precedence:** CURRENT_SPRINT.md > ROADMAP.md > ARCHITECTURE.md > GOVERNANCE.md > CLAUDE.md
 
-See:
-- **CLAUDE.md** for product vision and instructions
-- **GOVERNANCE.md** for principles, standards, and philosophy
-- **ROADMAP.md** for the product roadmap
-- **CURRENT_SPRINT.md** for the active development stage
+This document describes the runtime architecture of Personal OS: the layers, components, and dependencies that form the application. It sits above GOVERNANCE.md and CLAUDE.md in the instruction hierarchy — architectural decisions here override coding style preferences.
+
+Related documents:
+- **CLAUDE.md** — product vision, workflow, sprint process (overridden by this document)
+- **GOVERNANCE.md** — principles and standards (overridden by this document)
+- **ROADMAP.md** — product roadmap (overrides this document)
+- **CURRENT_SPRINT.md** — active development stage (overrides everything)
 
 ---
 
@@ -98,6 +100,25 @@ HTTP Route → Service → Repository → SQLModel
 ```
 
 Services never call integrations directly; they ask a repository or another service. Integrations are instantiated by the route handler via dependency injection.
+
+**Service → Integration contract (required for Stage 2+):**
+
+Each external system must have:
+1. A named **Service** (`EmailService`, `CalendarService`) — business logic, no HTTP calls
+2. A named **Integration** (`GmailIntegration`, `GoogleCalendarIntegration`) — HTTP client, no business logic
+3. A named **Agent** (`EmailAgent`, `CalendarAgent`) — orchestrates Service, never calls Integration directly
+
+```
+EmailAgent
+    ↓ calls
+EmailService
+    ↓ calls
+GmailIntegration
+    ↓ calls
+Gmail API
+```
+
+Agents must never reference integrations. Integrations must never contain business logic.
 
 ---
 

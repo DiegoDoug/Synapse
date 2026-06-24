@@ -1,12 +1,22 @@
 # Personal OS — Governance Layer
 
-This document defines the principles, standards, and philosophy that guide development of Personal OS. These rules influence how we build the system, but do not describe the system itself.
+**Instruction precedence:** CURRENT_SPRINT.md > ROADMAP.md > ARCHITECTURE.md > GOVERNANCE.md > CLAUDE.md
 
-See:
-- **CLAUDE.md** for product vision and instructions
-- **ARCHITECTURE.md** for the runtime system design
-- **ROADMAP.md** for the product roadmap
-- **CURRENT_SPRINT.md** for the active development stage
+This document defines the principles, standards, and philosophy that guide development of Personal OS. These rules influence *how* we build — they do not describe the system itself and are overridden by any active sprint constraint.
+
+| Document | Layer | Overrides |
+| -------- | ----- | --------- |
+| CURRENT_SPRINT.md | Planning — active stage | Everything |
+| ROADMAP.md | Planning — vision | ARCHITECTURE, GOVERNANCE, CLAUDE |
+| ARCHITECTURE.md | Runtime — system design | GOVERNANCE, CLAUDE |
+| GOVERNANCE.md | Standards — principles | CLAUDE only |
+| CLAUDE.md | Instructions — workflow | Nothing |
+
+Related documents:
+- **CLAUDE.md** — product vision, workflow, sprint process
+- **ARCHITECTURE.md** — runtime system design (overrides this document)
+- **ROADMAP.md** — product roadmap (overrides this document)
+- **CURRENT_SPRINT.md** — active development stage (overrides everything)
 
 ---
 
