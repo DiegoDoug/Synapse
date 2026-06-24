@@ -1,0 +1,11 @@
+# Synapse backend — development dependencies (Stage 1)
+-r requirements.txt
+
+# Linter + formatter (fast, single tool)
+ruff>=0.8,<1.0
+
+# Test runner
+pytest>=8.3,<9.0
+
+# Async HTTP client required by FastAPI/Starlette TestClient
+httpx>=0.28,<1.0

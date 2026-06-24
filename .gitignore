@@ -13,6 +13,7 @@ dist/
 # Environment
 .env
 .env.*
+!.env.example
 
 # Database (SQLite)
 data/*.db
