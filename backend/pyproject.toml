@@ -10,6 +10,16 @@ src = ["."]
 # pyflakes (F), pycodestyle (E/W), isort (I), pyupgrade (UP), bugbear (B)
 select = ["E", "W", "F", "I", "UP", "B"]
 
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI relies on calling Depends()/Query()/etc. in argument defaults.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
