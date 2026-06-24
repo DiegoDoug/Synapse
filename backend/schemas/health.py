@@ -1,4 +1,9 @@
-"""Health-check response schema.
+"""Health-check response schema."""
 
-Placeholder for Stage 1 — Step 3 (Backend).
-"""
+from pydantic import BaseModel
+
+
+class HealthResponse(BaseModel):
+    """Response body for the health endpoint."""
+
+    status: str
