@@ -1,3 +1,7 @@
-// Settings route page.
-// Placeholder for Stage 1 - Step 5/6. No logic yet.
-export {};
+/**
+ * Settings route page.
+ * Placeholder shell — real content is built in later Stage 1 steps.
+ */
+export default function SettingsPage() {
+  return <div className="p-6">Settings</div>;
+}
