@@ -167,6 +167,44 @@ The repository state should always reflect the current development stage.
 
 ---
 
+## Git Workflow
+
+Never commit directly to main.
+
+Before implementing a feature:
+
+1. Create a feature branch.
+2. Implement changes.
+3. Commit using Conventional Commits.
+4. Push the feature branch.
+5. Recommend opening a PR.
+
+One feature branch should contain one logical unit of work.
+
+Small PRs are preferred over large PRs.
+
+### Example Session
+
+```
+You:
+Begin Stage 1 Step 3.
+
+Claude:
+Recommended branch:
+
+feature/backend-foundation
+
+Commands:
+
+git checkout main
+git pull
+git checkout -b feature/backend-foundation
+
+Proceed?
+```
+
+---
+
 ## Quick Reference
 
 | Document | Purpose |
