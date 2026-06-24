@@ -1,40 +1,47 @@
 # Current Sprint
 
-Current Stage: Stage 1.5
+Current Stage: Stage 3
 
 Objective:
 
-Turn the Stage 1 placeholder dashboard into a fully customizable,
-drag-and-drop widget grid. Users arrange, resize, add, and remove widgets in
-an explicit edit mode, and their layout persists locally across reloads.
+Add a notification layer on top of the Stage 2 integrations: a Telegram bot,
+push notifications, and an in-app notification center. The system should turn
+synced data (emails, calendar events) into timely, useful messages — daily
+summaries, reminders, and alerts — and accept simple commands.
 
-This is a frontend-only stage between the Stage 1 foundation and the Stage 2
-integrations.
+This is a backend-plus-frontend stage. It builds directly on the Stage 2
+synchronization services and the Service → Integration contract.
 
 ---
 
 # Allowed Features
 
+Backend:
+
+- Telegram bot integration (delivery + simple inbound commands)
+- a `NotificationService` that composes notifications from synced data
+- a `Notification` model + persistence (notification history / center)
+- scheduled jobs (APScheduler) for daily summaries and reminders
+- REST endpoints for the notification center (list / mark read)
+
 Frontend:
 
-- react-grid-layout integration (responsive widget grid)
-- drag-and-drop widget repositioning
-- resize support (per-widget minimum sizes)
-- edit mode (toggle drag/resize/remove on and off)
-- widget configuration (add / remove which widgets appear)
-- local layout persistence (browser storage)
+- notification center UI (list, unread state, mark read)
+- surfacing alerts/reminders in the dashboard shell
 
 ---
 
 # Architecture Contract
 
-Per ARCHITECTURE.md (frontend, feature-based):
+Per ARCHITECTURE.md (Service → Integration contract):
 
-- A registry is the single source of truth for available widgets
-  (metadata + component + default size).
-- Dashboard layout state lives in a dedicated feature store (Zustand),
-  separate from the global UI store.
-- Server state (React Query) is untouched in this stage.
+- **Integration layer** — `TelegramIntegration` (HTTP only, no business logic).
+- **Service layer** — `NotificationService` composes and dispatches
+  notifications; orchestrates repositories and the Telegram integration.
+- **Repository layer** — `NotificationRepository` for persistence.
+- **Scheduling** — APScheduler triggers run sync (Stage 2 `SyncService`) and
+  then compose notifications; no notification logic lives in the scheduler.
+- Agents are **not** introduced in this stage (Stage 6).
 
 ---
 
@@ -42,36 +49,41 @@ Per ARCHITECTURE.md (frontend, feature-based):
 
 DO NOT implement:
 
-- backend persistence of layouts (browser-local only)
-- new backend models, routes, or services
-- integrations / external APIs (Stage 2)
-- AI systems / agents, notifications, embeddings, voice
+- AI systems (chat, LLM routing, prompts, tool use) — Stage 4
+- agents / agent orchestration — Stage 6
+- embeddings, vector search, RAG — Stage 5
+- voice — Stage 4.7
+- write operations to external APIs beyond Telegram delivery
+  (no send-email / create-event — Stage 4.5)
+- PostgreSQL / Redis / Docker — Stage 8
 
-Do not implement future stages beyond Stage 1.5.
+Do not implement future stages beyond Stage 3.
 
 ---
 
 # Deliverables
 
-- react-grid-layout grid replacing the static placeholder grid
-- drag-and-drop repositioning in edit mode
-- resize support
-- edit mode toggle with reset
-- widget configuration (add / remove widgets)
-- layouts saved locally and restored on reload
+- Telegram bot integration (delivery + basic commands)
+- notification composition from synced emails/events
+- notification center (model, persistence, REST endpoints, UI)
+- scheduled daily summaries and reminders (APScheduler)
 
 ---
 
 # Development Process
 
+Build incrementally and pause for approval between major features:
+
 Major Feature 1:
-react-grid-layout grid + drag-and-drop + resize + edit mode + local persistence.
+Notification model + `NotificationService` + notification-center REST endpoints
+and UI (in-app notifications, no external delivery yet).
 
 Major Feature 2:
-Widget configuration (add-widget library; inline removal).
+`TelegramIntegration` + delivery + scheduled daily summaries / reminders
+(APScheduler), plus basic inbound commands.
 
 After each major feature:
 
 - explain decisions
-- list files created
+- list files created / modified
 - wait for approval

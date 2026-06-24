@@ -1,4 +1,4 @@
-# Synapse backend — runtime dependencies (Stage 1)
+# Synapse backend — runtime dependencies (Stages 1–2)
 # Curated top-level deps only; transitive deps resolved by pip.
 
 # Web framework (async HTTP, OpenAPI docs, dependency injection)
@@ -15,3 +15,18 @@ pydantic>=2.9,<3.0
 
 # Settings management for the configuration system (.env support)
 pydantic-settings>=2.6,<3.0
+
+# --- Stage 2: Integrations (Google OAuth + Gmail + Calendar) ---
+
+# OAuth 2.0 + credential management for Google APIs
+google-auth>=2.35,<3.0
+google-auth-oauthlib>=1.2,<2.0
+
+# Google API client (Gmail + Calendar REST clients used by integrations)
+google-api-python-client>=2.150,<3.0
+
+# Scheduling — incremental sync jobs (per ARCHITECTURE.md)
+apscheduler>=3.10,<4.0
+
+# HTTP client (integrations + Starlette TestClient)
+httpx>=0.28,<1.0
