@@ -10,6 +10,7 @@ from backend.api.routes.ai import router as ai_router
 from backend.api.routes.calendar import router as calendar_router
 from backend.api.routes.connections import router as connections_router
 from backend.api.routes.conversations import router as conversations_router
+from backend.api.routes.documents import router as documents_router
 from backend.api.routes.email import router as email_router
 from backend.api.routes.health import router as health_router
 from backend.api.routes.notifications import router as notifications_router
@@ -27,6 +28,7 @@ api_router.include_router(sync_router)
 api_router.include_router(notifications_router)
 api_router.include_router(ai_router)
 api_router.include_router(conversations_router)
+api_router.include_router(documents_router)
 api_router.include_router(prompts_router)
 api_router.include_router(tasks_router)
 api_router.include_router(actions_router)

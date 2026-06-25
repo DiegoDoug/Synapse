@@ -76,6 +76,20 @@ class Settings(BaseSettings):
     ai_max_tokens: int = 1024
     ai_temperature: float = 0.7
 
+    # Knowledge base / RAG (Stage 5). Embeddings (sentence-transformers) and the
+    # Qdrant client are imported lazily by their integrations, so the app boots
+    # without them: ingestion records documents as "unavailable" until installed,
+    # and the vector store falls back to an in-process index. Install the extras
+    # via backend/requirements-knowledge.txt to enable real semantic search.
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    embedding_dimension: int = 384  # all-MiniLM-L6-v2 output size
+    vector_backend: str = "memory"  # memory | qdrant
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_collection: str = "synapse_knowledge"
+    knowledge_chunk_size: int = 1000  # chars per chunk
+    knowledge_chunk_overlap: int = 150  # chars carried between chunks
+    knowledge_max_upload_bytes: int = 10 * 1024 * 1024  # 10 MB
+
     # Voice interface (Stage 4.7 — local STT/TTS). Models are imported lazily by
     # their integration clients, so the app boots without the (heavy) voice
     # dependencies installed; the endpoints report unavailable until then.

@@ -22,11 +22,13 @@ from backend.services.calendar_service import CalendarService
 from backend.services.confirmation_service import ConfirmationService
 from backend.services.connection_service import ConnectionService
 from backend.services.conversation_service import ConversationService
+from backend.services.document_service import DocumentService
 from backend.services.email_service import EmailService
 from backend.services.factory import (
     build_ai_service,
     build_confirmation_service,
     build_conversation_service,
+    build_document_service,
     build_notification_service,
     build_stt_service,
     build_tts_service,
@@ -143,6 +145,15 @@ def get_task_service(
     session: Session = Depends(get_session),
 ) -> TaskService:
     return TaskService(TaskRepository(session))
+
+
+def get_document_service(
+    session: Session = Depends(get_session),
+    settings: Settings = Depends(get_settings),
+) -> DocumentService:
+    # Wires the document repository + the embeddings and vector-store
+    # integrations (lazy; degrade gracefully when their extras aren't installed).
+    return build_document_service(session, settings)
 
 
 def get_confirmation_service(
