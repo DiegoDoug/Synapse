@@ -1,19 +1,17 @@
 # Current Sprint
 
-Current Stage: Stage 4.7
+Current Stage: Stage 5
 
 Objective:
 
-Give Personal OS a **voice interface**: local speech-to-text and text-to-speech
-so the user can talk to the assistant. Add push-to-talk (hold to record →
-transcribe → inject into the existing AI chat → read the reply back) and an
-opt-in "Hey Synapse" wake-word mode. All inference is local — no audio leaves the
-device.
+Give Personal OS a **knowledge system**: upload documents, embed and index them,
+and let the assistant answer questions grounded in that personal knowledge base
+(RAG). Retrieval is exposed as a tool inside the existing AI tool-use loop, so
+grounded answers reuse the Stage 4 chat path and the Stage 4.5 confirmation flow
+without changing the chat core.
 
 This is a backend-plus-frontend stage. It builds on the Stage 4 `AIService` +
-tool-use loop and the Stage 4.5 confirmation flow (voice injects text into the
-exact same chat path, so tool use and confirmations work unchanged), all under
-the ARCHITECTURE.md Service → Integration contract.
+`ToolRegistry` and the ARCHITECTURE.md Service → Integration contract.
 
 ---
 
@@ -21,56 +19,38 @@ the ARCHITECTURE.md Service → Integration contract.
 
 Backend:
 
-- a `STTService` (faster-whisper wrapper) — model loaded at startup, selectable
-  size (tiny / small / medium)
-- a `TTSService` (Kokoro wrapper) — streams synthesized audio chunks
-- a `WakeWordService` (openWakeWord) — runs inference on PCM frames, server-side
-- a `/ws/voice` WebSocket — receives PCM, runs wake-word detection, returns
-  events
-- REST: `POST /voice/transcribe` (audio → text), `POST /voice/synthesize`
-  (text → audio stream)
+- a `Document` model (DB) + a `DocumentService` owning ingestion: text
+  extraction → chunking → embedding → indexing, and deletion
+- an **embeddings integration** (sentence-transformers) — encodes text to
+  vectors; lazily imported and degrading gracefully when absent
+- a **vector store integration** (Qdrant client) for upserting + searching
+  chunk vectors, with an in-process fallback so the app runs without a Qdrant
+  server during development
+- a `KnowledgeService` (or `RetrievalService`) exposing semantic search over the
+  indexed chunks
+- a `search_knowledge` **read tool** behind the existing `ToolRegistry` so the
+  assistant can retrieve relevant chunks and ground its answers (with citations)
+- REST: upload a document, list/delete documents, and a semantic-search endpoint
 
 Frontend:
 
-- a `VoiceButton` — push-to-talk UI with waveform animation
-- an `AudioStreamer` — AudioWorklet that encodes PCM and streams over WebSocket
-- a `useVoice` hook — unified state machine for push-to-talk and wake-word modes
-- a `VoiceSettings` panel — model-size selector, voice selector, wake-word toggle
-
----
-
-# Data Flow
-
-Push-to-talk:
-
-1. User holds the `VoiceButton`; `MediaRecorder` captures audio → WebM blob
-2. `POST /voice/transcribe` → faster-whisper → transcript text
-3. Transcript injected into the existing AI chat (Stage 4/4.5 path, unchanged)
-4. AI reply text → `POST /voice/synthesize` → Kokoro → WAV stream
-5. Browser plays the audio reply
-
-Wake-word mode (opt-in):
-
-1. `AudioStreamer` streams raw 16 kHz PCM → `/ws/voice`
-2. `WakeWordService` runs openWakeWord on each frame
-3. On detection the WebSocket sends `{"event": "wake_word_detected"}`
-4. Browser enters recording mode; audio continues until a silence threshold
-5. Buffered audio → faster-whisper → transcript → same AI → TTS pipeline
+- a documents view: upload, list, and delete documents (with index status)
+- citations surfaced in the assistant's grounded answers
 
 ---
 
 # Architecture Contract
 
-- **Integration / model layer** — the Whisper, Kokoro, and openWakeWord wrappers
-  stay thin; heavy models load lazily so the app still boots without the voice
-  dependencies installed (mirror the Stage 4 Playwright / SDK degradation).
-- **Service layer** — `STTService`, `TTSService`, and `WakeWordService` own the
-  business logic; routes and the WebSocket handler stay thin.
-- **Voice reuses the AI path.** Transcripts are injected into the existing
-  `AIService` chat flow — voice adds **no** new tool, write, or confirmation
-  logic. Tool use and Stage 4.5 confirmations work unchanged.
-- A voice interaction (STT transcript + AI reply + TTS) is logged like a normal
-  chat turn.
+- **Integration layer** — the embeddings model and the Qdrant client are thin
+  wrappers (encode / upsert / search); heavy deps load lazily so the app boots
+  without them, mirroring the voice + browser pattern.
+- **Service layer** — `DocumentService` owns ingestion and talks to the
+  embeddings + vector integrations via the repository/integration seam;
+  `KnowledgeService` owns search. Routes and tools stay thin.
+- **RAG reuses the tool-use loop** — `search_knowledge` is a read tool like the
+  Stage 4 read tools; grounding adds no new write, agent, or confirmation logic.
+- **Graceful degradation** — when embeddings/Qdrant are unavailable, ingestion
+  and the tool report unavailable instead of failing the app.
 
 ---
 
@@ -79,26 +59,26 @@ Wake-word mode (opt-in):
 DO NOT implement:
 
 - agents / agent orchestration — Stage 6
-- embeddings, vector search, RAG — Stage 5
-- workflow automation / scheduled Playwright automation — Stage 7
+- workflow automation / scheduled pipelines — Stage 7
 - PostgreSQL / Redis / Docker — Stage 8
-- new write tools or changes to the Stage 4.5 confirmation flow (voice only
-  injects text into the existing chat path)
-- cloud STT/TTS — all inference is local; no audio leaves the device
+- new write tools or changes to the Stage 4.5 confirmation flow (retrieval is
+  read-only)
+- voice changes — Stage 4.7 is complete
 
-Do not implement future stages beyond Stage 4.7.
+Do not implement future stages beyond Stage 5.
 
 ---
 
 # Deliverables
 
-- `STTService` (faster-whisper) + `TTSService` (Kokoro) + `WakeWordService`
-  (openWakeWord)
-- `/voice/transcribe` + `/voice/synthesize` REST endpoints and the `/ws/voice`
-  WebSocket
-- push-to-talk end to end (record → transcribe → AI reply → spoken reply)
-- opt-in wake-word mode end to end
-- `VoiceButton`, `AudioStreamer`, `useVoice`, and `VoiceSettings` in the UI
+- `Document` model + `DocumentService` (ingestion: extract → chunk → embed →
+  index) + `KnowledgeService` (semantic search)
+- embeddings integration (sentence-transformers) + vector store integration
+  (Qdrant, with an in-process fallback)
+- a `search_knowledge` read tool grounding the assistant's answers, with
+  citations
+- document upload / list / delete + semantic-search REST endpoints
+- a documents UI and citations surfaced in grounded answers
 
 ---
 
@@ -107,13 +87,13 @@ Do not implement future stages beyond Stage 4.7.
 Build incrementally and pause for approval between major features:
 
 Major Feature 1:
-`STTService` + `TTSService` + the `/voice/transcribe` and `/voice/synthesize`
-REST endpoints, plus push-to-talk in the UI (`VoiceButton`, `useVoice`,
-`VoiceSettings`) wired into the existing AI chat.
+`Document` model + `DocumentService` ingestion pipeline (extract → chunk → embed
+→ index) + the embeddings and vector-store integrations, plus document
+upload/list/delete REST + a documents UI.
 
 Major Feature 2:
-`WakeWordService` + the `/ws/voice` WebSocket + the `AudioStreamer`, delivering
-the opt-in "Hey Synapse" wake-word mode.
+`KnowledgeService` semantic search + the `search_knowledge` retrieval tool
+grounding the assistant's answers (with citations surfaced in the chat UI).
 
 After each major feature:
 
