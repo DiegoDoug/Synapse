@@ -8,6 +8,7 @@ from backend.models.account import Account
 from backend.models.calendar_event import CalendarEvent
 from backend.models.conversation import Conversation
 from backend.models.dashboard_widget import DashboardWidget
+from backend.models.document import Document, DocumentChunk
 from backend.models.email_message import EmailMessage
 from backend.models.message import Message
 from backend.models.notification import Notification
@@ -22,6 +23,8 @@ __all__ = [
     "CalendarEvent",
     "Conversation",
     "DashboardWidget",
+    "Document",
+    "DocumentChunk",
     "EmailMessage",
     "Message",
     "Notification",

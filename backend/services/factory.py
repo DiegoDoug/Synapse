@@ -13,8 +13,15 @@ from backend.integrations.ai.base import LLMProvider
 from backend.integrations.ai.ollama_provider import OllamaProvider
 from backend.integrations.ai.openai_provider import OpenAIProvider
 from backend.integrations.browser.service import BrowserService
+from backend.integrations.embeddings.base import EmbeddingModel
+from backend.integrations.embeddings.sentence_transformer import (
+    SentenceTransformerEmbedding,
+)
 from backend.integrations.google.oauth import GoogleOAuthClient
 from backend.integrations.telegram.bot import TelegramIntegration
+from backend.integrations.vectorstore.base import VectorStore
+from backend.integrations.vectorstore.memory_store import InProcessVectorStore
+from backend.integrations.vectorstore.qdrant_store import QdrantVectorStore
 from backend.integrations.voice.kokoro import KokoroClient
 from backend.integrations.voice.wakeword import OpenWakeWordClient
 from backend.integrations.voice.whisper import WhisperClient
@@ -22,6 +29,7 @@ from backend.models.user import User
 from backend.repositories.account_repository import AccountRepository
 from backend.repositories.calendar_repository import CalendarRepository
 from backend.repositories.conversation_repository import ConversationRepository
+from backend.repositories.document_repository import DocumentRepository
 from backend.repositories.email_repository import EmailRepository
 from backend.repositories.notification_repository import NotificationRepository
 from backend.repositories.pending_action_repository import PendingActionRepository
@@ -33,6 +41,7 @@ from backend.services.ai_service import AIService
 from backend.services.calendar_service import CalendarService
 from backend.services.confirmation_service import ConfirmationService
 from backend.services.conversation_service import ConversationService
+from backend.services.document_service import DocumentService
 from backend.services.email_service import EmailService
 from backend.services.messaging_service import MessagingService
 from backend.services.notification_service import NotificationService
@@ -136,6 +145,54 @@ def build_ai_provider(settings: Settings) -> LLMProvider:
 def build_conversation_service(session: Session) -> ConversationService:
     """Assemble a ConversationService with its repository."""
     return ConversationService(ConversationRepository(session))
+
+
+# Knowledge-base integrations are cached as process singletons: the embedding
+# model lazily loads a heavy local model on first use, and the in-process vector
+# store holds the index in memory — both must be shared across requests.
+_embedding_model: EmbeddingModel | None = None
+_vector_store: VectorStore | None = None
+
+
+def build_embedding_model(settings: Settings) -> EmbeddingModel:
+    """Return the process-cached sentence-transformers embedding model."""
+    global _embedding_model
+    if _embedding_model is None:
+        _embedding_model = SentenceTransformerEmbedding(
+            settings.embedding_model,
+            dimension_hint=settings.embedding_dimension,
+        )
+    return _embedding_model
+
+
+def build_vector_store(settings: Settings) -> VectorStore:
+    """Return the active vector store (Qdrant when configured + reachable,
+    otherwise the process-cached in-process fallback)."""
+    global _vector_store
+    if settings.vector_backend.lower() == "qdrant":
+        qdrant = QdrantVectorStore(
+            settings.qdrant_url,
+            settings.qdrant_collection,
+            settings.embedding_dimension,
+        )
+        if qdrant.available():
+            return qdrant
+        # Fall through to the in-process store when Qdrant isn't reachable.
+    if _vector_store is None:
+        _vector_store = InProcessVectorStore()
+    return _vector_store
+
+
+def build_document_service(session: Session, settings: Settings) -> DocumentService:
+    """Assemble the DocumentService over its repository + KB integrations."""
+    return DocumentService(
+        DocumentRepository(session),
+        build_embedding_model(settings),
+        build_vector_store(settings),
+        embedding_model_name=settings.embedding_model,
+        chunk_size=settings.knowledge_chunk_size,
+        chunk_overlap=settings.knowledge_chunk_overlap,
+    )
 
 
 # Voice model clients are cached as process singletons: each lazily loads a

@@ -1,0 +1,25 @@
+# Synapse backend — optional knowledge-base / RAG dependencies (Stage 5).
+#
+# These power document ingestion and semantic search: text embeddings
+# (sentence-transformers, which pulls PyTorch) and the Qdrant vector store
+# client. They are intentionally NOT in requirements.txt: the embedding stack is
+# heavy and would bloat the base install and CI. The integration clients import
+# them lazily and degrade gracefully when absent — ingestion records documents
+# as "unavailable" and the vector store falls back to an in-process index — so
+# the app and its test suite run fine without them.
+#
+# Install when you want grounded answers over your documents:
+#   pip install -r backend/requirements-knowledge.txt
+
+-r requirements.txt
+
+# Text embeddings (local). Imported lazily by SentenceTransformerEmbedding.
+sentence-transformers>=3.0,<6.0
+
+# Vector database client. Imported lazily by QdrantVectorStore; the in-process
+# store is used when this/Qdrant is unavailable.
+qdrant-client>=1.12,<2.0
+
+# PDF text extraction. Imported lazily by the document text extractor; non-PDF
+# uploads (text, Markdown) work without it.
+pypdf>=5.0,<6.0
