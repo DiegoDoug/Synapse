@@ -39,3 +39,8 @@ httpx>=0.28,<1.0
 # absent or unconfigured. Only the active AI_PROVIDER's SDK is required.
 anthropic>=0.40,<1.0
 openai>=1.50,<2.0
+
+# Read-only web browsing for the web_fetch tool (headless Chromium). Imported
+# lazily by BrowserService; the tool degrades gracefully when it is absent.
+# The browser binary is provisioned separately (e.g. `playwright install`).
+playwright>=1.48,<2.0

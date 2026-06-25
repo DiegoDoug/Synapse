@@ -122,6 +122,8 @@ def get_conversation_service(
 def get_ai_service(
     session: Session = Depends(get_session),
     settings: Settings = Depends(get_settings),
+    user_id: int = Depends(get_current_user_id),
 ) -> AIService:
-    # Builds the active provider from settings; no network call at construction.
-    return build_ai_service(session, settings)
+    # Builds the active provider + user-scoped read-only tools. No network call
+    # happens at construction.
+    return build_ai_service(session, settings, user_id)

@@ -5,7 +5,9 @@
 
 import { apiGet, apiPost } from "@/api/client";
 
-export type MessageRole = "user" | "assistant" | "system";
+const API_BASE = "/api/v1";
+
+export type MessageRole = "user" | "assistant" | "system" | "tool";
 
 export interface MessageDto {
   id: number;
@@ -77,4 +79,64 @@ export function createConversation(title?: string): Promise<ConversationDto> {
 
 export function fetchPrompts(): Promise<SystemPromptDto[]> {
   return apiGet<SystemPromptDto[]>("/prompts");
+}
+
+// --- SSE streaming ---------------------------------------------------------
+
+export interface ToolCallEvent {
+  name: string;
+  arguments: Record<string, unknown>;
+  summary: string;
+}
+
+export type StreamEvent =
+  | { type: "conversation"; conversation_id: number }
+  | ({ type: "tool_call" } & ToolCallEvent)
+  | { type: "token"; text: string }
+  | {
+      type: "done";
+      message_id: number;
+      conversation_id: number;
+      provider: string;
+      model: string;
+    }
+  | { type: "error"; detail: string };
+
+/**
+ * POST a chat message and consume the Server-Sent Events stream, invoking
+ * `onEvent` for each parsed event. Resolves when the stream closes.
+ */
+export async function streamChat(
+  body: ChatRequestBody,
+  onEvent: (event: StreamEvent) => void,
+): Promise<void> {
+  const response = await fetch(`${API_BASE}/ai/chat/stream`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok || !response.body) {
+    throw new Error(`stream failed: ${response.status}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const frames = buffer.split("\n\n");
+    buffer = frames.pop() ?? "";
+    for (const frame of frames) {
+      const dataLine = frame
+        .split("\n")
+        .find((line) => line.startsWith("data:"));
+      if (!dataLine) continue;
+      const payload = dataLine.slice(5).trim();
+      if (payload) onEvent(JSON.parse(payload) as StreamEvent);
+    }
+  }
 }

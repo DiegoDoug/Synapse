@@ -16,27 +16,60 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+# --- Provider-neutral tool contract ---------------------------------------
+
+
+class ToolSpec(BaseModel):
+    """A tool advertised to the provider (function-calling schema).
+
+    ``parameters`` is a JSON Schema object describing the tool's arguments.
+    """
+
+    name: str
+    description: str
+    parameters: dict[str, Any] = Field(default_factory=dict)
+
+
+class ToolCall(BaseModel):
+    """A provider's request to invoke a tool with parsed arguments."""
+
+    id: str
+    name: str
+    arguments: dict[str, Any] = Field(default_factory=dict)
+
+
 # --- Provider-neutral chat contract ---------------------------------------
 
 
 class ChatMessage(BaseModel):
-    """A single message in provider-neutral form."""
+    """A single message in provider-neutral form.
 
-    role: str  # "user" | "assistant" | "system"
-    content: str
+    Carries the extra fields the tool-use loop needs: ``tool_calls`` on an
+    assistant turn that requested tools, and ``tool_call_id`` / ``name`` on a
+    ``role="tool"`` turn returning a result. Plain chat turns use only
+    ``role`` + ``content``.
+    """
+
+    role: str  # "user" | "assistant" | "system" | "tool"
+    content: str = ""
+    tool_calls: list[ToolCall] = Field(default_factory=list)
+    tool_call_id: str | None = None
+    name: str | None = None
 
 
 class ChatResponse(BaseModel):
     """A provider's reply, normalized across Anthropic/OpenAI/Ollama.
 
-    ``metadata`` is an open bag for provider-specific diagnostics (token usage,
-    latency, finish reason, …) so new signals can be surfaced without changing
-    this contract.
+    ``tool_calls`` is non-empty when the model wants tools run before it can
+    answer. ``metadata`` is an open bag for provider-specific diagnostics
+    (token usage, latency, finish reason, …) so new signals can be surfaced
+    without changing this contract.
     """
 
     content: str
     provider: str
     model: str
+    tool_calls: list[ToolCall] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -53,6 +86,14 @@ class ChatRequest(BaseModel):
     system_prompt_id: int | None = None
 
 
+class ToolInvocation(BaseModel):
+    """A record of one tool the assistant ran, for surfacing in the UI."""
+
+    name: str
+    arguments: dict[str, Any] = Field(default_factory=dict)
+    summary: str
+
+
 class ChatResult(BaseModel):
     """Response for POST /ai/chat — the reply plus where it was persisted."""
 
@@ -60,6 +101,7 @@ class ChatResult(BaseModel):
     message: "MessageRead"
     provider: str
     model: str
+    tool_calls: list[ToolInvocation] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 

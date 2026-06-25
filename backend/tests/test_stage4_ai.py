@@ -49,7 +49,9 @@ class FakeProvider(LLMProvider):
     def available(self) -> bool:
         return self._available
 
-    def chat(self, messages, *, system=None, max_tokens, temperature) -> ChatResponse:
+    def chat(
+        self, messages, *, system=None, tools=None, max_tokens, temperature
+    ) -> ChatResponse:
         if self._fail:
             raise ProviderUnavailableError("boom")
         self.last_system = system
