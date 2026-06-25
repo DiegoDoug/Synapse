@@ -1,4 +1,4 @@
-import { Bell, LayoutDashboard, Settings, Zap } from "lucide-react";
+import { Bell, LayoutDashboard, Settings, Sparkles, Zap } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 import { useNotificationCounts } from "@/features/notifications/useNotifications";
@@ -7,6 +7,7 @@ import { useAppStore } from "@/store/useAppStore";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/assistant", label: "Assistant", icon: Sparkles },
   { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/settings", label: "Settings", icon: Settings },
 ];

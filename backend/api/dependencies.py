@@ -16,10 +16,16 @@ from backend.repositories.account_repository import AccountRepository
 from backend.repositories.calendar_repository import CalendarRepository
 from backend.repositories.email_repository import EmailRepository
 from backend.repositories.sync_state_repository import SyncStateRepository
+from backend.services.ai_service import AIService
 from backend.services.calendar_service import CalendarService
 from backend.services.connection_service import ConnectionService
+from backend.services.conversation_service import ConversationService
 from backend.services.email_service import EmailService
-from backend.services.factory import build_notification_service
+from backend.services.factory import (
+    build_ai_service,
+    build_conversation_service,
+    build_notification_service,
+)
 from backend.services.notification_service import NotificationService
 from backend.services.sync_service import SyncService
 
@@ -105,3 +111,19 @@ def get_notification_service(
     # Composition reads already-synced rows (no OAuth needed); the factory also
     # wires the optional Telegram integration for delivery endpoints.
     return build_notification_service(session, settings)
+
+
+def get_conversation_service(
+    session: Session = Depends(get_session),
+) -> ConversationService:
+    return build_conversation_service(session)
+
+
+def get_ai_service(
+    session: Session = Depends(get_session),
+    settings: Settings = Depends(get_settings),
+    user_id: int = Depends(get_current_user_id),
+) -> AIService:
+    # Builds the active provider + user-scoped read-only tools. No network call
+    # happens at construction.
+    return build_ai_service(session, settings, user_id)

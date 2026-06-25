@@ -8,18 +8,35 @@ the notification stack the same way.
 from sqlmodel import Session, select
 
 from backend.config import Settings
+from backend.integrations.ai.anthropic_provider import AnthropicProvider
+from backend.integrations.ai.base import LLMProvider
+from backend.integrations.ai.ollama_provider import OllamaProvider
+from backend.integrations.ai.openai_provider import OpenAIProvider
+from backend.integrations.browser.service import BrowserService
 from backend.integrations.google.oauth import GoogleOAuthClient
 from backend.integrations.telegram.bot import TelegramIntegration
 from backend.models.user import User
 from backend.repositories.account_repository import AccountRepository
 from backend.repositories.calendar_repository import CalendarRepository
+from backend.repositories.conversation_repository import ConversationRepository
 from backend.repositories.email_repository import EmailRepository
 from backend.repositories.notification_repository import NotificationRepository
 from backend.repositories.sync_state_repository import SyncStateRepository
+from backend.repositories.system_prompt_repository import SystemPromptRepository
+from backend.services.ai_service import AIService
 from backend.services.calendar_service import CalendarService
+from backend.services.conversation_service import ConversationService
 from backend.services.email_service import EmailService
 from backend.services.notification_service import NotificationService
 from backend.services.sync_service import SyncService
+from backend.services.tools.base import ToolContext
+from backend.services.tools.read_tools import (
+    GetCalendarEventsTool,
+    GetNotificationsTool,
+    SearchEmailsTool,
+)
+from backend.services.tools.registry import ToolRegistry
+from backend.services.tools.web_tools import WebFetchTool
 
 
 def build_telegram_integration(settings: Settings) -> TelegramIntegration | None:
@@ -69,6 +86,63 @@ def build_sync_service(session: Session, settings: Settings) -> SyncService | No
         accounts, CalendarRepository(session), sync_states, oauth
     )
     return SyncService(email, calendar, sync_states)
+
+
+def build_ai_provider(settings: Settings) -> LLMProvider:
+    """Select and construct the active LLM provider from settings.
+
+    Adding a new provider is one ``match`` arm plus its integration module.
+    """
+    provider = settings.ai_provider.lower()
+    if provider == "anthropic":
+        return AnthropicProvider(settings.anthropic_api_key, settings.anthropic_model)
+    if provider == "openai":
+        return OpenAIProvider(settings.openai_api_key, settings.openai_model)
+    if provider == "ollama":
+        return OllamaProvider(settings.ollama_base_url, settings.ollama_model)
+    raise ValueError(f"Unknown AI provider: {settings.ai_provider!r}")
+
+
+def build_conversation_service(session: Session) -> ConversationService:
+    """Assemble a ConversationService with its repository."""
+    return ConversationService(ConversationRepository(session))
+
+
+def build_tool_registry(session: Session, user_id: int) -> ToolRegistry:
+    """Assemble the read-only ToolRegistry scoped to a user + session.
+
+    The BrowserService is always provided; its Playwright dependency is lazy, so
+    the web tool degrades to a friendly message when it is not installed.
+    """
+    context = ToolContext(
+        user_id=user_id,
+        accounts=AccountRepository(session),
+        emails=EmailRepository(session),
+        events=CalendarRepository(session),
+        notifications=NotificationRepository(session),
+        browser=BrowserService(),
+    )
+    tools = [
+        SearchEmailsTool(),
+        GetCalendarEventsTool(),
+        GetNotificationsTool(),
+        WebFetchTool(),
+    ]
+    return ToolRegistry(tools, context)
+
+
+def build_ai_service(
+    session: Session, settings: Settings, user_id: int
+) -> AIService:
+    """Assemble the AIService: active provider + conversation + prompts + tools."""
+    return AIService(
+        build_ai_provider(settings),
+        build_conversation_service(session),
+        SystemPromptRepository(session),
+        max_tokens=settings.ai_max_tokens,
+        temperature=settings.ai_temperature,
+        tools=build_tool_registry(session, user_id),
+    )
 
 
 def owner_user_id(session: Session) -> int | None:

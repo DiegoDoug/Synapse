@@ -1,5 +1,6 @@
 import { Menu, Moon, PanelLeft, Sun } from "lucide-react";
 
+import CommandBar from "@/components/ai/CommandBar";
 import { useTheme } from "@/hooks/useTheme";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -33,7 +34,9 @@ export default function Header({ onOpenMobile }: HeaderProps) {
         <PanelLeft className="h-5 w-5" />
       </button>
 
-      <div className="flex-1" />
+      <div className="flex flex-1 justify-center px-2">
+        <CommandBar />
+      </div>
 
       <button
         type="button"

@@ -11,6 +11,13 @@ Methods are synchronous to match the existing SQLModel session layer
 
 from abc import ABC, abstractmethod
 
+from backend.schemas.ai import (
+    AIHealth,
+    ChatResult,
+    ConversationDetail,
+    ConversationRead,
+    SystemPromptRead,
+)
 from backend.schemas.calendar import EventDetail, EventSummary
 from backend.schemas.connection import AuthorizationUrlResponse, ConnectionRead
 from backend.schemas.email import EmailDetail, EmailSummary
@@ -143,6 +150,49 @@ class NotificationServiceInterface(ABC):
     @abstractmethod
     def daily_summary(self, user_id: int) -> DeliveryResult:
         """Compose and deliver a daily summary of synced activity."""
+
+
+class ConversationServiceInterface(ABC):
+    """Persist and read AI chat conversations and their messages."""
+
+    @abstractmethod
+    def list(
+        self, user_id: int, *, limit: int = 50, offset: int = 0
+    ) -> list[ConversationRead]:
+        """List a user's conversations, most recently active first."""
+
+    @abstractmethod
+    def get(self, user_id: int, conversation_id: int) -> ConversationDetail | None:
+        """Return a conversation with its messages, or None if not the user's."""
+
+    @abstractmethod
+    def create(self, user_id: int, *, title: str | None = None) -> ConversationRead:
+        """Create an empty conversation."""
+
+
+class AIServiceInterface(ABC):
+    """Route chat prompts to a provider and persist the exchange."""
+
+    @abstractmethod
+    def chat(
+        self,
+        user_id: int,
+        *,
+        message: str,
+        conversation_id: int | None = None,
+        system_prompt_id: int | None = None,
+    ) -> ChatResult | None:
+        """Send a user message, persist the turn, and return the reply.
+
+        None when ``conversation_id`` is supplied but not owned by the user."""
+
+    @abstractmethod
+    def list_prompts(self) -> list[SystemPromptRead]:
+        """List the selectable system prompts."""
+
+    @abstractmethod
+    def health(self) -> AIHealth:
+        """Report the active provider, configured model, and availability."""
 
 
 class SyncServiceInterface(ABC):
