@@ -1,0 +1,22 @@
+# Synapse backend — optional voice dependencies (Stage 4.7).
+#
+# These power local speech-to-text (faster-whisper) and text-to-speech (Kokoro).
+# They are intentionally NOT in requirements.txt: they pull heavy ML stacks
+# (CTranslate2, PyTorch) that would bloat the base install and CI. The voice
+# integration clients import them lazily and degrade gracefully when absent, so
+# the app and its test suite run fine without them.
+#
+# Install when you want the voice interface:
+#   pip install -r backend/requirements-voice.txt
+
+-r requirements.txt
+
+# Local speech-to-text (CTranslate2 Whisper). Imported lazily by WhisperClient.
+faster-whisper>=1.0,<2.0
+
+# Local text-to-speech. Imported lazily by KokoroClient.
+kokoro>=0.9,<1.0
+
+# Numeric array handling for PCM assembly (pulled in by the above, pinned here
+# for clarity since KokoroClient imports it directly).
+numpy>=1.26,<3.0

@@ -7,6 +7,10 @@ fastapi>=0.115,<1.0
 # ASGI server ([standard] adds uvloop, httptools, websockets)
 uvicorn[standard]>=0.34,<1.0
 
+# Multipart form parsing — required by FastAPI for file uploads (Stage 4.7
+# voice clips POSTed to /voice/transcribe as multipart/form-data).
+python-multipart>=0.0.12,<1.0
+
 # ORM + schema validation (unifies SQLAlchemy + Pydantic)
 sqlmodel>=0.0.22,<0.1
 
@@ -44,3 +48,9 @@ openai>=1.50,<2.0
 # lazily by BrowserService; the tool degrades gracefully when it is absent.
 # The browser binary is provisioned separately (e.g. `playwright install`).
 playwright>=1.48,<2.0
+
+# --- Stage 4.7: Voice interface (optional, heavy ML deps) ---
+# Local STT (faster-whisper) and TTS (Kokoro) are NOT listed here on purpose:
+# they pull PyTorch/CTranslate2 and would bloat the base install + CI. The voice
+# integration clients import them lazily and degrade gracefully when absent.
+# Install them via backend/requirements-voice.txt to enable the voice endpoints.

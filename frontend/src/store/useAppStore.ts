@@ -9,11 +9,14 @@ interface AppState {
   themeMode: ThemeMode;
   /** Current active route path (for nav highlighting). */
   activeRoute: string;
+  /** Speak the assistant's replies aloud after each turn (Stage 4.7). */
+  voiceAutoRead: boolean;
 
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setThemeMode: (mode: ThemeMode) => void;
   setActiveRoute: (route: string) => void;
+  setVoiceAutoRead: (enabled: boolean) => void;
 }
 
 /**
@@ -24,9 +27,11 @@ export const useAppStore = create<AppState>((set) => ({
   sidebarCollapsed: false,
   themeMode: "dark",
   activeRoute: "/dashboard",
+  voiceAutoRead: false,
 
   toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
   setThemeMode: (mode) => set({ themeMode: mode }),
   setActiveRoute: (route) => set({ activeRoute: route }),
+  setVoiceAutoRead: (enabled) => set({ voiceAutoRead: enabled }),
 }));
