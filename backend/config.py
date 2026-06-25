@@ -60,10 +60,38 @@ class Settings(BaseSettings):
     notification_poll_minutes: int = 15  # compose + deliver cadence
     daily_summary_hour: int = 8  # UTC hour for the daily summary (0-23)
 
+    # AI layer (Stage 4). The active provider is swappable via AI_PROVIDER;
+    # credentials are empty by default so the app boots without AI configured.
+    ai_provider: str = "anthropic"  # anthropic | openai | ollama
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-opus-4-8"
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o"
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "llama3.1"
+    ai_max_tokens: int = 1024
+    ai_temperature: float = 0.7
+
     @property
     def telegram_enabled(self) -> bool:
         """True when a bot token is configured."""
         return bool(self.telegram_bot_token)
+
+    @property
+    def ai_enabled(self) -> bool:
+        """True when the active provider has what it needs to attempt a call.
+
+        Ollama needs no key (a base URL is enough); the cloud providers need
+        their API key. Reachability is only known at call time.
+        """
+        provider = self.ai_provider.lower()
+        if provider == "anthropic":
+            return bool(self.anthropic_api_key)
+        if provider == "openai":
+            return bool(self.openai_api_key)
+        if provider == "ollama":
+            return bool(self.ollama_base_url)
+        return False
 
     @property
     def cors_origins_list(self) -> list[str]:

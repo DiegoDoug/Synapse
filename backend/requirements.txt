@@ -31,4 +31,11 @@ apscheduler>=3.10,<4.0
 
 # HTTP client (Google + Telegram integrations + Starlette TestClient). Stage 3
 # Telegram delivery uses httpx directly rather than a heavier bot framework.
+# Stage 4 also uses httpx directly for the local Ollama provider.
 httpx>=0.28,<1.0
+
+# --- Stage 4: AI layer (LLM provider SDKs) ---
+# Imported lazily by their providers, so the app still boots if either is
+# absent or unconfigured. Only the active AI_PROVIDER's SDK is required.
+anthropic>=0.40,<1.0
+openai>=1.50,<2.0
