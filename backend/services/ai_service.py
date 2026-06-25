@@ -6,8 +6,10 @@ loop when tools are available, and persists both the user turn and the
 assistant reply via ``ConversationService``.
 
 Providers are never imported by routes — only this service talks to them, and
-only through the ``LLMProvider`` interface, which keeps them swappable. Tools
-are strictly read-only (Stage 4); no writes, agents, or memory live here.
+only through the ``LLMProvider`` interface, which keeps them swappable. Read
+tools run autonomously inside the tool-use loop; write tools (Stage 4.5) route
+proposals through the ``ConfirmationService`` — creates execute immediately,
+updates and deletes surface as pending actions for the user to approve.
 """
 
 from __future__ import annotations
@@ -18,6 +20,7 @@ from typing import Any
 from backend.integrations.ai.base import LLMProvider
 from backend.models.conversation import Conversation
 from backend.repositories.system_prompt_repository import SystemPromptRepository
+from backend.schemas.action import PendingActionRead
 from backend.schemas.ai import (
     AIHealth,
     ChatMessage,
@@ -27,6 +30,7 @@ from backend.schemas.ai import (
     ToolCall,
     ToolInvocation,
 )
+from backend.services.confirmation_service import ConfirmationService
 from backend.services.conversation_service import ConversationService
 from backend.services.interfaces import AIServiceInterface
 from backend.services.tools.registry import ToolRegistry
@@ -34,10 +38,13 @@ from backend.services.tools.registry import ToolRegistry
 # Baseline assistant persona used when no named system prompt is selected.
 DEFAULT_SYSTEM_PROMPT = (
     "You are the assistant for Personal OS, a unified personal dashboard. "
-    "Be concise, helpful, and direct. You can call read-only tools to look up "
-    "the user's emails, calendar events, and notifications, and to fetch public "
-    "web pages. Use them when they help; otherwise answer directly. If you are "
-    "unsure, say so."
+    "Be concise, helpful, and direct. You can look up the user's emails, "
+    "calendar events, and notifications, fetch public web pages, and manage "
+    "the user's tasks and dashboard widgets. Creating a task takes effect "
+    "immediately; updating or deleting a task, and changing a widget's config, "
+    "are proposed for the user to approve before they run — tell the user when "
+    "you have proposed such an action. Use tools when they help; otherwise "
+    "answer directly. If you are unsure, say so."
 )
 
 # Safety cap on tool round-trips per turn so a misbehaving loop can't run away.
@@ -58,6 +65,7 @@ class AIService(AIServiceInterface):
         max_tokens: int,
         temperature: float,
         tools: ToolRegistry | None = None,
+        confirmations: ConfirmationService | None = None,
     ) -> None:
         self._provider = provider
         self._conversations = conversations
@@ -65,6 +73,7 @@ class AIService(AIServiceInterface):
         self._max_tokens = max_tokens
         self._temperature = temperature
         self._tools = tools
+        self._confirmations = confirmations
 
     # --- Chat (non-streaming) ---------------------------------------------
 
@@ -85,6 +94,7 @@ class AIService(AIServiceInterface):
         conversation = self._start_turn(user_id, conversation_id, message)
         if conversation is None:
             return None
+        self._bind_confirmations(conversation.id)
 
         system = self._resolve_system_prompt(system_prompt_id)
         working = self._working_history(conversation.id)
@@ -105,6 +115,7 @@ class AIService(AIServiceInterface):
             provider=final.provider,
             model=final.model,
             tool_calls=invocations,
+            pending_actions=self._pending_actions(),
             metadata=final.metadata,
         )
 
@@ -129,6 +140,7 @@ class AIService(AIServiceInterface):
         if conversation is None:
             yield {"type": "error", "detail": "Conversation not found"}
             return
+        self._bind_confirmations(conversation.id)
         yield {"type": "conversation", "conversation_id": conversation.id}
 
         system = self._resolve_system_prompt(system_prompt_id)
@@ -146,6 +158,10 @@ class AIService(AIServiceInterface):
                     "arguments": invocation.arguments,
                     "summary": invocation.summary,
                 }
+            # Surface any writes proposed this turn so the UI can prompt for
+            # approval as soon as the tool loop settles.
+            for action in self._pending_actions():
+                yield {"type": "pending_action", **action.model_dump(mode="json")}
 
             parts: list[str] = []
             if prefetched is not None:
@@ -285,6 +301,19 @@ class AIService(AIServiceInterface):
         if self._tools and self._provider.supports_tools:
             return self._tools.specs()
         return None
+
+    # --- Confirmation flow -------------------------------------------------
+
+    def _bind_confirmations(self, conversation_id: int) -> None:
+        """Attach this turn's proposed write actions to the conversation."""
+        if self._confirmations is not None:
+            self._confirmations.bind_conversation(conversation_id)
+
+    def _pending_actions(self) -> list[PendingActionRead]:
+        """Pending actions proposed during the current turn (may be empty)."""
+        if self._confirmations is None:
+            return []
+        return self._confirmations.created_this_turn()
 
     # --- Internals ---------------------------------------------------------
 

@@ -11,8 +11,10 @@ from backend.models.dashboard_widget import DashboardWidget
 from backend.models.email_message import EmailMessage
 from backend.models.message import Message
 from backend.models.notification import Notification
+from backend.models.pending_action import PendingAction
 from backend.models.sync_state import SyncState
 from backend.models.system_prompt import SystemPrompt
+from backend.models.task import Task
 from backend.models.user import User
 
 __all__ = [
@@ -23,7 +25,9 @@ __all__ = [
     "EmailMessage",
     "Message",
     "Notification",
+    "PendingAction",
     "SyncState",
     "SystemPrompt",
+    "Task",
     "User",
 ]

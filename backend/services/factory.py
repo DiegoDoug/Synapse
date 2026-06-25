@@ -21,14 +21,20 @@ from backend.repositories.calendar_repository import CalendarRepository
 from backend.repositories.conversation_repository import ConversationRepository
 from backend.repositories.email_repository import EmailRepository
 from backend.repositories.notification_repository import NotificationRepository
+from backend.repositories.pending_action_repository import PendingActionRepository
 from backend.repositories.sync_state_repository import SyncStateRepository
 from backend.repositories.system_prompt_repository import SystemPromptRepository
+from backend.repositories.task_repository import TaskRepository
+from backend.repositories.widget_repository import WidgetRepository
 from backend.services.ai_service import AIService
 from backend.services.calendar_service import CalendarService
+from backend.services.confirmation_service import ConfirmationService
 from backend.services.conversation_service import ConversationService
 from backend.services.email_service import EmailService
 from backend.services.notification_service import NotificationService
 from backend.services.sync_service import SyncService
+from backend.services.task_service import TaskService
+from backend.services.tool_executor import ToolExecutor
 from backend.services.tools.base import ToolContext
 from backend.services.tools.read_tools import (
     GetCalendarEventsTool,
@@ -37,6 +43,13 @@ from backend.services.tools.read_tools import (
 )
 from backend.services.tools.registry import ToolRegistry
 from backend.services.tools.web_tools import WebFetchTool
+from backend.services.tools.write_tools import (
+    CreateTaskTool,
+    DeleteTaskTool,
+    UpdateTaskTool,
+    UpdateWidgetConfigTool,
+)
+from backend.services.widget_service import WidgetService
 
 
 def build_telegram_integration(settings: Settings) -> TelegramIntegration | None:
@@ -108,10 +121,31 @@ def build_conversation_service(session: Session) -> ConversationService:
     return ConversationService(ConversationRepository(session))
 
 
-def build_tool_registry(session: Session, user_id: int) -> ToolRegistry:
-    """Assemble the read-only ToolRegistry scoped to a user + session.
+def build_tool_executor(session: Session) -> ToolExecutor:
+    """Assemble the ToolExecutor over the write services (tasks, widgets)."""
+    return ToolExecutor(
+        TaskService(TaskRepository(session)),
+        WidgetService(WidgetRepository(session)),
+    )
 
-    The BrowserService is always provided; its Playwright dependency is lazy, so
+
+def build_confirmation_service(session: Session) -> ConfirmationService:
+    """Assemble the ConfirmationService + its ToolExecutor for the write flow."""
+    return ConfirmationService(
+        PendingActionRepository(session), build_tool_executor(session)
+    )
+
+
+def build_tool_registry(
+    session: Session,
+    user_id: int,
+    confirmations: ConfirmationService | None = None,
+) -> ToolRegistry:
+    """Assemble the ToolRegistry scoped to a user + session.
+
+    Read tools query repositories directly. Write tools (Stage 4.5) route
+    through ``confirmations`` and are only included when one is supplied. The
+    BrowserService is always provided; its Playwright dependency is lazy, so
     the web tool degrades to a friendly message when it is not installed.
     """
     context = ToolContext(
@@ -121,6 +155,7 @@ def build_tool_registry(session: Session, user_id: int) -> ToolRegistry:
         events=CalendarRepository(session),
         notifications=NotificationRepository(session),
         browser=BrowserService(),
+        confirmations=confirmations,
     )
     tools = [
         SearchEmailsTool(),
@@ -128,20 +163,33 @@ def build_tool_registry(session: Session, user_id: int) -> ToolRegistry:
         GetNotificationsTool(),
         WebFetchTool(),
     ]
+    if confirmations is not None:
+        tools += [
+            CreateTaskTool(),
+            UpdateTaskTool(),
+            DeleteTaskTool(),
+            UpdateWidgetConfigTool(),
+        ]
     return ToolRegistry(tools, context)
 
 
 def build_ai_service(
     session: Session, settings: Settings, user_id: int
 ) -> AIService:
-    """Assemble the AIService: active provider + conversation + prompts + tools."""
+    """Assemble the AIService: provider + conversation + prompts + tools.
+
+    The same ``ConfirmationService`` instance backs both the write tools and the
+    service, so proposals raised during a turn can be surfaced to the caller.
+    """
+    confirmations = build_confirmation_service(session)
     return AIService(
         build_ai_provider(settings),
         build_conversation_service(session),
         SystemPromptRepository(session),
         max_tokens=settings.ai_max_tokens,
         temperature=settings.ai_temperature,
-        tools=build_tool_registry(session, user_id),
+        tools=build_tool_registry(session, user_id, confirmations),
+        confirmations=confirmations,
     )
 
 

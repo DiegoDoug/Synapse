@@ -16,18 +16,22 @@ from backend.repositories.account_repository import AccountRepository
 from backend.repositories.calendar_repository import CalendarRepository
 from backend.repositories.email_repository import EmailRepository
 from backend.repositories.sync_state_repository import SyncStateRepository
+from backend.repositories.task_repository import TaskRepository
 from backend.services.ai_service import AIService
 from backend.services.calendar_service import CalendarService
+from backend.services.confirmation_service import ConfirmationService
 from backend.services.connection_service import ConnectionService
 from backend.services.conversation_service import ConversationService
 from backend.services.email_service import EmailService
 from backend.services.factory import (
     build_ai_service,
+    build_confirmation_service,
     build_conversation_service,
     build_notification_service,
 )
 from backend.services.notification_service import NotificationService
 from backend.services.sync_service import SyncService
+from backend.services.task_service import TaskService
 
 # Default owner identity for the single-user Personal OS. A dedicated auth
 # stage will replace this; for now connections attach to the one owner account.
@@ -124,6 +128,20 @@ def get_ai_service(
     settings: Settings = Depends(get_settings),
     user_id: int = Depends(get_current_user_id),
 ) -> AIService:
-    # Builds the active provider + user-scoped read-only tools. No network call
-    # happens at construction.
+    # Builds the active provider + user-scoped read & write tools. No network
+    # call happens at construction.
     return build_ai_service(session, settings, user_id)
+
+
+def get_task_service(
+    session: Session = Depends(get_session),
+) -> TaskService:
+    return TaskService(TaskRepository(session))
+
+
+def get_confirmation_service(
+    session: Session = Depends(get_session),
+) -> ConfirmationService:
+    # The pending-action lifecycle + its ToolExecutor. Used by the confirmation
+    # routes to approve/reject proposals raised during chat.
+    return build_confirmation_service(session)

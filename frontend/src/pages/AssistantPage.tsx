@@ -3,10 +3,16 @@ import { useLocation } from "react-router-dom";
 
 import ChatInput from "@/components/ai/ChatInput";
 import ChatMessage from "@/components/ai/ChatMessage";
+import ConfirmationModal from "@/components/ai/ConfirmationModal";
 import ConversationSidebar from "@/components/ai/ConversationSidebar";
 import PromptSelector from "@/components/ai/PromptSelector";
 import ProviderIndicator from "@/components/ai/ProviderIndicator";
 import ToolCallChip from "@/components/ai/ToolCallChip";
+import {
+  useApproveAction,
+  usePendingActions,
+  useRejectAction,
+} from "@/features/actions/useActions";
 import { type MessageDto } from "@/features/ai/api";
 import { useConversation, useStreamChat } from "@/features/ai/useAssistant";
 
@@ -27,6 +33,17 @@ export default function AssistantPage() {
 
   const conversation = useConversation(conversationId);
   const stream = useStreamChat();
+
+  // Writes the assistant proposed (updates / deletes / widget config) await the
+  // user's approval here before they run.
+  const pendingActions = usePendingActions();
+  const approve = useApproveAction();
+  const reject = useRejectAction();
+  const resolvingId = approve.isPending
+    ? approve.variables ?? null
+    : reject.isPending
+      ? reject.variables ?? null
+      : null;
 
   const persisted: MessageDto[] = conversation.data?.messages ?? [];
 
@@ -147,6 +164,13 @@ export default function AssistantPage() {
           <ChatInput disabled={stream.isStreaming} onSend={send} />
         </div>
       </section>
+
+      <ConfirmationModal
+        actions={pendingActions.data ?? []}
+        onApprove={(id) => approve.mutate(id)}
+        onReject={(id) => reject.mutate(id)}
+        busyId={resolvingId}
+      />
     </div>
   );
 }
