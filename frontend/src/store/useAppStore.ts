@@ -11,12 +11,15 @@ interface AppState {
   activeRoute: string;
   /** Speak the assistant's replies aloud after each turn (Stage 4.7). */
   voiceAutoRead: boolean;
+  /** Opt-in wake-word mode ("listen for the wake word"; Stage 4.7 MF2). */
+  voiceWakeWord: boolean;
 
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setThemeMode: (mode: ThemeMode) => void;
   setActiveRoute: (route: string) => void;
   setVoiceAutoRead: (enabled: boolean) => void;
+  setVoiceWakeWord: (enabled: boolean) => void;
 }
 
 /**
@@ -28,10 +31,12 @@ export const useAppStore = create<AppState>((set) => ({
   themeMode: "dark",
   activeRoute: "/dashboard",
   voiceAutoRead: false,
+  voiceWakeWord: false,
 
   toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
   setThemeMode: (mode) => set({ themeMode: mode }),
   setActiveRoute: (route) => set({ activeRoute: route }),
   setVoiceAutoRead: (enabled) => set({ voiceAutoRead: enabled }),
+  setVoiceWakeWord: (enabled) => set({ voiceWakeWord: enabled }),
 }));

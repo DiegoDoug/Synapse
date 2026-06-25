@@ -30,3 +30,14 @@ class STTService:
             raise WhisperError("No audio was provided.")
         text = self._client.transcribe(audio, language=language)
         return TranscriptResult(text=text)
+
+    def transcribe_pcm(
+        self, pcm: bytes, *, sample_rate: int = 16000, language: str | None = None
+    ) -> TranscriptResult:
+        """Transcribe raw int16 PCM (from the wake-word stream)."""
+        if not pcm:
+            raise WhisperError("No audio was provided.")
+        text = self._client.transcribe_pcm(
+            pcm, sample_rate=sample_rate, language=language
+        )
+        return TranscriptResult(text=text)

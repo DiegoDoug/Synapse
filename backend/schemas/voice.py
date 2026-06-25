@@ -24,11 +24,13 @@ class SynthesizeRequest(BaseModel):
 class VoiceConfig(BaseModel):
     """Capabilities + current settings for the voice UI.
 
-    ``stt_available`` / ``tts_available`` reflect whether the (optional) local
-    model packages are importable, so the UI can disable controls gracefully.
+    The ``*_available`` flags reflect whether the (optional) local model
+    packages are importable, so the UI can disable controls gracefully.
     """
 
     stt_available: bool
     tts_available: bool
+    wake_word_available: bool
     whisper_model: str
     tts_voice: str
+    wake_word_model: str

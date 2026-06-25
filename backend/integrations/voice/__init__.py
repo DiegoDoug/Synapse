@@ -8,11 +8,14 @@ the voice extras installed, mirroring the BrowserService / LLM-provider pattern.
 """
 
 from backend.integrations.voice.kokoro import KokoroClient, KokoroError
+from backend.integrations.voice.wakeword import OpenWakeWordClient, WakeWordError
 from backend.integrations.voice.whisper import WhisperClient, WhisperError
 
 __all__ = [
     "KokoroClient",
     "KokoroError",
+    "OpenWakeWordClient",
+    "WakeWordError",
     "WhisperClient",
     "WhisperError",
 ]

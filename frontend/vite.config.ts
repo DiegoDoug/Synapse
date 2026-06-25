@@ -17,6 +17,8 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:8000",
         changeOrigin: true,
+        // Forward WebSocket upgrades too (Stage 4.7 wake-word /voice/ws).
+        ws: true,
       },
     },
   },

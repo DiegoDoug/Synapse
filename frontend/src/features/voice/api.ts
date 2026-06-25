@@ -10,8 +10,10 @@ const API_BASE = "/api/v1";
 export interface VoiceConfigDto {
   stt_available: boolean;
   tts_available: boolean;
+  wake_word_available: boolean;
   whisper_model: string;
   tts_voice: string;
+  wake_word_model: string;
 }
 
 export interface TranscriptDto {

@@ -16,6 +16,7 @@ from backend.integrations.browser.service import BrowserService
 from backend.integrations.google.oauth import GoogleOAuthClient
 from backend.integrations.telegram.bot import TelegramIntegration
 from backend.integrations.voice.kokoro import KokoroClient
+from backend.integrations.voice.wakeword import OpenWakeWordClient
 from backend.integrations.voice.whisper import WhisperClient
 from backend.models.user import User
 from backend.repositories.account_repository import AccountRepository
@@ -63,6 +64,8 @@ from backend.services.tools.write_tools import (
     UpdateWidgetConfigTool,
 )
 from backend.services.tts_service import TTSService
+from backend.services.voice_session import VoiceSession, VoiceSessionConfig
+from backend.services.wakeword_service import WakeWordService
 from backend.services.widget_service import WidgetService
 
 
@@ -140,6 +143,7 @@ def build_conversation_service(session: Session) -> ConversationService:
 # rather than reload per call.
 _whisper_client: WhisperClient | None = None
 _kokoro_client: KokoroClient | None = None
+_wakeword_client: OpenWakeWordClient | None = None
 
 
 def build_whisper_client(settings: Settings) -> WhisperClient:
@@ -170,6 +174,34 @@ def build_stt_service(settings: Settings) -> STTService:
 def build_tts_service(settings: Settings) -> TTSService:
     """Assemble the text-to-speech service over the cached Kokoro client."""
     return TTSService(build_kokoro_client(settings))
+
+
+def build_wakeword_client(settings: Settings) -> OpenWakeWordClient:
+    global _wakeword_client
+    if _wakeword_client is None:
+        _wakeword_client = OpenWakeWordClient(model_name=settings.wake_word_model)
+    return _wakeword_client
+
+
+def build_wakeword_service(settings: Settings) -> WakeWordService:
+    """Assemble the wake-word service over the cached openWakeWord client."""
+    return WakeWordService(
+        build_wakeword_client(settings), threshold=settings.wake_word_threshold
+    )
+
+
+def build_voice_session(settings: Settings) -> VoiceSession:
+    """Assemble a per-connection wake-word session (wake word + STT + VAD)."""
+    return VoiceSession(
+        build_wakeword_service(settings),
+        build_stt_service(settings),
+        config=VoiceSessionConfig(
+            sample_rate=settings.voice_sample_rate,
+            silence_ms=settings.voice_silence_ms,
+            max_utterance_ms=settings.voice_max_utterance_ms,
+            silence_rms=settings.voice_silence_rms,
+        ),
+    )
 
 
 def _build_google_services(
