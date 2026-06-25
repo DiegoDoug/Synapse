@@ -63,6 +63,26 @@ class WhisperClient(Integration):
         except Exception as exc:  # noqa: BLE001 — normalize inference failures
             raise WhisperError(f"Transcription failed: {exc}") from exc
 
+    def transcribe_pcm(
+        self, pcm: bytes, *, sample_rate: int = 16000, language: str | None = None
+    ) -> str:
+        """Transcribe raw 16-bit mono PCM (e.g. from the wake-word stream).
+
+        Converts the int16 buffer to the float32 array faster-whisper expects;
+        ``sample_rate`` is accepted for clarity (the model resamples internally).
+        """
+        model = self._ensure_model()
+        try:
+            import numpy as np
+
+            samples = (
+                np.frombuffer(pcm, dtype="<i2").astype("float32") / 32768.0
+            )
+            segments, _info = model.transcribe(samples, language=language)
+            return "".join(segment.text for segment in segments).strip()
+        except Exception as exc:  # noqa: BLE001 — normalize inference failures
+            raise WhisperError(f"Transcription failed: {exc}") from exc
+
     def _ensure_model(self):
         if self._model is not None:
             return self._model

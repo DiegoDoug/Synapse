@@ -89,6 +89,19 @@ class Settings(BaseSettings):
     # Reject uploads larger than this (push-to-talk clips are short).
     voice_max_upload_bytes: int = 10 * 1024 * 1024  # 10 MB
 
+    # Wake-word mode (Stage 4.7 MF2 — openWakeWord, opt-in). Audio streams to the
+    # /voice/ws WebSocket as 16 kHz int16 PCM. openWakeWord ships pretrained
+    # models; a personalized "Hey Synapse" model is future work (see ROADMAP).
+    wake_word_model: str = "hey_jarvis"
+    wake_word_threshold: float = 0.5  # detection score in [0, 1]
+    voice_sample_rate: int = 16000  # PCM sample rate for streaming + STT
+    # End-of-utterance: trailing silence (ms) that ends recording after a wake.
+    voice_silence_ms: int = 800
+    # Hard cap on a single recorded utterance.
+    voice_max_utterance_ms: int = 15000
+    # RMS below this (int16 scale) counts as silence for the energy VAD.
+    voice_silence_rms: int = 500
+
     @property
     def telegram_enabled(self) -> bool:
         """True when a bot token is configured."""

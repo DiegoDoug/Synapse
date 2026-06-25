@@ -30,12 +30,14 @@ from backend.services.factory import (
     build_notification_service,
     build_stt_service,
     build_tts_service,
+    build_wakeword_service,
 )
 from backend.services.notification_service import NotificationService
 from backend.services.stt_service import STTService
 from backend.services.sync_service import SyncService
 from backend.services.task_service import TaskService
 from backend.services.tts_service import TTSService
+from backend.services.wakeword_service import WakeWordService
 
 # Default owner identity for the single-user Personal OS. A dedicated auth
 # stage will replace this; for now connections attach to the one owner account.
@@ -161,3 +163,10 @@ def get_stt_service(settings: Settings = Depends(get_settings)) -> STTService:
 def get_tts_service(settings: Settings = Depends(get_settings)) -> TTSService:
     # Backed by a process-cached Kokoro client (pipeline loads once, lazily).
     return build_tts_service(settings)
+
+
+def get_wakeword_service(
+    settings: Settings = Depends(get_settings),
+) -> WakeWordService:
+    # Backed by a process-cached openWakeWord client (model loads once, lazily).
+    return build_wakeword_service(settings)

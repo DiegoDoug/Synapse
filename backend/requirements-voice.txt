@@ -17,6 +17,9 @@ faster-whisper>=1.0,<2.0
 # Local text-to-speech. Imported lazily by KokoroClient.
 kokoro>=0.9,<1.0
 
+# Wake-word detection. Imported lazily by OpenWakeWordClient (Stage 4.7 MF2).
+openwakeword>=0.6,<1.0
+
 # Numeric array handling for PCM assembly (pulled in by the above, pinned here
 # for clarity since KokoroClient imports it directly).
 numpy>=1.26,<3.0

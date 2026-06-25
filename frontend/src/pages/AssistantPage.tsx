@@ -17,6 +17,8 @@ import {
 import { type MessageDto } from "@/features/ai/api";
 import { useConversation, useStreamChat } from "@/features/ai/useAssistant";
 import { useVoice, useVoiceConfig } from "@/features/voice/useVoice";
+import { useWakeWord } from "@/features/voice/useWakeWord";
+import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
 
 /** Split a persisted tool row ("name: summary") into its parts for a chip. */
@@ -74,6 +76,18 @@ export default function AssistantPage() {
       (id) => setConversationId(id),
     );
   };
+
+  // Wake-word mode (opt-in): a recognized utterance is injected as a normal
+  // message, reusing the same chat path as typing or push-to-talk.
+  const wakeWordEnabled = useAppStore((state) => state.voiceWakeWord);
+  const wakeAvailable = voiceConfig.data?.wake_word_available ?? false;
+  const wake = useWakeWord((text) => send(text));
+  const wakeActive = wakeWordEnabled && wakeAvailable;
+  useEffect(() => {
+    if (wakeActive) void wake.start();
+    else wake.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wakeActive]);
 
   // Clear the optimistic overlay once streaming settles (persisted history,
   // refetched on completion, takes over rendering).
@@ -202,6 +216,28 @@ export default function AssistantPage() {
             <p className="px-10 text-xs text-destructive">{stream.error}</p>
           )}
         </div>
+
+        {wakeActive && (
+          <div className="flex items-center gap-2 border-t border-border px-4 py-1.5 text-xs text-muted-foreground">
+            <span
+              className={cn(
+                "inline-block h-2 w-2 rounded-full",
+                wake.status === "recording"
+                  ? "animate-pulse bg-red-500"
+                  : wake.status === "armed"
+                    ? "bg-emerald-500"
+                    : "bg-muted-foreground/40",
+              )}
+            />
+            {wake.status === "recording"
+              ? "Listening…"
+              : wake.status === "armed"
+                ? "Waiting for the wake word"
+                : wake.error
+                  ? wake.error
+                  : "Connecting…"}
+          </div>
+        )}
 
         <div className="flex items-end gap-2 border-t border-border p-3">
           {sttAvailable && (
