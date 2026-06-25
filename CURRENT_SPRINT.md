@@ -1,17 +1,19 @@
 # Current Sprint
 
-Current Stage: Stage 5
+Current Stage: Stage 6
 
 Objective:
 
-Give Personal OS a **knowledge system**: upload documents, embed and index them,
-and let the assistant answer questions grounded in that personal knowledge base
-(RAG). Retrieval is exposed as a tool inside the existing AI tool-use loop, so
-grounded answers reuse the Stage 4 chat path and the Stage 4.5 confirmation flow
-without changing the chat core.
+Give Personal OS an **agent layer**: domain agents that orchestrate the existing
+services into **autonomous multi-step workflows**, composing the Stage 4 read
+tools and Stage 4.5 write tools without per-step user prompting. Agents plan and
+act through the service layer; they never call integrations directly. Grounding
+(Stage 5 `search_knowledge`) and the existing chat/confirmation core are reused,
+not rewritten.
 
 This is a backend-plus-frontend stage. It builds on the Stage 4 `AIService` +
-`ToolRegistry` and the ARCHITECTURE.md Service → Integration contract.
+`ToolRegistry`, the Stage 4.5 `ConfirmationService` / `ToolExecutor`, and the
+ARCHITECTURE.md **Agent → Service → Integration** contract.
 
 ---
 
@@ -19,38 +21,38 @@ This is a backend-plus-frontend stage. It builds on the Stage 4 `AIService` +
 
 Backend:
 
-- a `Document` model (DB) + a `DocumentService` owning ingestion: text
-  extraction → chunking → embedding → indexing, and deletion
-- an **embeddings integration** (sentence-transformers) — encodes text to
-  vectors; lazily imported and degrading gracefully when absent
-- a **vector store integration** (Qdrant client) for upserting + searching
-  chunk vectors, with an in-process fallback so the app runs without a Qdrant
-  server during development
-- a `KnowledgeService` (or `RetrievalService`) exposing semantic search over the
-  indexed chunks
-- a `search_knowledge` **read tool** behind the existing `ToolRegistry` so the
-  assistant can retrieve relevant chunks and ground its answers (with citations)
-- REST: upload a document, list/delete documents, and a semantic-search endpoint
+- a `backend/agents/` package with a base `Agent` interface (a plan→act→observe
+  loop over the existing tools) and a small **agent runner** that records each
+  run's steps, tool calls, status, and result
+- domain agents that orchestrate **services** (never integrations):
+  - `EmailAgent`, `CalendarAgent`, `StudyAgent`, `NotificationAgent`
+- agents compose the existing `ToolRegistry` tools (read + Stage 4.5 write); no
+  new side-effect paths are introduced
+- an `AgentRun` model (DB) + repository persisting a run's steps and outcome for
+  visibility and an audit trail
+- REST: list available agents, start an agent run, fetch a run's status/steps,
+  list recent runs
 
 Frontend:
 
-- a documents view: upload, list, and delete documents (with index status)
-- citations surfaced in the assistant's grounded answers
+- an agents view: trigger an agent, watch its steps stream/update, and review
+  past runs (read-only)
 
 ---
 
 # Architecture Contract
 
-- **Integration layer** — the embeddings model and the Qdrant client are thin
-  wrappers (encode / upsert / search); heavy deps load lazily so the app boots
-  without them, mirroring the voice + browser pattern.
-- **Service layer** — `DocumentService` owns ingestion and talks to the
-  embeddings + vector integrations via the repository/integration seam;
-  `KnowledgeService` owns search. Routes and tools stay thin.
-- **RAG reuses the tool-use loop** — `search_knowledge` is a read tool like the
-  Stage 4 read tools; grounding adds no new write, agent, or confirmation logic.
-- **Graceful degradation** — when embeddings/Qdrant are unavailable, ingestion
-  and the tool report unavailable instead of failing the app.
+- **Agent → Service → Integration** — agents call services (or compose tools that
+  call services); they must never reference integrations directly, and
+  integrations must never contain business logic.
+- **Reuse, don't fork** — agents drive the existing `ToolRegistry` /
+  `ToolExecutor`; the chat tool-use loop and the Stage 4.5 confirmation flow are
+  reused unchanged. RAG retrieval (`search_knowledge`) is available to agents.
+- **Auditability** — every agent run persists its steps and any destructive
+  action to the `AgentRun` audit trail. Agents may run tool chains with reduced
+  interactive confirmation, but destructive operations are always logged.
+- **Graceful degradation** — an agent run reports a clear failure step when a
+  required service/provider is unavailable rather than crashing the app.
 
 ---
 
@@ -58,27 +60,24 @@ Frontend:
 
 DO NOT implement:
 
-- agents / agent orchestration — Stage 6
-- workflow automation / scheduled pipelines — Stage 7
+- scheduled workflows / event-driven triggers / a workflow composer — Stage 7
 - PostgreSQL / Redis / Docker — Stage 8
-- new write tools or changes to the Stage 4.5 confirmation flow (retrieval is
-  read-only)
+- new external integrations or changes to the Stage 4.5 confirmation mechanics
+  beyond how agents invoke it
+- changes to the Stage 5 retrieval core (reuse `search_knowledge` as-is)
 - voice changes — Stage 4.7 is complete
 
-Do not implement future stages beyond Stage 5.
+Do not implement future stages beyond Stage 6.
 
 ---
 
 # Deliverables
 
-- `Document` model + `DocumentService` (ingestion: extract → chunk → embed →
-  index) + `KnowledgeService` (semantic search)
-- embeddings integration (sentence-transformers) + vector store integration
-  (Qdrant, with an in-process fallback)
-- a `search_knowledge` read tool grounding the assistant's answers, with
-  citations
-- document upload / list / delete + semantic-search REST endpoints
-- a documents UI and citations surfaced in grounded answers
+- a `backend/agents/` package: base `Agent` + runner, and the `EmailAgent`,
+  `CalendarAgent`, `StudyAgent`, and `NotificationAgent` orchestrating services
+- an `AgentRun` model + repository (steps + outcome audit trail)
+- REST endpoints to list agents, start a run, and read run status/steps/history
+- an agents UI: trigger a run, observe its steps, and review past runs
 
 ---
 
@@ -87,13 +86,13 @@ Do not implement future stages beyond Stage 5.
 Build incrementally and pause for approval between major features:
 
 Major Feature 1:
-`Document` model + `DocumentService` ingestion pipeline (extract → chunk → embed
-→ index) + the embeddings and vector-store integrations, plus document
-upload/list/delete REST + a documents UI.
+The agent framework — base `Agent` interface + runner over the existing
+`ToolRegistry`, the `AgentRun` model + repository, and one reference agent
+(e.g. `NotificationAgent` or `StudyAgent`) end-to-end with REST + a minimal UI.
 
 Major Feature 2:
-`KnowledgeService` semantic search + the `search_knowledge` retrieval tool
-grounding the assistant's answers (with citations surfaced in the chat UI).
+The remaining domain agents (Email, Calendar, Study/Notification) plus the agent
+run-history + step-visibility UI.
 
 After each major feature:
 
