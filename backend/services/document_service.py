@@ -23,7 +23,6 @@ from backend.integrations.embeddings.base import (
     EmbeddingUnavailableError,
 )
 from backend.integrations.vectorstore.base import VectorRecord, VectorStore
-from backend.integrations.vectorstore.memory_store import InProcessVectorStore
 from backend.models.document import Document, DocumentChunk
 from backend.repositories.document_repository import DocumentRepository
 from backend.schemas.document import DocumentRead, KnowledgeStatus
@@ -210,32 +209,3 @@ class DocumentService:
             updated_at=document.updated_at,
             indexed_at=document.indexed_at,
         )
-
-    # --- Fallback re-seeding (used by KnowledgeService, MF2) --------------
-
-    def reseed_memory_index(self, user_id: int) -> int:
-        """Rebuild the in-process vector index from persisted chunk embeddings.
-
-        No-op for external stores (e.g. Qdrant). Returns the number of vectors
-        loaded. Lets the zero-dependency fallback survive a process restart.
-        """
-        store = self._vectors
-        if not isinstance(store, InProcessVectorStore) or store.has_user(user_id):
-            return 0
-        records: list[VectorRecord] = []
-        for chunk in self._documents.list_embedded_chunks(user_id):
-            if not chunk.embedding:
-                continue
-            records.append(
-                VectorRecord(
-                    id=chunk.id,
-                    vector=json.loads(chunk.embedding),
-                    payload={
-                        "user_id": chunk.user_id,
-                        "document_id": chunk.document_id,
-                        "chunk_index": chunk.chunk_index,
-                    },
-                )
-            )
-        store.upsert(records)
-        return len(records)

@@ -5,6 +5,20 @@
 
 import { apiDelete, apiGet, apiUpload } from "@/api/client";
 
+export interface KnowledgeHit {
+  document_id: number;
+  filename: string;
+  chunk_index: number;
+  content: string;
+  score: number;
+}
+
+export interface KnowledgeSearchResponse {
+  query: string;
+  available: boolean;
+  hits: KnowledgeHit[];
+}
+
 export type DocumentStatus =
   | "pending"
   | "indexing"
@@ -48,4 +62,12 @@ export function uploadDocument(file: File): Promise<DocumentDto> {
 
 export function deleteDocument(id: number): Promise<void> {
   return apiDelete(`/documents/${id}`);
+}
+
+export function searchKnowledge(
+  query: string,
+  limit = 5,
+): Promise<KnowledgeSearchResponse> {
+  const params = new URLSearchParams({ query, limit: String(limit) });
+  return apiGet<KnowledgeSearchResponse>(`/knowledge/search?${params.toString()}`);
 }

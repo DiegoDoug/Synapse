@@ -13,6 +13,7 @@ from backend.api.routes.conversations import router as conversations_router
 from backend.api.routes.documents import router as documents_router
 from backend.api.routes.email import router as email_router
 from backend.api.routes.health import router as health_router
+from backend.api.routes.knowledge import router as knowledge_router
 from backend.api.routes.notifications import router as notifications_router
 from backend.api.routes.prompts import router as prompts_router
 from backend.api.routes.sync import router as sync_router
@@ -29,6 +30,7 @@ api_router.include_router(notifications_router)
 api_router.include_router(ai_router)
 api_router.include_router(conversations_router)
 api_router.include_router(documents_router)
+api_router.include_router(knowledge_router)
 api_router.include_router(prompts_router)
 api_router.include_router(tasks_router)
 api_router.include_router(actions_router)

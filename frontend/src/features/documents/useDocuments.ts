@@ -7,10 +7,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   type DocumentDto,
+  type KnowledgeSearchResponse,
   type KnowledgeStatusDto,
   deleteDocument,
   fetchDocuments,
   fetchKnowledgeStatus,
+  searchKnowledge,
   uploadDocument,
 } from "@/features/documents/api";
 
@@ -53,5 +55,12 @@ export function useDeleteDocument() {
   return useMutation({
     mutationFn: (id: number) => deleteDocument(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: KEYS.list }),
+  });
+}
+
+/** Semantic search over the knowledge base, triggered on demand. */
+export function useKnowledgeSearch() {
+  return useMutation<KnowledgeSearchResponse, Error, string>({
+    mutationFn: (query: string) => searchKnowledge(query),
   });
 }

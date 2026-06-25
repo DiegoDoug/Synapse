@@ -164,3 +164,52 @@ class GetNotificationsTool(Tool):
             f"- [{r.category}] {r.title}" + (f": {r.body}" if r.body else "")
             for r in rows
         )
+
+
+class SearchKnowledgeTool(Tool):
+    """Semantic search over the user's uploaded documents (RAG grounding)."""
+
+    name = "search_knowledge"
+    description = (
+        "Search the user's personal knowledge base of uploaded documents for "
+        "passages relevant to a query. Returns excerpts with [n] citation "
+        "markers and their source filenames. Use this to ground answers in the "
+        "user's own notes, plans, and references, and cite the sources you use "
+        "as [n] in your reply."
+    )
+    parameters = {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": "string",
+                "description": "What to look for in the user's documents.",
+            },
+            "limit": {"type": "integer", "description": "Max passages (1-25)."},
+        },
+        "required": ["query"],
+    }
+
+    # Excerpt length kept per passage so the model sees enough context to cite.
+    _EXCERPT_CHARS = 240
+
+    def run(self, arguments: dict[str, Any], context: ToolContext) -> str:
+        if context.knowledge is None or not context.knowledge.available():
+            return (
+                "The knowledge base is unavailable "
+                "(embeddings are not installed)."
+            )
+        query = (arguments.get("query") or "").strip()
+        if not query:
+            return "Provide a search query."
+        limit = _clamp(arguments.get("limit"), 5)
+
+        hits = context.knowledge.search(context.user_id, query, limit=limit)
+        if not hits:
+            return "No relevant passages found in the knowledge base."
+        lines = [f"Relevant passages (cite as [n]) for: {query}"]
+        for index, hit in enumerate(hits, start=1):
+            excerpt = " ".join(hit.content.split())
+            if len(excerpt) > self._EXCERPT_CHARS:
+                excerpt = excerpt[: self._EXCERPT_CHARS] + "…"
+            lines.append(f"[{index}] {hit.filename}: {excerpt}")
+        return "\n".join(lines)
