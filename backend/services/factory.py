@@ -21,14 +21,21 @@ from backend.repositories.calendar_repository import CalendarRepository
 from backend.repositories.conversation_repository import ConversationRepository
 from backend.repositories.email_repository import EmailRepository
 from backend.repositories.notification_repository import NotificationRepository
+from backend.repositories.pending_action_repository import PendingActionRepository
 from backend.repositories.sync_state_repository import SyncStateRepository
 from backend.repositories.system_prompt_repository import SystemPromptRepository
+from backend.repositories.task_repository import TaskRepository
+from backend.repositories.widget_repository import WidgetRepository
 from backend.services.ai_service import AIService
 from backend.services.calendar_service import CalendarService
+from backend.services.confirmation_service import ConfirmationService
 from backend.services.conversation_service import ConversationService
 from backend.services.email_service import EmailService
+from backend.services.messaging_service import MessagingService
 from backend.services.notification_service import NotificationService
 from backend.services.sync_service import SyncService
+from backend.services.task_service import TaskService
+from backend.services.tool_executor import ToolExecutor
 from backend.services.tools.base import ToolContext
 from backend.services.tools.read_tools import (
     GetCalendarEventsTool,
@@ -36,7 +43,23 @@ from backend.services.tools.read_tools import (
     SearchEmailsTool,
 )
 from backend.services.tools.registry import ToolRegistry
-from backend.services.tools.web_tools import WebFetchTool
+from backend.services.tools.web_tools import (
+    ExtractStructuredDataTool,
+    ScreenshotTool,
+    WebFetchTool,
+)
+from backend.services.tools.write_tools import (
+    CreateCalendarEventTool,
+    CreateTaskTool,
+    DeleteCalendarEventTool,
+    DeleteTaskTool,
+    FillFormTool,
+    SendEmailTool,
+    SendTelegramMessageTool,
+    UpdateTaskTool,
+    UpdateWidgetConfigTool,
+)
+from backend.services.widget_service import WidgetService
 
 
 def build_telegram_integration(settings: Settings) -> TelegramIntegration | None:
@@ -108,10 +131,76 @@ def build_conversation_service(session: Session) -> ConversationService:
     return ConversationService(ConversationRepository(session))
 
 
-def build_tool_registry(session: Session, user_id: int) -> ToolRegistry:
-    """Assemble the read-only ToolRegistry scoped to a user + session.
+def _build_google_services(
+    session: Session, settings: Settings
+) -> tuple[EmailService | None, CalendarService | None]:
+    """Build OAuth-backed email + calendar services, or (None, None) if Google
+    isn't configured."""
+    if not (settings.google_client_id and settings.google_client_secret):
+        return None, None
+    oauth = GoogleOAuthClient(
+        client_id=settings.google_client_id,
+        client_secret=settings.google_client_secret,
+        redirect_uri=settings.google_redirect_uri,
+        scopes=settings.google_scopes_list,
+    )
+    accounts = AccountRepository(session)
+    sync_states = SyncStateRepository(session)
+    email = EmailService(accounts, EmailRepository(session), sync_states, oauth)
+    calendar = CalendarService(
+        accounts, CalendarRepository(session), sync_states, oauth
+    )
+    return email, calendar
 
-    The BrowserService is always provided; its Playwright dependency is lazy, so
+
+def build_tool_executor(
+    session: Session, settings: Settings | None = None
+) -> ToolExecutor:
+    """Assemble the ToolExecutor over the write services.
+
+    Internal task/widget services are always present. External services (email,
+    calendar, messaging) and the browser are wired when ``settings`` supplies the
+    needed configuration; otherwise their handlers report unavailability at
+    execution time rather than failing construction.
+    """
+    email = calendar = None
+    messaging = None
+    if settings is not None:
+        email, calendar = _build_google_services(session, settings)
+        messaging = MessagingService(
+            build_telegram_integration(settings),
+            default_chat_id=settings.telegram_default_chat_id or None,
+        )
+    return ToolExecutor(
+        TaskService(TaskRepository(session)),
+        WidgetService(WidgetRepository(session)),
+        accounts=AccountRepository(session),
+        email=email,
+        calendar=calendar,
+        messaging=messaging,
+        browser=BrowserService(),
+    )
+
+
+def build_confirmation_service(
+    session: Session, settings: Settings | None = None
+) -> ConfirmationService:
+    """Assemble the ConfirmationService + its ToolExecutor for the write flow."""
+    return ConfirmationService(
+        PendingActionRepository(session), build_tool_executor(session, settings)
+    )
+
+
+def build_tool_registry(
+    session: Session,
+    user_id: int,
+    confirmations: ConfirmationService | None = None,
+) -> ToolRegistry:
+    """Assemble the ToolRegistry scoped to a user + session.
+
+    Read tools query repositories directly. Write tools (Stage 4.5) route
+    through ``confirmations`` and are only included when one is supplied. The
+    BrowserService is always provided; its Playwright dependency is lazy, so
     the web tool degrades to a friendly message when it is not installed.
     """
     context = ToolContext(
@@ -121,27 +210,52 @@ def build_tool_registry(session: Session, user_id: int) -> ToolRegistry:
         events=CalendarRepository(session),
         notifications=NotificationRepository(session),
         browser=BrowserService(),
+        confirmations=confirmations,
     )
     tools = [
         SearchEmailsTool(),
         GetCalendarEventsTool(),
         GetNotificationsTool(),
         WebFetchTool(),
+        ExtractStructuredDataTool(),
+        ScreenshotTool(),
     ]
+    if confirmations is not None:
+        tools += [
+            # Internal CRUD
+            CreateTaskTool(),
+            UpdateTaskTool(),
+            DeleteTaskTool(),
+            UpdateWidgetConfigTool(),
+            # External / outbound (confirmed)
+            SendEmailTool(),
+            CreateCalendarEventTool(),
+            DeleteCalendarEventTool(),
+            SendTelegramMessageTool(),
+            # Browser write (confirmed)
+            FillFormTool(),
+        ]
     return ToolRegistry(tools, context)
 
 
 def build_ai_service(
     session: Session, settings: Settings, user_id: int
 ) -> AIService:
-    """Assemble the AIService: active provider + conversation + prompts + tools."""
+    """Assemble the AIService: provider + conversation + prompts + tools.
+
+    The same ``ConfirmationService`` instance backs both the write tools and the
+    service, so proposals raised during a turn can be surfaced to the caller.
+    External write tools are wired from ``settings`` (Google / Telegram).
+    """
+    confirmations = build_confirmation_service(session, settings)
     return AIService(
         build_ai_provider(settings),
         build_conversation_service(session),
         SystemPromptRepository(session),
         max_tokens=settings.ai_max_tokens,
         temperature=settings.ai_temperature,
-        tools=build_tool_registry(session, user_id),
+        tools=build_tool_registry(session, user_id, confirmations),
+        confirmations=confirmations,
     )
 
 

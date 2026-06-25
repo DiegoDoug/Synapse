@@ -118,6 +118,11 @@ export function useStreamChat() {
                 toolCalls: [...prev.toolCalls, event],
               }));
               break;
+            case "pending_action":
+              // A write was proposed this turn — refresh the pending queue so
+              // the confirmation modal picks it up.
+              queryClient.invalidateQueries({ queryKey: ["actions"] });
+              break;
             case "token":
               setState((prev) => ({ ...prev, draft: prev.draft + event.text }));
               break;

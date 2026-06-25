@@ -16,6 +16,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from backend.schemas.action import PendingActionRead
+
 # --- Provider-neutral tool contract ---------------------------------------
 
 
@@ -102,6 +104,8 @@ class ChatResult(BaseModel):
     provider: str
     model: str
     tool_calls: list[ToolInvocation] = Field(default_factory=list)
+    # Writes the assistant proposed this turn that await user confirmation.
+    pending_actions: list[PendingActionRead] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 

@@ -58,6 +58,55 @@ class CalendarService(CalendarServiceInterface):
             return None
         return self._to_detail(row)
 
+    # --- Writes ------------------------------------------------------------
+
+    def create_event(
+        self,
+        account_id: int,
+        *,
+        summary: str,
+        start: str,
+        end: str | None = None,
+        description: str | None = None,
+        location: str | None = None,
+    ) -> str:
+        """Create a calendar event. Returns the provider event id.
+
+        ``start`` / ``end`` are ISO-8601 strings: a date (YYYY-MM-DD) for an
+        all-day event, or a datetime for a timed one. Requires a calendar write
+        scope; the executor translates an HttpError for the user.
+        """
+        account = self._accounts.get(account_id)
+        if account is None:
+            raise ValueError("account not found")
+
+        body: dict = {"summary": summary}
+        if description:
+            body["description"] = description
+        if location:
+            body["location"] = location
+        body["start"] = self._endpoint_body(start)
+        body["end"] = self._endpoint_body(end or start)
+
+        calendar = self._build_calendar(account)
+        result = calendar.create_event(_CALENDAR_ID, body)
+        self._persist_credentials(account)
+        return str(result.get("id", ""))
+
+    def delete_event(self, account_id: int, external_id: str) -> None:
+        """Delete a calendar event by its provider id."""
+        account = self._accounts.get(account_id)
+        if account is None:
+            raise ValueError("account not found")
+        calendar = self._build_calendar(account)
+        calendar.delete_event(_CALENDAR_ID, external_id)
+        self._persist_credentials(account)
+
+    @staticmethod
+    def _endpoint_body(value: str) -> dict:
+        """A Calendar start/end node: all-day ``date`` vs timed ``dateTime``."""
+        return {"date": value} if len(value) == 10 else {"dateTime": value}
+
     # --- Sync --------------------------------------------------------------
 
     def sync(self, account_id: int) -> SyncResult:

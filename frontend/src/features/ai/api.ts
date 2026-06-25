@@ -4,6 +4,7 @@
  */
 
 import { apiGet, apiPost } from "@/api/client";
+import { type PendingActionDto } from "@/features/actions/api";
 
 const API_BASE = "/api/v1";
 
@@ -48,6 +49,7 @@ export interface ChatResultDto {
   message: MessageDto;
   provider: string;
   model: string;
+  pending_actions: PendingActionDto[];
   metadata: Record<string, unknown>;
 }
 
@@ -92,6 +94,7 @@ export interface ToolCallEvent {
 export type StreamEvent =
   | { type: "conversation"; conversation_id: number }
   | ({ type: "tool_call" } & ToolCallEvent)
+  | ({ type: "pending_action" } & PendingActionDto)
   | { type: "token"; text: string }
   | {
       type: "done";
