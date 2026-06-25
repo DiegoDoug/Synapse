@@ -1,17 +1,18 @@
 # Current Sprint
 
-Current Stage: Stage 4
+Current Stage: Stage 4.5
 
 Objective:
 
-Add the AI layer on top of the Stage 1–3 foundation: a chat interface backed by
-multi-provider LLM routing, a prompt system, and a tool-use (function-calling)
-framework with read-only tools over the synced data. The AI can answer
-questions, summarize, and recommend using the user's emails, calendar, and
-notifications as context — and can look up information on the web read-only.
+Extend the Stage 4 AI layer from read-only to **action-capable**, safely. Add
+write tools behind the existing `ToolRegistry` — internal CRUD and external API
+writes — gated by a confirmation system so destructive or outbound actions
+require explicit user approval before they execute. Promote the read-only
+`BrowserService` to limited, confirmed write (form fill + submit).
 
-This is a backend-plus-frontend stage. It builds on the Stage 2 sync data and
-the ARCHITECTURE.md Service → Integration contract.
+This is a backend-plus-frontend stage. It builds on the Stage 4 `AIService` +
+tool-use loop, the Stage 2 OAuth/sync services, and the Stage 3 Telegram
+delivery, all under the ARCHITECTURE.md Service → Integration contract.
 
 ---
 
@@ -19,32 +20,46 @@ the ARCHITECTURE.md Service → Integration contract.
 
 Backend:
 
-- `AIService` — routes prompts to a provider and runs the tool-use loop
-- multi-provider LLM routing (Anthropic primary; OpenAI secondary; Ollama local)
-- a prompt system (system prompts, context assembly)
-- a `ToolRegistry` mapping tool names to backend service calls
-- read-only AI tools: search emails, get calendar events, get notifications
-- informational web browsing: a read-only `BrowserService` (Playwright headless)
-  to navigate URLs and extract content
-- streaming responses via SSE
+- write tools behind the `ToolRegistry`:
+  - internal CRUD: `create_task`, `update_task`, `delete_task`,
+    `update_widget_config`
+  - external (requires Stage 2 OAuth / Stage 3 Telegram): `send_email`,
+    `create_calendar_event`, `delete_calendar_event`, `send_telegram_message`
+- a `PendingAction` model (DB) storing a proposed action + payload + status
+- a `ConfirmationService` that creates pending actions and listens for approval
+- a `ToolExecutor` that runs approved actions through the service layer
+- `BrowserService` limited write: `fill_form` + `submit` (with confirmation),
+  plus `extract_structured_data` and `take_screenshot`
 
 Frontend:
 
-- AI chat interface (message list, streaming responses, context indicators)
-- surfacing tool calls / sources in the chat UI
+- a `ConfirmationModal` that surfaces pending actions for approve/reject
+- pending-action state surfaced in the chat UI (e.g. over the SSE channel)
+
+---
+
+# Confirmation Model
+
+Per ROADMAP Stage 4.5:
+
+- **Reads** — autonomous (no confirmation); unchanged from Stage 4
+- **Creates** — autonomous
+- **Updates** — require user approval before execution
+- **Deletes** — require user approval before execution
+
+Browser writes (`fill_form` + `submit`) always require confirmation.
 
 ---
 
 # Architecture Contract
 
-Per ARCHITECTURE.md (Service → Integration contract):
-
-- **Integration layer** — thin provider clients (Anthropic/OpenAI/Ollama HTTP)
-  and `BrowserService` (Playwright headless), no business logic.
-- **Service layer** — `AIService` owns the prompt assembly and tool-use loop;
-  the `ToolRegistry` maps tool names to existing services' read methods.
-- **Read-only tools only** — tools call existing service reads (email/calendar/
-  notification). No writes to internal CRUD or external APIs in this stage.
+- **Integration layer** — provider clients and `BrowserService` stay thin; new
+  external writes reuse the existing Gmail / Calendar / Telegram integrations.
+- **Service layer** — `ConfirmationService` owns the pending-action lifecycle;
+  `ToolExecutor` runs approved actions through existing services. Write tools
+  map to service write methods, never to integrations directly.
+- **Read-only tools are unchanged** — Stage 4 read tools keep running
+  autonomously inside the tool-use loop.
 - Agents are **not** introduced in this stage (Stage 6).
 
 ---
@@ -53,26 +68,25 @@ Per ARCHITECTURE.md (Service → Integration contract):
 
 DO NOT implement:
 
-- write tools / confirmation system (create/update/delete, send email,
-  create event, send Telegram via AI) — Stage 4.5
+- agents / agent orchestration — Stage 6
 - voice (STT/TTS/wake word) — Stage 4.7
 - embeddings, vector search, RAG — Stage 5
-- agents / agent orchestration — Stage 6
-- workflow automation / Playwright write/automation — Stage 7
+- workflow automation / scheduled Playwright automation — Stage 7
 - PostgreSQL / Redis / Docker — Stage 8
 
-Browser tools are read-only in this stage (navigate + extract). Do not implement
-future stages beyond Stage 4.
+Autonomous, unconfirmed destructive actions are out of scope: updates and
+deletes must pass through the confirmation flow. Do not implement future stages
+beyond Stage 4.5.
 
 ---
 
 # Deliverables
 
-- `AIService` with provider routing and a working tool-use loop
-- a prompt system + `ToolRegistry` with read-only tools
-- read-only `BrowserService` (navigate URL + extract content)
-- SSE streaming endpoint(s) for chat
-- an AI chat interface in the frontend
+- `PendingAction` model + `ConfirmationService` + `ToolExecutor`
+- write tools (internal CRUD + external API writes) behind the `ToolRegistry`
+- the confirmation flow end-to-end (propose → approve/reject → execute)
+- `BrowserService` confirmed write (`fill_form` + `submit`) + `take_screenshot`
+- a `ConfirmationModal` and pending-action surfacing in the chat UI
 
 ---
 
@@ -81,12 +95,12 @@ future stages beyond Stage 4.
 Build incrementally and pause for approval between major features:
 
 Major Feature 1:
-`AIService` + provider routing + prompt system + a non-streaming chat endpoint
-and a minimal chat UI (no tools yet).
+`PendingAction` + `ConfirmationService` + `ToolExecutor` + internal write tools
+(task CRUD, widget config) with the confirmation flow and `ConfirmationModal`.
 
 Major Feature 2:
-`ToolRegistry` + read-only tools + the tool-use loop + SSE streaming, plus the
-read-only `BrowserService` for web lookups, surfaced in the chat UI.
+external write tools (Gmail / Calendar / Telegram) and `BrowserService` confirmed
+write (form fill + submit) + screenshot, surfaced in the chat UI.
 
 After each major feature:
 
