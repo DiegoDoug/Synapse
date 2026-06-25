@@ -1,18 +1,19 @@
 # Current Sprint
 
-Current Stage: Stage 4.5
+Current Stage: Stage 4.7
 
 Objective:
 
-Extend the Stage 4 AI layer from read-only to **action-capable**, safely. Add
-write tools behind the existing `ToolRegistry` — internal CRUD and external API
-writes — gated by a confirmation system so destructive or outbound actions
-require explicit user approval before they execute. Promote the read-only
-`BrowserService` to limited, confirmed write (form fill + submit).
+Give Personal OS a **voice interface**: local speech-to-text and text-to-speech
+so the user can talk to the assistant. Add push-to-talk (hold to record →
+transcribe → inject into the existing AI chat → read the reply back) and an
+opt-in "Hey Synapse" wake-word mode. All inference is local — no audio leaves the
+device.
 
 This is a backend-plus-frontend stage. It builds on the Stage 4 `AIService` +
-tool-use loop, the Stage 2 OAuth/sync services, and the Stage 3 Telegram
-delivery, all under the ARCHITECTURE.md Service → Integration contract.
+tool-use loop and the Stage 4.5 confirmation flow (voice injects text into the
+exact same chat path, so tool use and confirmations work unchanged), all under
+the ARCHITECTURE.md Service → Integration contract.
 
 ---
 
@@ -20,47 +21,56 @@ delivery, all under the ARCHITECTURE.md Service → Integration contract.
 
 Backend:
 
-- write tools behind the `ToolRegistry`:
-  - internal CRUD: `create_task`, `update_task`, `delete_task`,
-    `update_widget_config`
-  - external (requires Stage 2 OAuth / Stage 3 Telegram): `send_email`,
-    `create_calendar_event`, `delete_calendar_event`, `send_telegram_message`
-- a `PendingAction` model (DB) storing a proposed action + payload + status
-- a `ConfirmationService` that creates pending actions and listens for approval
-- a `ToolExecutor` that runs approved actions through the service layer
-- `BrowserService` limited write: `fill_form` + `submit` (with confirmation),
-  plus `extract_structured_data` and `take_screenshot`
+- a `STTService` (faster-whisper wrapper) — model loaded at startup, selectable
+  size (tiny / small / medium)
+- a `TTSService` (Kokoro wrapper) — streams synthesized audio chunks
+- a `WakeWordService` (openWakeWord) — runs inference on PCM frames, server-side
+- a `/ws/voice` WebSocket — receives PCM, runs wake-word detection, returns
+  events
+- REST: `POST /voice/transcribe` (audio → text), `POST /voice/synthesize`
+  (text → audio stream)
 
 Frontend:
 
-- a `ConfirmationModal` that surfaces pending actions for approve/reject
-- pending-action state surfaced in the chat UI (e.g. over the SSE channel)
+- a `VoiceButton` — push-to-talk UI with waveform animation
+- an `AudioStreamer` — AudioWorklet that encodes PCM and streams over WebSocket
+- a `useVoice` hook — unified state machine for push-to-talk and wake-word modes
+- a `VoiceSettings` panel — model-size selector, voice selector, wake-word toggle
 
 ---
 
-# Confirmation Model
+# Data Flow
 
-Per ROADMAP Stage 4.5:
+Push-to-talk:
 
-- **Reads** — autonomous (no confirmation); unchanged from Stage 4
-- **Creates** — autonomous
-- **Updates** — require user approval before execution
-- **Deletes** — require user approval before execution
+1. User holds the `VoiceButton`; `MediaRecorder` captures audio → WebM blob
+2. `POST /voice/transcribe` → faster-whisper → transcript text
+3. Transcript injected into the existing AI chat (Stage 4/4.5 path, unchanged)
+4. AI reply text → `POST /voice/synthesize` → Kokoro → WAV stream
+5. Browser plays the audio reply
 
-Browser writes (`fill_form` + `submit`) always require confirmation.
+Wake-word mode (opt-in):
+
+1. `AudioStreamer` streams raw 16 kHz PCM → `/ws/voice`
+2. `WakeWordService` runs openWakeWord on each frame
+3. On detection the WebSocket sends `{"event": "wake_word_detected"}`
+4. Browser enters recording mode; audio continues until a silence threshold
+5. Buffered audio → faster-whisper → transcript → same AI → TTS pipeline
 
 ---
 
 # Architecture Contract
 
-- **Integration layer** — provider clients and `BrowserService` stay thin; new
-  external writes reuse the existing Gmail / Calendar / Telegram integrations.
-- **Service layer** — `ConfirmationService` owns the pending-action lifecycle;
-  `ToolExecutor` runs approved actions through existing services. Write tools
-  map to service write methods, never to integrations directly.
-- **Read-only tools are unchanged** — Stage 4 read tools keep running
-  autonomously inside the tool-use loop.
-- Agents are **not** introduced in this stage (Stage 6).
+- **Integration / model layer** — the Whisper, Kokoro, and openWakeWord wrappers
+  stay thin; heavy models load lazily so the app still boots without the voice
+  dependencies installed (mirror the Stage 4 Playwright / SDK degradation).
+- **Service layer** — `STTService`, `TTSService`, and `WakeWordService` own the
+  business logic; routes and the WebSocket handler stay thin.
+- **Voice reuses the AI path.** Transcripts are injected into the existing
+  `AIService` chat flow — voice adds **no** new tool, write, or confirmation
+  logic. Tool use and Stage 4.5 confirmations work unchanged.
+- A voice interaction (STT transcript + AI reply + TTS) is logged like a normal
+  chat turn.
 
 ---
 
@@ -69,24 +79,26 @@ Browser writes (`fill_form` + `submit`) always require confirmation.
 DO NOT implement:
 
 - agents / agent orchestration — Stage 6
-- voice (STT/TTS/wake word) — Stage 4.7
 - embeddings, vector search, RAG — Stage 5
 - workflow automation / scheduled Playwright automation — Stage 7
 - PostgreSQL / Redis / Docker — Stage 8
+- new write tools or changes to the Stage 4.5 confirmation flow (voice only
+  injects text into the existing chat path)
+- cloud STT/TTS — all inference is local; no audio leaves the device
 
-Autonomous, unconfirmed destructive actions are out of scope: updates and
-deletes must pass through the confirmation flow. Do not implement future stages
-beyond Stage 4.5.
+Do not implement future stages beyond Stage 4.7.
 
 ---
 
 # Deliverables
 
-- `PendingAction` model + `ConfirmationService` + `ToolExecutor`
-- write tools (internal CRUD + external API writes) behind the `ToolRegistry`
-- the confirmation flow end-to-end (propose → approve/reject → execute)
-- `BrowserService` confirmed write (`fill_form` + `submit`) + `take_screenshot`
-- a `ConfirmationModal` and pending-action surfacing in the chat UI
+- `STTService` (faster-whisper) + `TTSService` (Kokoro) + `WakeWordService`
+  (openWakeWord)
+- `/voice/transcribe` + `/voice/synthesize` REST endpoints and the `/ws/voice`
+  WebSocket
+- push-to-talk end to end (record → transcribe → AI reply → spoken reply)
+- opt-in wake-word mode end to end
+- `VoiceButton`, `AudioStreamer`, `useVoice`, and `VoiceSettings` in the UI
 
 ---
 
@@ -95,12 +107,13 @@ beyond Stage 4.5.
 Build incrementally and pause for approval between major features:
 
 Major Feature 1:
-`PendingAction` + `ConfirmationService` + `ToolExecutor` + internal write tools
-(task CRUD, widget config) with the confirmation flow and `ConfirmationModal`.
+`STTService` + `TTSService` + the `/voice/transcribe` and `/voice/synthesize`
+REST endpoints, plus push-to-talk in the UI (`VoiceButton`, `useVoice`,
+`VoiceSettings`) wired into the existing AI chat.
 
 Major Feature 2:
-external write tools (Gmail / Calendar / Telegram) and `BrowserService` confirmed
-write (form fill + submit) + screenshot, surfaced in the chat UI.
+`WakeWordService` + the `/ws/voice` WebSocket + the `AudioStreamer`, delivering
+the opt-in "Hey Synapse" wake-word mode.
 
 After each major feature:
 
