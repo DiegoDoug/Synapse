@@ -31,6 +31,7 @@ from backend.services.calendar_service import CalendarService
 from backend.services.confirmation_service import ConfirmationService
 from backend.services.conversation_service import ConversationService
 from backend.services.email_service import EmailService
+from backend.services.messaging_service import MessagingService
 from backend.services.notification_service import NotificationService
 from backend.services.sync_service import SyncService
 from backend.services.task_service import TaskService
@@ -42,10 +43,19 @@ from backend.services.tools.read_tools import (
     SearchEmailsTool,
 )
 from backend.services.tools.registry import ToolRegistry
-from backend.services.tools.web_tools import WebFetchTool
+from backend.services.tools.web_tools import (
+    ExtractStructuredDataTool,
+    ScreenshotTool,
+    WebFetchTool,
+)
 from backend.services.tools.write_tools import (
+    CreateCalendarEventTool,
     CreateTaskTool,
+    DeleteCalendarEventTool,
     DeleteTaskTool,
+    FillFormTool,
+    SendEmailTool,
+    SendTelegramMessageTool,
     UpdateTaskTool,
     UpdateWidgetConfigTool,
 )
@@ -121,18 +131,63 @@ def build_conversation_service(session: Session) -> ConversationService:
     return ConversationService(ConversationRepository(session))
 
 
-def build_tool_executor(session: Session) -> ToolExecutor:
-    """Assemble the ToolExecutor over the write services (tasks, widgets)."""
+def _build_google_services(
+    session: Session, settings: Settings
+) -> tuple[EmailService | None, CalendarService | None]:
+    """Build OAuth-backed email + calendar services, or (None, None) if Google
+    isn't configured."""
+    if not (settings.google_client_id and settings.google_client_secret):
+        return None, None
+    oauth = GoogleOAuthClient(
+        client_id=settings.google_client_id,
+        client_secret=settings.google_client_secret,
+        redirect_uri=settings.google_redirect_uri,
+        scopes=settings.google_scopes_list,
+    )
+    accounts = AccountRepository(session)
+    sync_states = SyncStateRepository(session)
+    email = EmailService(accounts, EmailRepository(session), sync_states, oauth)
+    calendar = CalendarService(
+        accounts, CalendarRepository(session), sync_states, oauth
+    )
+    return email, calendar
+
+
+def build_tool_executor(
+    session: Session, settings: Settings | None = None
+) -> ToolExecutor:
+    """Assemble the ToolExecutor over the write services.
+
+    Internal task/widget services are always present. External services (email,
+    calendar, messaging) and the browser are wired when ``settings`` supplies the
+    needed configuration; otherwise their handlers report unavailability at
+    execution time rather than failing construction.
+    """
+    email = calendar = None
+    messaging = None
+    if settings is not None:
+        email, calendar = _build_google_services(session, settings)
+        messaging = MessagingService(
+            build_telegram_integration(settings),
+            default_chat_id=settings.telegram_default_chat_id or None,
+        )
     return ToolExecutor(
         TaskService(TaskRepository(session)),
         WidgetService(WidgetRepository(session)),
+        accounts=AccountRepository(session),
+        email=email,
+        calendar=calendar,
+        messaging=messaging,
+        browser=BrowserService(),
     )
 
 
-def build_confirmation_service(session: Session) -> ConfirmationService:
+def build_confirmation_service(
+    session: Session, settings: Settings | None = None
+) -> ConfirmationService:
     """Assemble the ConfirmationService + its ToolExecutor for the write flow."""
     return ConfirmationService(
-        PendingActionRepository(session), build_tool_executor(session)
+        PendingActionRepository(session), build_tool_executor(session, settings)
     )
 
 
@@ -162,13 +217,23 @@ def build_tool_registry(
         GetCalendarEventsTool(),
         GetNotificationsTool(),
         WebFetchTool(),
+        ExtractStructuredDataTool(),
+        ScreenshotTool(),
     ]
     if confirmations is not None:
         tools += [
+            # Internal CRUD
             CreateTaskTool(),
             UpdateTaskTool(),
             DeleteTaskTool(),
             UpdateWidgetConfigTool(),
+            # External / outbound (confirmed)
+            SendEmailTool(),
+            CreateCalendarEventTool(),
+            DeleteCalendarEventTool(),
+            SendTelegramMessageTool(),
+            # Browser write (confirmed)
+            FillFormTool(),
         ]
     return ToolRegistry(tools, context)
 
@@ -180,8 +245,9 @@ def build_ai_service(
 
     The same ``ConfirmationService`` instance backs both the write tools and the
     service, so proposals raised during a turn can be surfaced to the caller.
+    External write tools are wired from ``settings`` (Google / Telegram).
     """
-    confirmations = build_confirmation_service(session)
+    confirmations = build_confirmation_service(session, settings)
     return AIService(
         build_ai_provider(settings),
         build_conversation_service(session),

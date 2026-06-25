@@ -1,7 +1,9 @@
 """Gmail integration (integration layer).
 
-Thin wrapper over the Gmail REST API (read-only). Returns raw API payloads;
-mapping to domain models and persistence are the service layer's concern.
+Thin wrapper over the Gmail REST API. Read paths return raw API payloads; the
+single write path (``send_message``) accepts an already-encoded RFC 2822
+message. Mapping to domain models, MIME assembly, and persistence are the
+service layer's concern.
 """
 
 from google.oauth2.credentials import Credentials
@@ -14,7 +16,7 @@ _METADATA_HEADERS = ["From", "To", "Subject", "Date"]
 
 
 class GmailIntegration(Integration):
-    """Read-only Gmail API client scoped to a single account's credentials."""
+    """Gmail API client scoped to a single account's credentials."""
 
     resource = "gmail"
 
@@ -94,5 +96,18 @@ class GmailIntegration(Integration):
                 format="metadata",
                 metadataHeaders=_METADATA_HEADERS,
             )
+            .execute()
+        )
+
+    def send_message(self, raw: str) -> dict:
+        """Send a pre-encoded (base64url RFC 2822) message. Returns the result.
+
+        Requires the ``gmail.send`` scope; a missing scope surfaces as an
+        HttpError (403) for the service layer to translate.
+        """
+        return (
+            self._service.users()
+            .messages()
+            .send(userId="me", body={"raw": raw})
             .execute()
         )

@@ -39,9 +39,13 @@ class Settings(BaseSettings):
     google_client_id: str = ""
     google_client_secret: str = ""
     google_redirect_uri: str = "http://localhost:8000/api/v1/connections/google/callback"
+    # Read scopes power Stage 2 sync; the send/events write scopes power the
+    # Stage 4.5 external write tools (send_email, create/delete_calendar_event).
+    # Adding scopes requires re-consent for already-connected accounts.
     google_scopes: str = (
         "https://www.googleapis.com/auth/gmail.readonly "
-        "https://www.googleapis.com/auth/calendar.readonly "
+        "https://www.googleapis.com/auth/gmail.send "
+        "https://www.googleapis.com/auth/calendar.events "
         "https://www.googleapis.com/auth/userinfo.email"
     )
 

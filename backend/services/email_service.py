@@ -6,7 +6,9 @@ synced messages as DTOs. Builds a GmailIntegration per account from that
 account's (refreshed) credentials.
 """
 
+import base64
 from datetime import UTC, datetime
+from email.message import EmailMessage as MimeMessage
 from email.utils import parsedate_to_datetime
 
 from googleapiclient.errors import HttpError
@@ -62,6 +64,33 @@ class EmailService(EmailServiceInterface):
         if row is None or row.account_id != account_id:
             return None
         return self._to_detail(row)
+
+    # --- Writes ------------------------------------------------------------
+
+    def send_email(
+        self, account_id: int, *, to: str, subject: str, body: str
+    ) -> str:
+        """Send an email from the account. Returns the provider message id.
+
+        Assembles a plain-text MIME message, base64url-encodes it, and hands it
+        to the integration. Requires the ``gmail.send`` scope on the account;
+        the route/executor translates an HttpError (e.g. 403) for the user.
+        """
+        account = self._accounts.get(account_id)
+        if account is None:
+            raise ValueError("account not found")
+
+        message = MimeMessage()
+        message["To"] = to
+        message["From"] = account.email
+        message["Subject"] = subject
+        message.set_content(body)
+        raw = base64.urlsafe_b64encode(message.as_bytes()).decode("ascii")
+
+        gmail = self._build_gmail(account)
+        result = gmail.send_message(raw)
+        self._persist_credentials(account)
+        return str(result.get("id", ""))
 
     # --- Sync --------------------------------------------------------------
 

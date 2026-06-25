@@ -68,8 +68,13 @@ class ConfirmationService:
 
         Returns the text the tool feeds back to the model — the execution
         result for autonomous actions, or a 'pending approval' note otherwise.
+        A tool's explicit ``requires_confirmation`` (e.g. outbound/browser
+        writes) overrides the action_type policy.
         """
-        if not self.requires_confirmation(action.action_type):
+        needs = action.requires_confirmation
+        if needs is None:
+            needs = self.requires_confirmation(action.action_type)
+        if not needs:
             result = self._executor.execute(
                 user_id, action.tool_name, action.payload
             )

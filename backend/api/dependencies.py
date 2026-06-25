@@ -141,7 +141,9 @@ def get_task_service(
 
 def get_confirmation_service(
     session: Session = Depends(get_session),
+    settings: Settings = Depends(get_settings),
 ) -> ConfirmationService:
-    # The pending-action lifecycle + its ToolExecutor. Used by the confirmation
-    # routes to approve/reject proposals raised during chat.
-    return build_confirmation_service(session)
+    # The pending-action lifecycle + its ToolExecutor (incl. external write
+    # services from settings). Used by the confirmation routes to approve/reject
+    # proposals raised during chat.
+    return build_confirmation_service(session, settings)

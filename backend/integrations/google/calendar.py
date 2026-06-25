@@ -1,7 +1,9 @@
 """Google Calendar integration (integration layer).
 
-Thin wrapper over the Calendar REST API (read-only). Returns raw API payloads;
-mapping to domain models and persistence are the service layer's concern.
+Thin wrapper over the Calendar REST API. Reads return raw API payloads; the
+write paths (``create_event`` / ``delete_event``) accept an already-assembled
+event body. Mapping to domain models and persistence are the service layer's
+concern.
 
 Incremental sync uses Calendar's syncToken: the initial full list returns a
 nextSyncToken, and subsequent calls pass it to receive only changes. A 410
@@ -15,7 +17,7 @@ from backend.integrations.base import Integration
 
 
 class GoogleCalendarIntegration(Integration):
-    """Read-only Google Calendar API client scoped to one account."""
+    """Google Calendar API client scoped to one account."""
 
     resource = "calendar"
 
@@ -58,3 +60,21 @@ class GoogleCalendarIntegration(Integration):
                 next_sync_token = response.get("nextSyncToken")
                 break
         return events, next_sync_token
+
+    def create_event(self, calendar_id: str, body: dict) -> dict:
+        """Insert an event from an assembled body. Returns the created event.
+
+        Requires a calendar write scope; a missing scope surfaces as an
+        HttpError (403) for the service layer to translate.
+        """
+        return (
+            self._service.events()
+            .insert(calendarId=calendar_id, body=body)
+            .execute()
+        )
+
+    def delete_event(self, calendar_id: str, event_id: str) -> None:
+        """Delete an event by its provider id. Returns nothing on success."""
+        self._service.events().delete(
+            calendarId=calendar_id, eventId=event_id
+        ).execute()
