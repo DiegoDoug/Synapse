@@ -15,6 +15,8 @@ from backend.integrations.ai.openai_provider import OpenAIProvider
 from backend.integrations.browser.service import BrowserService
 from backend.integrations.google.oauth import GoogleOAuthClient
 from backend.integrations.telegram.bot import TelegramIntegration
+from backend.integrations.voice.kokoro import KokoroClient
+from backend.integrations.voice.whisper import WhisperClient
 from backend.models.user import User
 from backend.repositories.account_repository import AccountRepository
 from backend.repositories.calendar_repository import CalendarRepository
@@ -33,6 +35,7 @@ from backend.services.conversation_service import ConversationService
 from backend.services.email_service import EmailService
 from backend.services.messaging_service import MessagingService
 from backend.services.notification_service import NotificationService
+from backend.services.stt_service import STTService
 from backend.services.sync_service import SyncService
 from backend.services.task_service import TaskService
 from backend.services.tool_executor import ToolExecutor
@@ -59,6 +62,7 @@ from backend.services.tools.write_tools import (
     UpdateTaskTool,
     UpdateWidgetConfigTool,
 )
+from backend.services.tts_service import TTSService
 from backend.services.widget_service import WidgetService
 
 
@@ -129,6 +133,43 @@ def build_ai_provider(settings: Settings) -> LLMProvider:
 def build_conversation_service(session: Session) -> ConversationService:
     """Assemble a ConversationService with its repository."""
     return ConversationService(ConversationRepository(session))
+
+
+# Voice model clients are cached as process singletons: each lazily loads a
+# heavy local model on first use, so we must reuse one instance across requests
+# rather than reload per call.
+_whisper_client: WhisperClient | None = None
+_kokoro_client: KokoroClient | None = None
+
+
+def build_whisper_client(settings: Settings) -> WhisperClient:
+    global _whisper_client
+    if _whisper_client is None:
+        _whisper_client = WhisperClient(
+            model_size=settings.whisper_model,
+            device=settings.whisper_device,
+            compute_type=settings.whisper_compute_type,
+        )
+    return _whisper_client
+
+
+def build_kokoro_client(settings: Settings) -> KokoroClient:
+    global _kokoro_client
+    if _kokoro_client is None:
+        _kokoro_client = KokoroClient(
+            voice=settings.tts_voice, sample_rate=settings.tts_sample_rate
+        )
+    return _kokoro_client
+
+
+def build_stt_service(settings: Settings) -> STTService:
+    """Assemble the speech-to-text service over the cached Whisper client."""
+    return STTService(build_whisper_client(settings))
+
+
+def build_tts_service(settings: Settings) -> TTSService:
+    """Assemble the text-to-speech service over the cached Kokoro client."""
+    return TTSService(build_kokoro_client(settings))
 
 
 def _build_google_services(

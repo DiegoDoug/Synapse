@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import ChatInput from "@/components/ai/ChatInput";
@@ -8,6 +8,7 @@ import ConversationSidebar from "@/components/ai/ConversationSidebar";
 import PromptSelector from "@/components/ai/PromptSelector";
 import ProviderIndicator from "@/components/ai/ProviderIndicator";
 import ToolCallChip from "@/components/ai/ToolCallChip";
+import VoiceButton from "@/components/ai/VoiceButton";
 import {
   useApproveAction,
   usePendingActions,
@@ -15,6 +16,8 @@ import {
 } from "@/features/actions/useActions";
 import { type MessageDto } from "@/features/ai/api";
 import { useConversation, useStreamChat } from "@/features/ai/useAssistant";
+import { useVoice, useVoiceConfig } from "@/features/voice/useVoice";
+import { useAppStore } from "@/store/useAppStore";
 
 /** Split a persisted tool row ("name: summary") into its parts for a chip. */
 function parseToolRow(content: string): { name: string; summary?: string } {
@@ -34,6 +37,16 @@ export default function AssistantPage() {
   const conversation = useConversation(conversationId);
   const stream = useStreamChat();
 
+  // Voice (Stage 4.7): push-to-talk input + optional read-back of replies.
+  const voiceConfig = useVoiceConfig();
+  const voice = useVoice();
+  const voiceAutoRead = useAppStore((state) => state.voiceAutoRead);
+  const sttAvailable = voiceConfig.data?.stt_available ?? false;
+  const ttsAvailable = voiceConfig.data?.tts_available ?? false;
+  // Last assistant message already spoken, so auto-read fires once per reply
+  // and never re-reads history when a conversation is opened.
+  const lastReadIdRef = useRef<number | null>(null);
+
   // Writes the assistant proposed (updates / deletes / widget config) await the
   // user's approval here before they run.
   const pendingActions = usePendingActions();
@@ -45,7 +58,10 @@ export default function AssistantPage() {
       ? reject.variables ?? null
       : null;
 
-  const persisted: MessageDto[] = conversation.data?.messages ?? [];
+  const persisted = useMemo<MessageDto[]>(
+    () => conversation.data?.messages ?? [],
+    [conversation.data],
+  );
 
   const send = (text: string) => {
     setPendingUser(text);
@@ -84,6 +100,33 @@ export default function AssistantPage() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [persisted.length, stream.draft, stream.toolCalls.length]);
+
+  // Reset the auto-read marker when switching threads so opening a conversation
+  // never reads its existing history aloud.
+  useEffect(() => {
+    lastReadIdRef.current = null;
+  }, [conversationId]);
+
+  // Auto-read: speak each newly arrived assistant reply once, when enabled.
+  useEffect(() => {
+    const lastAssistant = [...persisted]
+      .reverse()
+      .find((m) => m.role === "assistant");
+    if (!lastAssistant) return;
+    if (lastReadIdRef.current === null) {
+      // First load of this thread — adopt the latest id without speaking.
+      lastReadIdRef.current = lastAssistant.id;
+      return;
+    }
+    if (
+      lastAssistant.id > lastReadIdRef.current &&
+      voiceAutoRead &&
+      ttsAvailable
+    ) {
+      lastReadIdRef.current = lastAssistant.id;
+      void voice.speak(lastAssistant.content);
+    }
+  }, [persisted, voiceAutoRead, ttsAvailable, voice]);
 
   const startNewChat = () => {
     setConversationId(null);
@@ -160,8 +203,16 @@ export default function AssistantPage() {
           )}
         </div>
 
-        <div className="border-t border-border p-3">
-          <ChatInput disabled={stream.isStreaming} onSend={send} />
+        <div className="flex items-end gap-2 border-t border-border p-3">
+          {sttAvailable && (
+            <VoiceButton
+              disabled={stream.isStreaming}
+              onTranscript={(text) => send(text)}
+            />
+          )}
+          <div className="flex-1">
+            <ChatInput disabled={stream.isStreaming} onSend={send} />
+          </div>
         </div>
       </section>
 

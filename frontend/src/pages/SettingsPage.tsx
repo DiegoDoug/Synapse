@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTelegramStatus } from "@/features/notifications/useNotifications";
+import VoiceSettings from "@/features/voice/VoiceSettings";
 import { cn } from "@/lib/utils";
 import { type ThemeMode, useAppStore } from "@/store/useAppStore";
 
@@ -80,6 +81,8 @@ export default function SettingsPage() {
           )}
         </CardContent>
       </Card>
+
+      <VoiceSettings />
     </div>
   );
 }

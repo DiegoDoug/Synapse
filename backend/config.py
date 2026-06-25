@@ -76,6 +76,19 @@ class Settings(BaseSettings):
     ai_max_tokens: int = 1024
     ai_temperature: float = 0.7
 
+    # Voice interface (Stage 4.7 — local STT/TTS). Models are imported lazily by
+    # their integration clients, so the app boots without the (heavy) voice
+    # dependencies installed; the endpoints report unavailable until then.
+    # faster-whisper model size: tiny | small | medium (see ROADMAP).
+    whisper_model: str = "small"
+    whisper_device: str = "cpu"  # cpu | cuda
+    whisper_compute_type: str = "int8"  # int8 | float16 | float32
+    # Kokoro TTS voice + sample rate.
+    tts_voice: str = "af_heart"
+    tts_sample_rate: int = 24000
+    # Reject uploads larger than this (push-to-talk clips are short).
+    voice_max_upload_bytes: int = 10 * 1024 * 1024  # 10 MB
+
     @property
     def telegram_enabled(self) -> bool:
         """True when a bot token is configured."""
