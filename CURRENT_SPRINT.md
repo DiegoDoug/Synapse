@@ -1,16 +1,17 @@
 # Current Sprint
 
-Current Stage: Stage 3
+Current Stage: Stage 4
 
 Objective:
 
-Add a notification layer on top of the Stage 2 integrations: a Telegram bot,
-push notifications, and an in-app notification center. The system should turn
-synced data (emails, calendar events) into timely, useful messages — daily
-summaries, reminders, and alerts — and accept simple commands.
+Add the AI layer on top of the Stage 1–3 foundation: a chat interface backed by
+multi-provider LLM routing, a prompt system, and a tool-use (function-calling)
+framework with read-only tools over the synced data. The AI can answer
+questions, summarize, and recommend using the user's emails, calendar, and
+notifications as context — and can look up information on the web read-only.
 
-This is a backend-plus-frontend stage. It builds directly on the Stage 2
-synchronization services and the Service → Integration contract.
+This is a backend-plus-frontend stage. It builds on the Stage 2 sync data and
+the ARCHITECTURE.md Service → Integration contract.
 
 ---
 
@@ -18,16 +19,19 @@ synchronization services and the Service → Integration contract.
 
 Backend:
 
-- Telegram bot integration (delivery + simple inbound commands)
-- a `NotificationService` that composes notifications from synced data
-- a `Notification` model + persistence (notification history / center)
-- scheduled jobs (APScheduler) for daily summaries and reminders
-- REST endpoints for the notification center (list / mark read)
+- `AIService` — routes prompts to a provider and runs the tool-use loop
+- multi-provider LLM routing (Anthropic primary; OpenAI secondary; Ollama local)
+- a prompt system (system prompts, context assembly)
+- a `ToolRegistry` mapping tool names to backend service calls
+- read-only AI tools: search emails, get calendar events, get notifications
+- informational web browsing: a read-only `BrowserService` (Playwright headless)
+  to navigate URLs and extract content
+- streaming responses via SSE
 
 Frontend:
 
-- notification center UI (list, unread state, mark read)
-- surfacing alerts/reminders in the dashboard shell
+- AI chat interface (message list, streaming responses, context indicators)
+- surfacing tool calls / sources in the chat UI
 
 ---
 
@@ -35,12 +39,12 @@ Frontend:
 
 Per ARCHITECTURE.md (Service → Integration contract):
 
-- **Integration layer** — `TelegramIntegration` (HTTP only, no business logic).
-- **Service layer** — `NotificationService` composes and dispatches
-  notifications; orchestrates repositories and the Telegram integration.
-- **Repository layer** — `NotificationRepository` for persistence.
-- **Scheduling** — APScheduler triggers run sync (Stage 2 `SyncService`) and
-  then compose notifications; no notification logic lives in the scheduler.
+- **Integration layer** — thin provider clients (Anthropic/OpenAI/Ollama HTTP)
+  and `BrowserService` (Playwright headless), no business logic.
+- **Service layer** — `AIService` owns the prompt assembly and tool-use loop;
+  the `ToolRegistry` maps tool names to existing services' read methods.
+- **Read-only tools only** — tools call existing service reads (email/calendar/
+  notification). No writes to internal CRUD or external APIs in this stage.
 - Agents are **not** introduced in this stage (Stage 6).
 
 ---
@@ -49,24 +53,26 @@ Per ARCHITECTURE.md (Service → Integration contract):
 
 DO NOT implement:
 
-- AI systems (chat, LLM routing, prompts, tool use) — Stage 4
-- agents / agent orchestration — Stage 6
+- write tools / confirmation system (create/update/delete, send email,
+  create event, send Telegram via AI) — Stage 4.5
+- voice (STT/TTS/wake word) — Stage 4.7
 - embeddings, vector search, RAG — Stage 5
-- voice — Stage 4.7
-- write operations to external APIs beyond Telegram delivery
-  (no send-email / create-event — Stage 4.5)
+- agents / agent orchestration — Stage 6
+- workflow automation / Playwright write/automation — Stage 7
 - PostgreSQL / Redis / Docker — Stage 8
 
-Do not implement future stages beyond Stage 3.
+Browser tools are read-only in this stage (navigate + extract). Do not implement
+future stages beyond Stage 4.
 
 ---
 
 # Deliverables
 
-- Telegram bot integration (delivery + basic commands)
-- notification composition from synced emails/events
-- notification center (model, persistence, REST endpoints, UI)
-- scheduled daily summaries and reminders (APScheduler)
+- `AIService` with provider routing and a working tool-use loop
+- a prompt system + `ToolRegistry` with read-only tools
+- read-only `BrowserService` (navigate URL + extract content)
+- SSE streaming endpoint(s) for chat
+- an AI chat interface in the frontend
 
 ---
 
@@ -75,12 +81,12 @@ Do not implement future stages beyond Stage 3.
 Build incrementally and pause for approval between major features:
 
 Major Feature 1:
-Notification model + `NotificationService` + notification-center REST endpoints
-and UI (in-app notifications, no external delivery yet).
+`AIService` + provider routing + prompt system + a non-streaming chat endpoint
+and a minimal chat UI (no tools yet).
 
 Major Feature 2:
-`TelegramIntegration` + delivery + scheduled daily summaries / reminders
-(APScheduler), plus basic inbound commands.
+`ToolRegistry` + read-only tools + the tool-use loop + SSE streaming, plus the
+read-only `BrowserService` for web lookups, surfaced in the chat UI.
 
 After each major feature:
 
