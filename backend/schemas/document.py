@@ -27,3 +27,21 @@ class KnowledgeStatus(BaseModel):
     embeddings_available: bool
     embedding_model: str
     vector_backend: str
+
+
+class KnowledgeHit(BaseModel):
+    """A single semantic-search match: an excerpt and its source document."""
+
+    document_id: int
+    filename: str
+    chunk_index: int
+    content: str
+    score: float
+
+
+class KnowledgeSearchResponse(BaseModel):
+    """Result of a semantic search over the knowledge base."""
+
+    query: str
+    available: bool  # whether semantic search is online (embeddings installed)
+    hits: list[KnowledgeHit] = []

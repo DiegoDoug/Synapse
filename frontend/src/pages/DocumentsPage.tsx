@@ -1,5 +1,6 @@
 import { DocumentList } from "@/features/documents/components/DocumentList";
 import { DocumentUpload } from "@/features/documents/components/DocumentUpload";
+import { KnowledgeSearch } from "@/features/documents/components/KnowledgeSearch";
 import {
   useDeleteDocument,
   useDocuments,
@@ -15,6 +16,7 @@ export default function DocumentsPage() {
   const remove = useDeleteDocument();
 
   const embeddingsOff = status.data && !status.data.embeddings_available;
+  const hasIndexed = (documents.data ?? []).some((d) => d.status === "indexed");
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-6">
@@ -40,6 +42,13 @@ export default function DocumentsPage() {
         isUploading={upload.isPending}
         error={upload.isError ? "Upload failed. Try a different file." : null}
       />
+
+      {hasIndexed && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold tracking-tight">Search</h2>
+          <KnowledgeSearch />
+        </section>
+      )}
 
       <DocumentList
         documents={documents.data ?? []}

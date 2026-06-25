@@ -43,6 +43,7 @@ from backend.services.confirmation_service import ConfirmationService
 from backend.services.conversation_service import ConversationService
 from backend.services.document_service import DocumentService
 from backend.services.email_service import EmailService
+from backend.services.knowledge_service import KnowledgeService
 from backend.services.messaging_service import MessagingService
 from backend.services.notification_service import NotificationService
 from backend.services.stt_service import STTService
@@ -54,6 +55,7 @@ from backend.services.tools.read_tools import (
     GetCalendarEventsTool,
     GetNotificationsTool,
     SearchEmailsTool,
+    SearchKnowledgeTool,
 )
 from backend.services.tools.registry import ToolRegistry
 from backend.services.tools.web_tools import (
@@ -195,6 +197,18 @@ def build_document_service(session: Session, settings: Settings) -> DocumentServ
     )
 
 
+def build_knowledge_service(session: Session, settings: Settings) -> KnowledgeService:
+    """Assemble the KnowledgeService (semantic search) over the KB integrations.
+
+    Shares the process-cached embedding model + vector store with ingestion, so
+    search reads the same index documents were written into."""
+    return KnowledgeService(
+        DocumentRepository(session),
+        build_embedding_model(settings),
+        build_vector_store(settings),
+    )
+
+
 # Voice model clients are cached as process singletons: each lazily loads a
 # heavy local model on first use, so we must reuse one instance across requests
 # rather than reload per call.
@@ -325,13 +339,16 @@ def build_tool_registry(
     session: Session,
     user_id: int,
     confirmations: ConfirmationService | None = None,
+    knowledge: KnowledgeService | None = None,
 ) -> ToolRegistry:
     """Assemble the ToolRegistry scoped to a user + session.
 
     Read tools query repositories directly. Write tools (Stage 4.5) route
     through ``confirmations`` and are only included when one is supplied. The
     BrowserService is always provided; its Playwright dependency is lazy, so
-    the web tool degrades to a friendly message when it is not installed.
+    the web tool degrades to a friendly message when it is not installed. The
+    knowledge-base search tool (Stage 5 RAG) is wired when ``knowledge`` is
+    supplied and reports unavailable when embeddings aren't installed.
     """
     context = ToolContext(
         user_id=user_id,
@@ -341,6 +358,7 @@ def build_tool_registry(
         notifications=NotificationRepository(session),
         browser=BrowserService(),
         confirmations=confirmations,
+        knowledge=knowledge,
     )
     tools = [
         SearchEmailsTool(),
@@ -350,6 +368,8 @@ def build_tool_registry(
         ExtractStructuredDataTool(),
         ScreenshotTool(),
     ]
+    if knowledge is not None:
+        tools.append(SearchKnowledgeTool())
     if confirmations is not None:
         tools += [
             # Internal CRUD
@@ -378,13 +398,14 @@ def build_ai_service(
     External write tools are wired from ``settings`` (Google / Telegram).
     """
     confirmations = build_confirmation_service(session, settings)
+    knowledge = build_knowledge_service(session, settings)
     return AIService(
         build_ai_provider(settings),
         build_conversation_service(session),
         SystemPromptRepository(session),
         max_tokens=settings.ai_max_tokens,
         temperature=settings.ai_temperature,
-        tools=build_tool_registry(session, user_id, confirmations),
+        tools=build_tool_registry(session, user_id, confirmations, knowledge),
         confirmations=confirmations,
     )
 

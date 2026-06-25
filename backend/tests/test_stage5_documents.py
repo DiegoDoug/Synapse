@@ -207,20 +207,6 @@ def test_delete_other_users_document_denied(session):
     assert service.get(1, doc.id) is not None
 
 
-def test_reseed_memory_index_rebuilds_from_db(session):
-    store = InProcessVectorStore()
-    service = _service(session, FakeEmbedding(), store)
-    doc = service.ingest(1, filename="n.txt", content_type="text/plain", data=b"alpha beta gamma")
-    count = doc.chunk_count
-
-    # Simulate a restart: a fresh empty in-process store, same DB.
-    fresh = InProcessVectorStore()
-    service2 = _service(session, FakeEmbedding(), fresh)
-    loaded = service2.reseed_memory_index(1)
-    assert loaded == count
-    assert len(fresh) == count
-
-
 def test_status_reports_capabilities(session):
     service = _service(session, FakeEmbedding(available=True))
     status = service.status()

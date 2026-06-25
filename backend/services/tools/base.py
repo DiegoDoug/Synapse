@@ -24,6 +24,7 @@ from backend.schemas.ai import ToolSpec
 
 if TYPE_CHECKING:
     from backend.services.confirmation_service import ConfirmationService
+    from backend.services.knowledge_service import KnowledgeService
 
 
 @dataclass
@@ -41,6 +42,9 @@ class ToolContext:
     notifications: NotificationRepository
     browser: BrowserService | None = None
     confirmations: "ConfirmationService | None" = None
+    # Knowledge-base search (Stage 5 RAG); wired when the KB is available so the
+    # search_knowledge read tool can ground answers in the user's documents.
+    knowledge: "KnowledgeService | None" = None
 
 
 class Tool(ABC):

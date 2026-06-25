@@ -29,11 +29,13 @@ from backend.services.factory import (
     build_confirmation_service,
     build_conversation_service,
     build_document_service,
+    build_knowledge_service,
     build_notification_service,
     build_stt_service,
     build_tts_service,
     build_wakeword_service,
 )
+from backend.services.knowledge_service import KnowledgeService
 from backend.services.notification_service import NotificationService
 from backend.services.stt_service import STTService
 from backend.services.sync_service import SyncService
@@ -154,6 +156,14 @@ def get_document_service(
     # Wires the document repository + the embeddings and vector-store
     # integrations (lazy; degrade gracefully when their extras aren't installed).
     return build_document_service(session, settings)
+
+
+def get_knowledge_service(
+    session: Session = Depends(get_session),
+    settings: Settings = Depends(get_settings),
+) -> KnowledgeService:
+    # Semantic search over the same index ingestion writes into.
+    return build_knowledge_service(session, settings)
 
 
 def get_confirmation_service(
