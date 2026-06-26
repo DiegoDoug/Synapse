@@ -7,6 +7,8 @@ the notification stack the same way.
 
 from sqlmodel import Session, select
 
+from backend.agents.registry import build_agent_registry
+from backend.agents.runner import AgentRunner
 from backend.config import Settings
 from backend.integrations.ai.anthropic_provider import AnthropicProvider
 from backend.integrations.ai.base import LLMProvider
@@ -27,6 +29,7 @@ from backend.integrations.voice.wakeword import OpenWakeWordClient
 from backend.integrations.voice.whisper import WhisperClient
 from backend.models.user import User
 from backend.repositories.account_repository import AccountRepository
+from backend.repositories.agent_run_repository import AgentRunRepository
 from backend.repositories.calendar_repository import CalendarRepository
 from backend.repositories.conversation_repository import ConversationRepository
 from backend.repositories.document_repository import DocumentRepository
@@ -37,6 +40,7 @@ from backend.repositories.sync_state_repository import SyncStateRepository
 from backend.repositories.system_prompt_repository import SystemPromptRepository
 from backend.repositories.task_repository import TaskRepository
 from backend.repositories.widget_repository import WidgetRepository
+from backend.services.agent_service import AgentService
 from backend.services.ai_service import AIService
 from backend.services.calendar_service import CalendarService
 from backend.services.confirmation_service import ConfirmationService
@@ -407,6 +411,27 @@ def build_ai_service(
         temperature=settings.ai_temperature,
         tools=build_tool_registry(session, user_id, confirmations, knowledge),
         confirmations=confirmations,
+    )
+
+
+def build_agent_service(
+    session: Session, settings: Settings, user_id: int
+) -> AgentService:
+    """Assemble the AgentService: agent catalogue + runner + tool registry.
+
+    The runner records each run to the ``AgentRun`` audit trail. Agents drive
+    the same user-scoped ``ToolRegistry`` the chat loop uses — wired with the
+    confirmation flow (so creates run autonomously and destructive writes are
+    logged as pending) and knowledge search — so no new side-effect path is
+    introduced.
+    """
+    confirmations = build_confirmation_service(session, settings)
+    knowledge = build_knowledge_service(session, settings)
+    return AgentService(
+        build_agent_registry(),
+        AgentRunner(AgentRunRepository(session)),
+        AgentRunRepository(session),
+        build_tool_registry(session, user_id, confirmations, knowledge),
     )
 
 

@@ -5,6 +5,7 @@ create_all() can build their tables.
 """
 
 from backend.models.account import Account
+from backend.models.agent_run import AgentRun, AgentStep
 from backend.models.calendar_event import CalendarEvent
 from backend.models.conversation import Conversation
 from backend.models.dashboard_widget import DashboardWidget
@@ -20,6 +21,8 @@ from backend.models.user import User
 
 __all__ = [
     "Account",
+    "AgentRun",
+    "AgentStep",
     "CalendarEvent",
     "Conversation",
     "DashboardWidget",

@@ -6,6 +6,7 @@ Aggregates feature routers into a single api_router mounted by main.py.
 from fastapi import APIRouter
 
 from backend.api.routes.actions import router as actions_router
+from backend.api.routes.agents import router as agents_router
 from backend.api.routes.ai import router as ai_router
 from backend.api.routes.calendar import router as calendar_router
 from backend.api.routes.connections import router as connections_router
@@ -34,6 +35,7 @@ api_router.include_router(knowledge_router)
 api_router.include_router(prompts_router)
 api_router.include_router(tasks_router)
 api_router.include_router(actions_router)
+api_router.include_router(agents_router)
 api_router.include_router(voice_router)
 
 __all__ = ["api_router"]

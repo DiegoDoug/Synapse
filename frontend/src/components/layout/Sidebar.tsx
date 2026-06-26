@@ -1,5 +1,6 @@
 import {
   Bell,
+  Bot,
   FileText,
   LayoutDashboard,
   Settings,
@@ -15,6 +16,7 @@ import { useAppStore } from "@/store/useAppStore";
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/assistant", label: "Assistant", icon: Sparkles },
+  { to: "/agents", label: "Agents", icon: Bot },
   { to: "/documents", label: "Knowledge", icon: FileText },
   { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/settings", label: "Settings", icon: Settings },
