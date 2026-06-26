@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Settings,
   Sparkles,
+  Workflow,
   Zap,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
@@ -17,6 +18,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/assistant", label: "Assistant", icon: Sparkles },
   { to: "/agents", label: "Agents", icon: Bot },
+  { to: "/automation", label: "Automation", icon: Workflow },
   { to: "/documents", label: "Knowledge", icon: FileText },
   { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/settings", label: "Settings", icon: Settings },

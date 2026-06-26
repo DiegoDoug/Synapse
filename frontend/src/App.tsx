@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import AgentsPage from "@/pages/AgentsPage";
 import AssistantPage from "@/pages/AssistantPage";
+import AutomationPage from "@/pages/AutomationPage";
 import DashboardPage from "@/pages/DashboardPage";
 import DocumentsPage from "@/pages/DocumentsPage";
 import NotificationsPage from "@/pages/NotificationsPage";
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/assistant" element={<AssistantPage />} />
         <Route path="/agents" element={<AgentsPage />} />
+        <Route path="/automation" element={<AutomationPage />} />
         <Route path="/documents" element={<DocumentsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/settings" element={<SettingsPage />} />

@@ -20,6 +20,7 @@ from backend.api.routes.prompts import router as prompts_router
 from backend.api.routes.sync import router as sync_router
 from backend.api.routes.tasks import router as tasks_router
 from backend.api.routes.voice import router as voice_router
+from backend.api.routes.workflows import router as workflows_router
 
 api_router = APIRouter()
 api_router.include_router(health_router)
@@ -37,5 +38,6 @@ api_router.include_router(tasks_router)
 api_router.include_router(actions_router)
 api_router.include_router(agents_router)
 api_router.include_router(voice_router)
+api_router.include_router(workflows_router)
 
 __all__ = ["api_router"]

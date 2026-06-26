@@ -18,6 +18,7 @@ from backend.models.sync_state import SyncState
 from backend.models.system_prompt import SystemPrompt
 from backend.models.task import Task
 from backend.models.user import User
+from backend.models.workflow import Workflow, WorkflowRun
 
 __all__ = [
     "Account",
@@ -36,4 +37,6 @@ __all__ = [
     "SystemPrompt",
     "Task",
     "User",
+    "Workflow",
+    "WorkflowRun",
 ]
