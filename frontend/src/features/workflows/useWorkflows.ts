@@ -7,10 +7,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   type Workflow,
+  type WorkflowCatalogue,
   type WorkflowInput,
   type WorkflowRun,
   createWorkflow,
   deleteWorkflow,
+  fetchCatalogue,
   fetchWorkflowRuns,
   fetchWorkflows,
   runWorkflow,
@@ -20,8 +22,18 @@ import {
 
 const KEYS = {
   workflows: ["workflows"] as const,
+  catalogue: ["workflows", "catalogue"] as const,
   runs: (id: number) => ["workflows", id, "runs"] as const,
 };
+
+/** The agents, tools, and events the composer can build steps from. */
+export function useWorkflowCatalogue() {
+  return useQuery<WorkflowCatalogue>({
+    queryKey: KEYS.catalogue,
+    queryFn: fetchCatalogue,
+    staleTime: 5 * 60 * 1000, // the catalogue rarely changes within a session
+  });
+}
 
 export function useWorkflows() {
   return useQuery<Workflow[]>({

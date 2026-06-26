@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime
 
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from backend.models.notification import Notification
@@ -58,6 +59,16 @@ class NotificationRepository:
         if unread_only:
             statement = statement.where(Notification.is_read == False)  # noqa: E712
         return len(list(self._session.exec(statement).all()))
+
+    def max_id_for_user(self, user_id: int) -> int:
+        """Highest notification id for the user (0 if none).
+
+        A monotonic high-water mark for event triggers — read only.
+        """
+        statement = select(func.max(Notification.id)).where(
+            Notification.user_id == user_id
+        )
+        return self._session.exec(statement).one() or 0
 
     def add(self, notification: Notification) -> Notification:
         self._session.add(notification)

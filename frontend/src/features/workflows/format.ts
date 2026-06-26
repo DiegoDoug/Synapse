@@ -31,13 +31,25 @@ const SCHEDULE_LABELS: Record<ScheduleKind, string> = {
   manual: "On demand",
   interval: "Repeating",
   cron: "Daily",
+  event: "On event",
 };
 
 export function scheduleKindLabel(kind: ScheduleKind | string): string {
   return SCHEDULE_LABELS[kind as ScheduleKind] ?? kind;
 }
 
-/** A human one-liner describing *when and how often* a workflow runs. */
+const EVENT_LABELS: Record<string, string> = {
+  new_email: "a new email is synced",
+  new_calendar_event: "a new calendar event is synced",
+  new_notification: "a new notification is raised",
+};
+
+export function eventLabel(eventType: string | null): string {
+  if (!eventType) return "an event";
+  return EVENT_LABELS[eventType] ?? eventType;
+}
+
+/** A human one-liner describing *when / how often* a workflow runs. */
 export function scheduleSummary(workflow: Workflow): string {
   if (workflow.schedule_kind === "interval" && workflow.interval_minutes) {
     return `Every ${formatInterval(workflow.interval_minutes)}`;
@@ -45,7 +57,16 @@ export function scheduleSummary(workflow: Workflow): string {
   if (workflow.schedule_kind === "cron" && workflow.cron_hour !== null) {
     return `Daily at ${formatClock(workflow.cron_hour, workflow.cron_minute ?? 0)} UTC`;
   }
+  if (workflow.schedule_kind === "event") {
+    return `When ${eventLabel(workflow.event_type)}`;
+  }
   return "Runs only when you trigger it";
+}
+
+/** "3 steps" / "1 step" caption for the composed sequence. */
+export function stepsSummary(workflow: Workflow): string {
+  const n = workflow.steps.length;
+  return `${n} step${n === 1 ? "" : "s"}`;
 }
 
 /** Caption for the run cap ("how many times"). */

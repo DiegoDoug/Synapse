@@ -1,5 +1,6 @@
 """EmailMessage data access. No business logic."""
 
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from backend.models.email_message import EmailMessage
@@ -38,6 +39,19 @@ class EmailRepository:
             .limit(limit)
         )
         return list(self._session.exec(statement).all())
+
+    def max_id_for_accounts(self, account_ids: list[int]) -> int:
+        """Highest synced message id across the given accounts (0 if none).
+
+        A monotonic high-water mark for event triggers — read only, against
+        already-synced rows.
+        """
+        if not account_ids:
+            return 0
+        statement = select(func.max(EmailMessage.id)).where(
+            EmailMessage.account_id.in_(account_ids)  # type: ignore[attr-defined]
+        )
+        return self._session.exec(statement).one() or 0
 
     def upsert(self, message: EmailMessage) -> EmailMessage:
         self._session.add(message)

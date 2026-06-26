@@ -32,3 +32,16 @@ def run_scheduled_workflow(workflow_id: int) -> None:
                 logger.warning("Scheduled workflow %s no longer exists.", workflow_id)
     except Exception:  # noqa: BLE001 — never let a job crash the scheduler
         logger.exception("Scheduled workflow %s failed.", workflow_id)
+
+
+def evaluate_workflow_events() -> None:
+    """Fire event-triggered workflows whose synced data changed (best-effort)."""
+    settings = get_settings()
+    try:
+        with Session(engine) as session:
+            user_id = owner_user_id(session)
+            if user_id is None:
+                return
+            build_workflow_service(session, settings, user_id).evaluate_events()
+    except Exception:  # noqa: BLE001 — never let a job crash the scheduler
+        logger.exception("Workflow event evaluation failed.")

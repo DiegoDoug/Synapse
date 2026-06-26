@@ -5,27 +5,45 @@
 
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/api/client";
 
-export type ScheduleKind = "manual" | "interval" | "cron";
+export type ScheduleKind = "manual" | "interval" | "cron" | "event";
 export type WorkflowRunStatus = "running" | "completed" | "failed";
-export type WorkflowTrigger = "manual" | "schedule";
+export type WorkflowTrigger = "manual" | "schedule" | "event";
+export type StepKind = "agent" | "tool";
+
+export interface WorkflowStep {
+  step_index: number;
+  kind: StepKind;
+  ref: string;
+  params: Record<string, unknown>;
+}
 
 export interface Workflow {
   id: number;
   name: string;
   description: string | null;
-  target_kind: string;
-  agent_key: string;
-  params: Record<string, unknown>;
+  steps: WorkflowStep[];
   schedule_kind: ScheduleKind;
   interval_minutes: number | null;
   cron_hour: number | null;
   cron_minute: number | null;
+  event_type: string | null;
   max_runs: number | null;
   enabled: boolean;
   run_count: number;
   last_run_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface WorkflowRunStep {
+  id: number;
+  step_index: number;
+  kind: StepKind | string;
+  ref: string;
+  status: WorkflowRunStatus | string;
+  result: string | null;
+  error: string | null;
+  agent_run_id: number | null;
 }
 
 export interface WorkflowRun {
@@ -36,6 +54,7 @@ export interface WorkflowRun {
   result: string | null;
   error: string | null;
   agent_run_id: number | null;
+  steps: WorkflowRunStep[];
   created_at: string;
   finished_at: string | null;
 }
@@ -44,14 +63,44 @@ export interface WorkflowRun {
 export interface WorkflowInput {
   name?: string;
   description?: string | null;
-  agent_key?: string;
-  params?: Record<string, unknown>;
+  steps?: { kind: StepKind; ref: string; params: Record<string, unknown> }[];
   schedule_kind?: ScheduleKind;
   interval_minutes?: number | null;
   cron_hour?: number | null;
   cron_minute?: number | null;
+  event_type?: string | null;
   max_runs?: number | null;
   enabled?: boolean;
+}
+
+// --- Catalogue (what the composer can pick from) ---
+
+export interface CatalogueParam {
+  name: string;
+  description: string | null;
+  required: boolean;
+}
+
+export interface CatalogueEntry {
+  kind: StepKind;
+  ref: string;
+  name: string;
+  description: string;
+  parameters: CatalogueParam[];
+}
+
+export interface CatalogueEvent {
+  event_type: string;
+  label: string;
+}
+
+export interface WorkflowCatalogue {
+  steps: CatalogueEntry[];
+  events: CatalogueEvent[];
+}
+
+export function fetchCatalogue(): Promise<WorkflowCatalogue> {
+  return apiGet<WorkflowCatalogue>("/workflows/catalogue");
 }
 
 export function fetchWorkflows(): Promise<Workflow[]> {

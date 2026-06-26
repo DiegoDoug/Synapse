@@ -1,5 +1,6 @@
 """CalendarEvent data access. No business logic."""
 
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from backend.models.calendar_event import CalendarEvent
@@ -36,6 +37,18 @@ class CalendarRepository:
             .limit(limit)
         )
         return list(self._session.exec(statement).all())
+
+    def max_id_for_accounts(self, account_ids: list[int]) -> int:
+        """Highest synced event id across the given accounts (0 if none).
+
+        A monotonic high-water mark for event triggers — read only.
+        """
+        if not account_ids:
+            return 0
+        statement = select(func.max(CalendarEvent.id)).where(
+            CalendarEvent.account_id.in_(account_ids)  # type: ignore[attr-defined]
+        )
+        return self._session.exec(statement).one() or 0
 
     def upsert(self, event: CalendarEvent) -> CalendarEvent:
         self._session.add(event)

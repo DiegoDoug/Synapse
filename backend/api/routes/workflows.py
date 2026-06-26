@@ -21,6 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from backend.api.dependencies import get_current_user_id, get_workflow_service
 from backend.schemas.workflow import (
+    WorkflowCatalogue,
     WorkflowCreate,
     WorkflowRead,
     WorkflowRunRead,
@@ -49,6 +50,14 @@ def create_workflow(
         return service.create_workflow(user_id, body)
     except WorkflowError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/catalogue", response_model=WorkflowCatalogue)
+def get_catalogue(
+    service: WorkflowService = Depends(get_workflow_service),
+) -> WorkflowCatalogue:
+    """The agents, tools, and events the composer can build steps from."""
+    return service.catalogue()
 
 
 @router.get("/{workflow_id}", response_model=WorkflowRead)

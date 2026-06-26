@@ -10,6 +10,7 @@ export interface ScheduleDraft {
   intervalUnit: IntervalUnit;
   cronHour: number;
   cronMinute: number;
+  eventType: string;
   maxRuns: string; // empty string = unlimited
 }
 
