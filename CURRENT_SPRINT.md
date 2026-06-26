@@ -1,20 +1,14 @@
 # Current Sprint
 
-Current Stage: Stage 7
+Current Stage: Stage 8
 
 Objective:
 
-Give Personal OS an **automation layer**: run the Stage 6 agents and the
-existing tools **on a schedule and in response to events**, and let the user
-**compose tools into named workflow sequences**. Automation is orchestration on
-top of what already exists — it starts agent runs and tool chains through the
-service layer; it never calls integrations directly and introduces no new
-side-effect path. The Stage 6 `AgentService` / `AgentRunner`, the Stage 4.5
-confirmation flow, and the Stage 5 retrieval core are reused, not rewritten.
-
-This is a backend-plus-frontend stage. It builds on APScheduler (already a
-dependency, used for Stage 3 notification jobs), the Stage 6 agent layer, and the
-ARCHITECTURE.md **Agent → Service → Integration** contract.
+Make Personal OS **production-ready**: replace SQLite with PostgreSQL, add Redis
+for caching and task queuing, containerize the full stack with Docker Compose,
+and establish horizontal-scaling fundamentals. This stage is infrastructure and
+deployment only — no new features, no new integrations, no changes to the AI or
+automation layers built in Stages 1–7.
 
 ---
 
@@ -22,41 +16,38 @@ ARCHITECTURE.md **Agent → Service → Integration** contract.
 
 Backend:
 
-- a scheduling layer that can **start agent runs and tool chains** on a cron/
-  interval schedule, reusing `AgentService` / `AgentRunner` unchanged
-- **event-driven triggers** that start an automation in response to an internal
-  event (e.g. new synced email → run `EmailAgent`); triggers are evaluated
-  against already-synced data, not by calling integrations directly
-- a **workflow composer**: persist named sequences that chain agents/tools into
-  a single automation, executed through the existing agent/tool layer
-- a `Workflow` + `WorkflowRun` (or equivalent) model + repository persisting a
-  schedule/trigger definition and each execution's outcome for an audit trail
-- REST: list/create/update/delete workflows, enable/disable a schedule, run a
-  workflow on demand, and read workflow-run status/history
-- destructive steps in an automation continue to route through the Stage 4.5
-  confirmation flow and are always logged
+- replace SQLite (`data/synapse.db`) with **PostgreSQL** via SQLModel / asyncpg
+- replace in-process APScheduler + workflow task functions with **Celery** workers
+  backed by Redis as broker and result backend
+- **Redis** cache layer: short-lived caches for catalogue, agent responses, and
+  read-heavy queries
+- Docker Compose service definitions: `api`, `worker`, `frontend`, `db`
+  (PostgreSQL), `cache` (Redis)
+- Alembic migration baseline from the Stage 7 schema
+- environment-variable–driven config (`DATABASE_URL`, `REDIS_URL`, etc.) via
+  `backend/config.py`
+- production-grade logging (structured JSON, log level from env)
+- health-check endpoints (`/healthz`, `/readyz`) suitable for container
+  orchestrators
 
 Frontend:
 
-- an automation view: define a workflow (schedule/trigger + steps), enable or
-  disable it, run it on demand, and review past workflow runs (read-only)
+- Nginx reverse-proxy container serving the Vite production build
+- environment-variable injection (`VITE_API_URL`) via Docker Compose
 
 ---
 
 # Architecture Contract
 
-- **Automation → Agent/Service → Integration** — automations start agent runs or
-  tool chains; they must never reference integrations directly, and integrations
-  must never contain business logic.
-- **Reuse, don't fork** — the scheduler drives the existing `AgentService` /
-  `AgentRunner` and `ToolRegistry`; the agent loop, the chat tool-use loop, and
-  the Stage 4.5 confirmation flow are reused unchanged.
-- **Auditability** — every scheduled/triggered run persists its outcome (and any
-  destructive action) to the audit trail, reusing the Stage 6 `AgentRun` trail
-  where an automation runs an agent.
-- **Graceful degradation** — a workflow reports a clear failure for a step when a
-  required service/provider is unavailable rather than crashing the scheduler or
-  the app.
+- **No new features** — the API surface, data models, and AI/automation contracts
+  from Stages 1–7 are frozen for this stage.
+- **SQLModel stays** — only the engine/session configuration changes
+  (SQLite → PostgreSQL); all model definitions and repository methods remain.
+- **Celery replaces in-process tasks** — `run_scheduled_workflow` and
+  `evaluate_workflow_events` move to Celery tasks; APScheduler still schedules
+  them but dispatches to the Celery queue instead of calling functions directly.
+- **Backward compatibility** — the Alembic baseline migration must produce
+  a schema identical to `SQLModel.metadata.create_all` output from Stage 7.
 
 ---
 
@@ -64,42 +55,58 @@ Frontend:
 
 DO NOT implement:
 
-- PostgreSQL / Redis / Docker / horizontal scaling / production deploy — Stage 8
 - new external integrations beyond what Stages 2–4.5 already provide
-- changes to the Stage 4.5 confirmation mechanics or the Stage 5 retrieval core
-- changes to the Stage 6 agent contract beyond how automations invoke it
-- voice changes — Stage 4.7 is complete
+- changes to the AI chat, agent, or automation logic
+- multi-user / multi-tenant support — future stage
+- Kubernetes / cloud deployment — out of scope for this stage
+- new frontend pages or UI components (Nginx config only)
 
-Do not implement future stages beyond Stage 7.
+Do not implement future stages beyond Stage 8.
 
 ---
 
 # Deliverables
 
-- a scheduling layer that starts agent runs / tool chains on a schedule
-- event-driven triggers that start automations from internal events
-- a workflow composer: named, persisted tool/agent sequences
-- a `Workflow` + `WorkflowRun` model + repository (definition + outcome trail)
-- REST endpoints to manage workflows, control schedules, run on demand, and read
-  run history
-- an automation UI: define, enable/disable, run, and review workflows
+- `docker-compose.yml` — api, worker, frontend, db, cache services
+- `Dockerfile` (backend) — production FastAPI image
+- `frontend/Dockerfile` — Nginx image serving Vite build
+- `alembic/` — migration environment + baseline migration from Stage 7 schema
+- `backend/config.py` — updated with `DATABASE_URL`, `REDIS_URL`, `LOG_LEVEL`
+- `backend/db.py` — PostgreSQL engine + session factory (replaces SQLite setup)
+- `backend/tasks/celery_app.py` — Celery application instance
+- `backend/tasks/workflow_tasks.py` — migrated to Celery tasks
+- `backend/api/routes/health.py` — `/healthz` and `/readyz` endpoints
+- `.env.example` — all required environment variables with safe defaults
+- updated `README.md` — local dev with Docker Compose instructions
 
 ---
 
 # Development Process
 
-Build incrementally and pause for approval between major features:
+Build incrementally:
 
-Major Feature 1:
-Scheduled execution — the scheduling layer + `Workflow` / `WorkflowRun` model +
-repository, starting an agent run or a single tool chain on a schedule, with
-REST + a minimal UI to define, enable/disable, run on demand, and view runs.
+Step 1: PostgreSQL + Alembic baseline
+- swap SQLite engine for PostgreSQL
+- create Alembic environment and generate baseline migration
+- verify all 150+ existing tests pass against PostgreSQL (use test DB)
 
-Major Feature 2:
-The workflow composer (multi-step sequences) + event-driven triggers, plus the
-workflow run-history + step-visibility UI.
+Step 2: Redis + Celery task queue
+- add Celery app; move `run_scheduled_workflow` and `evaluate_workflow_events`
+  to Celery tasks; APScheduler dispatches to queue
+- add Redis cache helper; apply to catalogue and read-heavy endpoints
+- verify scheduler + automation tests pass
 
-After each major feature:
+Step 3: Docker Compose + production images
+- write Dockerfiles for backend and frontend (Nginx)
+- write `docker-compose.yml` with health checks and dependency ordering
+- verify `docker compose up` starts a fully functional stack
+
+Step 4: Health endpoints + config + docs
+- add `/healthz` (liveness) and `/readyz` (readiness: DB + Redis reachable)
+- finalize `.env.example`; update README with compose instructions
+- run full test suite; confirm clean build
+
+After each step:
 
 - explain decisions
 - list files created / modified

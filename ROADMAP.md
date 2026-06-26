@@ -271,7 +271,7 @@ log to audit trail but bypass interactive confirmation.
 
 ---
 
-# Stage 7: Automation
+# Stage 7: Automation ✅ Complete
 
 Stack:
 
@@ -280,22 +280,15 @@ Stack:
 
 Capabilities:
 
-- scheduled workflows
-- event-driven triggers
-- Playwright automation: form filling, web scraping pipelines, site monitoring
-- workflow composer: chain tools into named automation sequences
-
-Examples:
-
-- create tasks from incoming emails (scheduled)
-- detect deadlines in emails, create calendar events
-- schedule daily reminders via Telegram
-- scrape a webpage on a schedule and summarize changes
-- fill and submit a form on a trigger
+- scheduled workflows (interval / cron / event / manual triggers)
+- event-driven triggers (new email, calendar event, notification)
+- workflow composer: chain agents and tools into named multi-step sequences
+- per-step run-history trail with status and error visibility
+- schedule personalization: frequency, time, and run-cap controls
 
 ---
 
-# Stage 8: Production
+# Stage 8: Production (Active)
 
 Stack:
 
