@@ -10,6 +10,7 @@ import {
   type AgentRun,
   type AgentRunSummary,
   fetchAgents,
+  fetchRun,
   fetchRuns,
   startRun,
 } from "@/features/agents/api";
@@ -17,6 +18,7 @@ import {
 const KEYS = {
   agents: ["agents"] as const,
   runs: ["agents", "runs"] as const,
+  run: (id: number) => ["agents", "runs", id] as const,
 };
 
 export function useAgents() {
@@ -30,6 +32,15 @@ export function useAgentRuns() {
   return useQuery<AgentRunSummary[]>({
     queryKey: KEYS.runs,
     queryFn: fetchRuns,
+  });
+}
+
+/** Fetch one run with its full step trail; enabled only when a run is selected. */
+export function useAgentRun(runId: number | null) {
+  return useQuery<AgentRun>({
+    queryKey: KEYS.run(runId ?? 0),
+    queryFn: () => fetchRun(runId as number),
+    enabled: runId !== null,
   });
 }
 

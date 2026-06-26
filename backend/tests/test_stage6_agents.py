@@ -15,6 +15,9 @@ Covers the agent layer end to end without network or SDKs:
 
 import pytest
 from backend.agents.base import Agent, AgentContext
+from backend.agents.calendar_agent import CalendarAgent
+from backend.agents.email_agent import EmailAgent
+from backend.agents.notification_agent import NotificationAgent
 from backend.agents.registry import AgentRegistry, build_agent_registry
 from backend.agents.runner import AgentRunner
 from backend.agents.study_agent import StudyAgent
@@ -28,6 +31,7 @@ from backend.models.agent_run import (
     AgentStep,
 )
 from backend.repositories.agent_run_repository import AgentRunRepository
+from backend.repositories.pending_action_repository import PendingActionRepository
 from backend.repositories.task_repository import TaskRepository
 from backend.services.agent_service import AgentService
 from backend.services.factory import build_confirmation_service, build_tool_registry
@@ -201,3 +205,63 @@ def test_default_registry_exposes_study_agent():
     registry = build_agent_registry()
     assert isinstance(registry.get("study"), StudyAgent)
     assert registry.get("missing") is None
+
+
+# --- MF2: the remaining domain agents ----------------------------------------
+
+
+def test_registry_exposes_all_four_agents():
+    registry = build_agent_registry()
+    assert {a.key for a in registry.list()} == {
+        "study",
+        "email",
+        "calendar",
+        "notification",
+    }
+    assert isinstance(registry.get("email"), EmailAgent)
+    assert isinstance(registry.get("calendar"), CalendarAgent)
+    assert isinstance(registry.get("notification"), NotificationAgent)
+
+
+def test_email_agent_creates_followup_task(session):
+    run = _service(session).start(1, "email", {"query": "invoice"})
+
+    assert run is not None and run.status == RUN_COMPLETED
+    assert [s.tool_name for s in run.steps if s.kind == STEP_ACTION] == [
+        "search_emails",
+        "create_task",
+    ]
+    tasks = TaskService(TaskRepository(session)).list(1)
+    assert any(t.title == "Triage unread inbox" for t in tasks)
+
+
+def test_calendar_agent_creates_prep_task(session):
+    run = _service(session).start(1, "calendar", {})
+
+    assert run is not None and run.status == RUN_COMPLETED
+    assert [s.tool_name for s in run.steps if s.kind == STEP_ACTION] == [
+        "get_calendar_events",
+        "search_knowledge",
+        "create_task",
+    ]
+    tasks = TaskService(TaskRepository(session)).list(1)
+    assert any(t.title == "Prepare for upcoming meetings" for t in tasks)
+
+
+def test_notification_agent_proposes_telegram_digest(session):
+    run = _service(session).start(1, "notification", {})
+
+    assert run is not None and run.status == RUN_COMPLETED
+    tool_steps = [s.tool_name for s in run.steps if s.kind == STEP_ACTION]
+    assert tool_steps == [
+        "search_emails",
+        "get_calendar_events",
+        "get_notifications",
+        "send_telegram_message",
+    ]
+    # The outbound send is never autonomous: it lands as a pending action on the
+    # confirmation/audit trail rather than firing during the run.
+    pending = PendingActionRepository(session).list_for_user(1, pending_only=True)
+    assert len(pending) == 1
+    assert pending[0].tool_name == "send_telegram_message"
+    assert pending[0].status == "pending"

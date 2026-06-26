@@ -7,10 +7,17 @@ import { cn } from "@/lib/utils";
 interface RunHistoryProps {
   runs: AgentRunSummary[];
   isLoading?: boolean;
+  selectedId?: number | null;
+  onSelect?: (runId: number) => void;
 }
 
-/** Compact, read-only list of recent agent runs (newest first). */
-export function RunHistory({ runs, isLoading = false }: RunHistoryProps) {
+/** Compact, selectable list of recent agent runs (newest first). */
+export function RunHistory({
+  runs,
+  isLoading = false,
+  selectedId = null,
+  onSelect,
+}: RunHistoryProps) {
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -35,24 +42,34 @@ export function RunHistory({ runs, isLoading = false }: RunHistoryProps) {
       {runs.map((run) => {
         const status = runStatusMeta(run.status);
         return (
-          <li
-            key={run.id}
-            className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2"
-          >
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{run.agent_name}</p>
-              <p className="text-xs text-muted-foreground">
-                {formatDateTime(run.created_at)}
-              </p>
-            </div>
-            <span
+          <li key={run.id}>
+            <button
+              type="button"
+              onClick={() => onSelect?.(run.id)}
+              aria-current={selectedId === run.id}
               className={cn(
-                "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
-                status.className,
+                "flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors",
+                "hover:bg-accent hover:text-accent-foreground",
+                selectedId === run.id
+                  ? "border-primary bg-accent"
+                  : "border-border bg-card",
               )}
             >
-              {status.label}
-            </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">{run.agent_name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {formatDateTime(run.created_at)}
+                </p>
+              </div>
+              <span
+                className={cn(
+                  "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
+                  status.className,
+                )}
+              >
+                {status.label}
+              </span>
+            </button>
           </li>
         );
       })}

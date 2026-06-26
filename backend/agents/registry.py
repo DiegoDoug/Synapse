@@ -9,6 +9,9 @@ is the single place new agents are registered.
 from __future__ import annotations
 
 from backend.agents.base import Agent
+from backend.agents.calendar_agent import CalendarAgent
+from backend.agents.email_agent import EmailAgent
+from backend.agents.notification_agent import NotificationAgent
 from backend.agents.study_agent import StudyAgent
 
 
@@ -30,5 +33,8 @@ def build_agent_registry() -> AgentRegistry:
     return AgentRegistry(
         [
             StudyAgent(),
+            EmailAgent(),
+            CalendarAgent(),
+            NotificationAgent(),
         ]
     )

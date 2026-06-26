@@ -1,13 +1,29 @@
+import { useState } from "react";
+
 import { AgentCard } from "@/features/agents/components/AgentCard";
 import { AgentRunView } from "@/features/agents/components/AgentRunView";
 import { RunHistory } from "@/features/agents/components/RunHistory";
-import { useAgentRuns, useAgents, useStartRun } from "@/features/agents/useAgents";
+import {
+  useAgentRun,
+  useAgentRuns,
+  useAgents,
+  useStartRun,
+} from "@/features/agents/useAgents";
 
-/** Agents — trigger a domain agent, watch its steps, and review recent runs. */
+/** Agents — trigger a domain agent, watch its steps, and review past runs. */
 export default function AgentsPage() {
   const agents = useAgents();
   const runs = useAgentRuns();
   const start = useStartRun();
+  // The run whose full step trail is shown (a fresh run or a clicked history item).
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const selectedRun = useAgentRun(selectedId);
+
+  const runAgent = (agentKey: string, params: Record<string, unknown>) =>
+    start.mutate(
+      { agentKey, params },
+      { onSuccess: (run) => setSelectedId(run.id) },
+    );
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 md:p-6">
@@ -20,7 +36,7 @@ export default function AgentsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Catalogue + latest run */}
+        {/* Catalogue */}
         <section className="space-y-4">
           <h2 className="text-sm font-semibold tracking-tight">Available agents</h2>
           {agents.isLoading && (
@@ -34,30 +50,40 @@ export default function AgentsPage() {
               key={agent.key}
               agent={agent}
               isRunning={start.isPending && start.variables?.agentKey === agent.key}
-              onRun={(params) => start.mutate({ agentKey: agent.key, params })}
+              onRun={(params) => runAgent(agent.key, params)}
             />
           ))}
-
           {start.isError && (
             <p className="text-sm text-destructive">
               The run could not be started. Try again.
             </p>
           )}
-
-          {start.data && (
-            <div className="rounded-lg border border-border bg-card p-4">
-              <h3 className="mb-3 text-sm font-semibold tracking-tight">
-                Latest run
-              </h3>
-              <AgentRunView run={start.data} />
-            </div>
-          )}
         </section>
 
-        {/* Recent runs */}
+        {/* Run detail + history */}
         <section className="space-y-4">
+          <h2 className="text-sm font-semibold tracking-tight">Run details</h2>
+          <div className="rounded-lg border border-border bg-card p-4">
+            {selectedId === null ? (
+              <p className="text-sm text-muted-foreground">
+                Run an agent or pick a past run to see its steps.
+              </p>
+            ) : selectedRun.isLoading ? (
+              <div className="h-40 animate-pulse rounded-md bg-muted" />
+            ) : selectedRun.isError || !selectedRun.data ? (
+              <p className="text-sm text-destructive">Couldn&apos;t load that run.</p>
+            ) : (
+              <AgentRunView run={selectedRun.data} />
+            )}
+          </div>
+
           <h2 className="text-sm font-semibold tracking-tight">Recent runs</h2>
-          <RunHistory runs={runs.data ?? []} isLoading={runs.isLoading} />
+          <RunHistory
+            runs={runs.data ?? []}
+            isLoading={runs.isLoading}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+          />
         </section>
       </div>
     </div>
