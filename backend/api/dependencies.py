@@ -17,6 +17,7 @@ from backend.repositories.calendar_repository import CalendarRepository
 from backend.repositories.email_repository import EmailRepository
 from backend.repositories.sync_state_repository import SyncStateRepository
 from backend.repositories.task_repository import TaskRepository
+from backend.services.agent_service import AgentService
 from backend.services.ai_service import AIService
 from backend.services.calendar_service import CalendarService
 from backend.services.confirmation_service import ConfirmationService
@@ -25,6 +26,7 @@ from backend.services.conversation_service import ConversationService
 from backend.services.document_service import DocumentService
 from backend.services.email_service import EmailService
 from backend.services.factory import (
+    build_agent_service,
     build_ai_service,
     build_confirmation_service,
     build_conversation_service,
@@ -174,6 +176,16 @@ def get_confirmation_service(
     # services from settings). Used by the confirmation routes to approve/reject
     # proposals raised during chat.
     return build_confirmation_service(session, settings)
+
+
+def get_agent_service(
+    session: Session = Depends(get_session),
+    settings: Settings = Depends(get_settings),
+    user_id: int = Depends(get_current_user_id),
+) -> AgentService:
+    # The agent catalogue + runner over the same user-scoped tool registry the
+    # chat loop uses (confirmation flow + knowledge search wired in).
+    return build_agent_service(session, settings, user_id)
 
 
 def get_stt_service(settings: Settings = Depends(get_settings)) -> STTService:

@@ -1,18 +1,19 @@
 # Current Sprint
 
-Current Stage: Stage 6
+Current Stage: Stage 7
 
 Objective:
 
-Give Personal OS an **agent layer**: domain agents that orchestrate the existing
-services into **autonomous multi-step workflows**, composing the Stage 4 read
-tools and Stage 4.5 write tools without per-step user prompting. Agents plan and
-act through the service layer; they never call integrations directly. Grounding
-(Stage 5 `search_knowledge`) and the existing chat/confirmation core are reused,
-not rewritten.
+Give Personal OS an **automation layer**: run the Stage 6 agents and the
+existing tools **on a schedule and in response to events**, and let the user
+**compose tools into named workflow sequences**. Automation is orchestration on
+top of what already exists — it starts agent runs and tool chains through the
+service layer; it never calls integrations directly and introduces no new
+side-effect path. The Stage 6 `AgentService` / `AgentRunner`, the Stage 4.5
+confirmation flow, and the Stage 5 retrieval core are reused, not rewritten.
 
-This is a backend-plus-frontend stage. It builds on the Stage 4 `AIService` +
-`ToolRegistry`, the Stage 4.5 `ConfirmationService` / `ToolExecutor`, and the
+This is a backend-plus-frontend stage. It builds on APScheduler (already a
+dependency, used for Stage 3 notification jobs), the Stage 6 agent layer, and the
 ARCHITECTURE.md **Agent → Service → Integration** contract.
 
 ---
@@ -21,38 +22,41 @@ ARCHITECTURE.md **Agent → Service → Integration** contract.
 
 Backend:
 
-- a `backend/agents/` package with a base `Agent` interface (a plan→act→observe
-  loop over the existing tools) and a small **agent runner** that records each
-  run's steps, tool calls, status, and result
-- domain agents that orchestrate **services** (never integrations):
-  - `EmailAgent`, `CalendarAgent`, `StudyAgent`, `NotificationAgent`
-- agents compose the existing `ToolRegistry` tools (read + Stage 4.5 write); no
-  new side-effect paths are introduced
-- an `AgentRun` model (DB) + repository persisting a run's steps and outcome for
-  visibility and an audit trail
-- REST: list available agents, start an agent run, fetch a run's status/steps,
-  list recent runs
+- a scheduling layer that can **start agent runs and tool chains** on a cron/
+  interval schedule, reusing `AgentService` / `AgentRunner` unchanged
+- **event-driven triggers** that start an automation in response to an internal
+  event (e.g. new synced email → run `EmailAgent`); triggers are evaluated
+  against already-synced data, not by calling integrations directly
+- a **workflow composer**: persist named sequences that chain agents/tools into
+  a single automation, executed through the existing agent/tool layer
+- a `Workflow` + `WorkflowRun` (or equivalent) model + repository persisting a
+  schedule/trigger definition and each execution's outcome for an audit trail
+- REST: list/create/update/delete workflows, enable/disable a schedule, run a
+  workflow on demand, and read workflow-run status/history
+- destructive steps in an automation continue to route through the Stage 4.5
+  confirmation flow and are always logged
 
 Frontend:
 
-- an agents view: trigger an agent, watch its steps stream/update, and review
-  past runs (read-only)
+- an automation view: define a workflow (schedule/trigger + steps), enable or
+  disable it, run it on demand, and review past workflow runs (read-only)
 
 ---
 
 # Architecture Contract
 
-- **Agent → Service → Integration** — agents call services (or compose tools that
-  call services); they must never reference integrations directly, and
-  integrations must never contain business logic.
-- **Reuse, don't fork** — agents drive the existing `ToolRegistry` /
-  `ToolExecutor`; the chat tool-use loop and the Stage 4.5 confirmation flow are
-  reused unchanged. RAG retrieval (`search_knowledge`) is available to agents.
-- **Auditability** — every agent run persists its steps and any destructive
-  action to the `AgentRun` audit trail. Agents may run tool chains with reduced
-  interactive confirmation, but destructive operations are always logged.
-- **Graceful degradation** — an agent run reports a clear failure step when a
-  required service/provider is unavailable rather than crashing the app.
+- **Automation → Agent/Service → Integration** — automations start agent runs or
+  tool chains; they must never reference integrations directly, and integrations
+  must never contain business logic.
+- **Reuse, don't fork** — the scheduler drives the existing `AgentService` /
+  `AgentRunner` and `ToolRegistry`; the agent loop, the chat tool-use loop, and
+  the Stage 4.5 confirmation flow are reused unchanged.
+- **Auditability** — every scheduled/triggered run persists its outcome (and any
+  destructive action) to the audit trail, reusing the Stage 6 `AgentRun` trail
+  where an automation runs an agent.
+- **Graceful degradation** — a workflow reports a clear failure for a step when a
+  required service/provider is unavailable rather than crashing the scheduler or
+  the app.
 
 ---
 
@@ -60,24 +64,25 @@ Frontend:
 
 DO NOT implement:
 
-- scheduled workflows / event-driven triggers / a workflow composer — Stage 7
-- PostgreSQL / Redis / Docker — Stage 8
-- new external integrations or changes to the Stage 4.5 confirmation mechanics
-  beyond how agents invoke it
-- changes to the Stage 5 retrieval core (reuse `search_knowledge` as-is)
+- PostgreSQL / Redis / Docker / horizontal scaling / production deploy — Stage 8
+- new external integrations beyond what Stages 2–4.5 already provide
+- changes to the Stage 4.5 confirmation mechanics or the Stage 5 retrieval core
+- changes to the Stage 6 agent contract beyond how automations invoke it
 - voice changes — Stage 4.7 is complete
 
-Do not implement future stages beyond Stage 6.
+Do not implement future stages beyond Stage 7.
 
 ---
 
 # Deliverables
 
-- a `backend/agents/` package: base `Agent` + runner, and the `EmailAgent`,
-  `CalendarAgent`, `StudyAgent`, and `NotificationAgent` orchestrating services
-- an `AgentRun` model + repository (steps + outcome audit trail)
-- REST endpoints to list agents, start a run, and read run status/steps/history
-- an agents UI: trigger a run, observe its steps, and review past runs
+- a scheduling layer that starts agent runs / tool chains on a schedule
+- event-driven triggers that start automations from internal events
+- a workflow composer: named, persisted tool/agent sequences
+- a `Workflow` + `WorkflowRun` model + repository (definition + outcome trail)
+- REST endpoints to manage workflows, control schedules, run on demand, and read
+  run history
+- an automation UI: define, enable/disable, run, and review workflows
 
 ---
 
@@ -86,13 +91,13 @@ Do not implement future stages beyond Stage 6.
 Build incrementally and pause for approval between major features:
 
 Major Feature 1:
-The agent framework — base `Agent` interface + runner over the existing
-`ToolRegistry`, the `AgentRun` model + repository, and one reference agent
-(e.g. `NotificationAgent` or `StudyAgent`) end-to-end with REST + a minimal UI.
+Scheduled execution — the scheduling layer + `Workflow` / `WorkflowRun` model +
+repository, starting an agent run or a single tool chain on a schedule, with
+REST + a minimal UI to define, enable/disable, run on demand, and view runs.
 
 Major Feature 2:
-The remaining domain agents (Email, Calendar, Study/Notification) plus the agent
-run-history + step-visibility UI.
+The workflow composer (multi-step sequences) + event-driven triggers, plus the
+workflow run-history + step-visibility UI.
 
 After each major feature:
 
