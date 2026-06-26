@@ -49,6 +49,20 @@ openai>=1.50,<2.0
 # The browser binary is provisioned separately (e.g. `playwright install`).
 playwright>=1.48,<2.0
 
+# --- Stage 8: Production hardening (DB driver, metrics, cache) ---
+
+# PostgreSQL driver (production database). SQLite remains the zero-config dev
+# default; the engine in backend/database.py selects pooling per driver.
+psycopg[binary]>=3.2,<4.0
+
+# Prometheus metrics exposition for the /metrics endpoint. Imported lazily by
+# the observability layer, which degrades to a 503 when this is absent.
+prometheus-client>=0.21,<1.0
+
+# Redis client (optional) — shared backend for the rate limiter and worker when
+# REDIS_URL is set. The limiter falls back to an in-process window without it.
+redis>=5.0,<6.0
+
 # --- Stage 4.7: Voice interface (optional, heavy ML deps) ---
 # Local STT (faster-whisper) and TTS (Kokoro) are NOT listed here on purpose:
 # they pull PyTorch/CTranslate2 and would bloat the base install + CI. The voice

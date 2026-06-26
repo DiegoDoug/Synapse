@@ -28,11 +28,24 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
 
-    # Database (SQLite file, per ARCHITECTURE.md)
+    # Database. SQLite by default (zero-ops, per ARCHITECTURE.md); set a
+    # postgresql+psycopg:// URL in production (Stage 8). The engine in
+    # backend/database.py adapts pooling/connect args to the driver.
     database_url: str = "sqlite:///data/synapse.db"
+    # Connection pool sizing (ignored by SQLite). Tuned conservatively for a
+    # single-node deployment behind PgBouncer or direct Postgres.
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
+    db_pool_timeout: int = 30  # seconds to wait for a free connection
+    db_pool_recycle: int = 1800  # recycle connections after 30 min
 
-    # CORS — comma-separated list of allowed frontend origins
+    # CORS — comma-separated list of allowed frontend origins. A literal "*"
+    # is rejected in production by validate_runtime() (no wildcard in prod).
     cors_origins: str = "http://localhost:5173"
+
+    # Redis (Stage 8 — optional). Used by the rate limiter and the worker as a
+    # shared backend when set; the app falls back to in-process state when empty.
+    redis_url: str = ""
 
     # Google OAuth 2.0 (Stage 2 — Gmail + Calendar). Empty by default so the
     # app still boots without credentials; connection routes require these.
@@ -119,6 +132,69 @@ class Settings(BaseSettings):
     voice_max_utterance_ms: int = 15000
     # RMS below this (int16 scale) counts as silence for the energy VAD.
     voice_silence_rms: int = 500
+
+    # --- Stage 8: Observability ------------------------------------------------
+    # Log rendering: "json" emits one structured object per line (production,
+    # log-aggregator friendly); "console" emits human-readable lines (dev).
+    log_format: str = "console"  # json | console
+    log_level: str = "INFO"
+    # Expose Prometheus metrics at /metrics. Degrades to 503 when the optional
+    # prometheus-client dependency is not installed.
+    metrics_enabled: bool = True
+    # Inbound/outbound correlation header for request-id propagation + tracing.
+    request_id_header: str = "X-Request-ID"
+
+    # --- Stage 8: Security hardening -------------------------------------------
+    # Token-bucket / fixed-window rate limiting on the API. Off by default so
+    # dev and the test suite are unaffected; enabled in the production env files.
+    rate_limit_enabled: bool = False
+    rate_limit_requests: int = 100  # allowed requests per window, per client
+    rate_limit_window_seconds: int = 60
+    # Send HSTS + other hardening headers (enable only behind TLS termination).
+    security_headers_enabled: bool = False
+    # Mark auth/session cookies Secure + HttpOnly + SameSite (set in prod).
+    secure_cookies: bool = False
+    # Access-token lifetime (minutes) for token-expiry enforcement.
+    access_token_expire_minutes: int = 60
+
+    @property
+    def is_production(self) -> bool:
+        """True when running under the production environment profile."""
+        return self.environment.lower() in {"production", "prod"}
+
+    @property
+    def is_staging(self) -> bool:
+        """True when running under the staging environment profile."""
+        return self.environment.lower() == "staging"
+
+    def validate_runtime(self) -> list[str]:
+        """Return a list of fatal misconfigurations for the active environment.
+
+        Fail-fast guard called at startup. In production it enforces the Stage 8
+        security baseline (no wildcard CORS, no SQLite, no debug, configured
+        secrets); in dev/staging it returns an empty list so the app boots with
+        zero configuration. Never raises — the caller decides how to react.
+        """
+        problems: list[str] = []
+        if not (self.is_production or self.is_staging):
+            return problems
+
+        if self.is_production:
+            if self.debug:
+                problems.append("DEBUG must be false in production.")
+            if "*" in self.cors_origins_list:
+                problems.append("CORS_ORIGINS must not contain '*' in production.")
+            if not self.cors_origins_list:
+                problems.append("CORS_ORIGINS must be set in production.")
+            if self.database_url.startswith("sqlite"):
+                problems.append(
+                    "DATABASE_URL must point to PostgreSQL in production, not SQLite."
+                )
+            if self.ai_provider.lower() != "ollama" and not self.ai_enabled:
+                problems.append(
+                    f"AI provider '{self.ai_provider}' is selected but its API key is unset."
+                )
+        return problems
 
     @property
     def telegram_enabled(self) -> bool:
