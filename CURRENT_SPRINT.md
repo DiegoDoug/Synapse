@@ -1,62 +1,62 @@
 # Current Sprint
 
-Current Stage: Stage 7
+Current Stage: Stage 8
 
 Objective:
 
-Give Personal OS an **automation layer**: run the Stage 6 agents and the
-existing tools **on a schedule and in response to events**, and let the user
-**compose tools into named workflow sequences**. Automation is orchestration on
-top of what already exists — it starts agent runs and tool chains through the
-service layer; it never calls integrations directly and introduces no new
-side-effect path. The Stage 6 `AgentService` / `AgentRunner`, the Stage 4.5
-confirmation flow, and the Stage 5 retrieval core are reused, not rewritten.
+Transform Personal OS from a working prototype into a **production-ready,
+deployable system**. Stage 8 is **infrastructure and operations**, not feature
+work: it adds production Docker, CI/CD, environment management, database
+hardening (PostgreSQL), a reverse proxy with TLS, observability, security
+hardening, and deployment automation — all **additive** and **backward
+compatible**. No application API, folder structure, or core architecture is
+refactored.
 
-This is a backend-plus-frontend stage. It builds on APScheduler (already a
-dependency, used for Stage 3 notification jobs), the Stage 6 agent layer, and the
-ARCHITECTURE.md **Agent → Service → Integration** contract.
+This builds directly on the Stages 1–7 modular monolith (FastAPI + SQLModel
+backend, React/Vite frontend, APScheduler automation) and the
+ARCHITECTURE.md layering, which remain unchanged at runtime.
 
 ---
 
 # Allowed Features
 
-Backend:
+Infrastructure / operations only:
 
-- a scheduling layer that can **start agent runs and tool chains** on a cron/
-  interval schedule, reusing `AgentService` / `AgentRunner` unchanged
-- **event-driven triggers** that start an automation in response to an internal
-  event (e.g. new synced email → run `EmailAgent`); triggers are evaluated
-  against already-synced data, not by calling integrations directly
-- a **workflow composer**: persist named sequences that chain agents/tools into
-  a single automation, executed through the existing agent/tool layer
-- a `Workflow` + `WorkflowRun` (or equivalent) model + repository persisting a
-  schedule/trigger definition and each execution's outcome for an audit trail
-- REST: list/create/update/delete workflows, enable/disable a schedule, run a
-  workflow on demand, and read workflow-run status/history
-- destructive steps in an automation continue to route through the Stage 4.5
-  confirmation flow and are always logged
-
-Frontend:
-
-- an automation view: define a workflow (schedule/trigger + steps), enable or
-  disable it, run it on demand, and review past workflow runs (read-only)
+- **Production Docker**: multi-stage backend/frontend images +
+  `docker-compose.prod.yml` (backend, frontend, postgres, redis, worker, proxy)
+  with health checks, restart policies, resource limits, network isolation
+- **Environment management**: documented `.env.example` + tracked
+  `.env.production` / `.env.staging` templates (public config only), central
+  config loader with fail-fast production validation
+- **Database hardening**: PostgreSQL with persistent volumes, connection
+  pooling, a locked migration runner at startup, and a backup script
+- **CI/CD**: GitHub Actions — lint, test, dependency security scan, image build,
+  push to registry, deploy (staging automatic, production manual approval)
+- **Reverse proxy + TLS**: nginx with HTTP→HTTPS redirect, `/api`→backend,
+  `/`→frontend, Let's Encrypt (self-signed fallback)
+- **Observability**: structured JSON logging, Prometheus `/metrics`, request-id
+  propagation middleware (lightweight tracing)
+- **Security hardening**: rate limiting, strict CORS, security headers, secrets
+  kept out of the repo, secure-cookie + token-expiry settings
+- **Deployment automation**: `deploy-prod.sh`, `deploy-staging.sh`,
+  `rollback.sh`, with post-deploy health checks and auto-rollback
+- **Documentation**: `DEPLOYMENT.md`
 
 ---
 
 # Architecture Contract
 
-- **Automation → Agent/Service → Integration** — automations start agent runs or
-  tool chains; they must never reference integrations directly, and integrations
-  must never contain business logic.
-- **Reuse, don't fork** — the scheduler drives the existing `AgentService` /
-  `AgentRunner` and `ToolRegistry`; the agent loop, the chat tool-use loop, and
-  the Stage 4.5 confirmation flow are reused unchanged.
-- **Auditability** — every scheduled/triggered run persists its outcome (and any
-  destructive action) to the audit trail, reusing the Stage 6 `AgentRun` trail
-  where an automation runs an agent.
-- **Graceful degradation** — a workflow reports a clear failure for a step when a
-  required service/provider is unavailable rather than crashing the scheduler or
-  the app.
+- **Additive only** — no change to application APIs, the
+  Agent→Service→Integration contract, the folder structure, or business logic.
+- **Stateless API, single worker** — the FastAPI container runs stateless with
+  the scheduler disabled; exactly one `worker` container owns the cron/interval
+  and Stage 7 workflow jobs (reusing `create_scheduler` unchanged).
+- **Config over code** — all production behavior is environment-driven via
+  `backend/config.py`; defaults keep dev/test running with zero configuration.
+- **Graceful degradation** — optional production deps (prometheus-client, redis)
+  are imported lazily; the app boots and serves without them.
+- **Fail fast in production** — the app refuses to start on an insecure prod
+  config (debug on, wildcard CORS, SQLite, missing AI key).
 
 ---
 
@@ -64,43 +64,39 @@ Frontend:
 
 DO NOT implement:
 
-- PostgreSQL / Redis / Docker / horizontal scaling / production deploy — Stage 8
-- new external integrations beyond what Stages 2–4.5 already provide
-- changes to the Stage 4.5 confirmation mechanics or the Stage 5 retrieval core
-- changes to the Stage 6 agent contract beyond how automations invoke it
-- voice changes — Stage 4.7 is complete
+- new product features or integrations beyond Stages 1–7
+- changes to the Stage 4.5 confirmation flow, the Stage 5 retrieval core, the
+  Stage 6 agent contract, or the Stage 7 automation semantics
+- horizontal multi-node orchestration (Kubernetes) — single-node compose target
+- refactors of the core architecture or folder layout
 
-Do not implement future stages beyond Stage 7.
+Do not implement future stages beyond Stage 8.
 
 ---
 
 # Deliverables
 
-- a scheduling layer that starts agent runs / tool chains on a schedule
-- event-driven triggers that start automations from internal events
-- a workflow composer: named, persisted tool/agent sequences
-- a `Workflow` + `WorkflowRun` model + repository (definition + outcome trail)
-- REST endpoints to manage workflows, control schedules, run on demand, and read
-  run history
-- an automation UI: define, enable/disable, run, and review workflows
+- production Docker architecture (`docker-compose.prod.yml`, multi-stage images)
+- environment management system (`.env.example` + prod/staging templates +
+  validated config loader)
+- PostgreSQL hardening (pooling, locked migrations, backup/restore scripts)
+- CI/CD pipelines (`.github/workflows/ci.yml`, `deploy.yml`)
+- nginx reverse proxy + TLS (`nginx/`, self-signed cert script)
+- observability (JSON logs, `/metrics`, request-id middleware)
+- security hardening (rate limiting, CORS, security headers, secret hygiene)
+- deployment automation (`scripts/deploy-*.sh`, `rollback.sh`, `backup-db.sh`)
+- `DEPLOYMENT.md`
 
 ---
 
-# Development Process
+# Success Criteria
 
-Build incrementally and pause for approval between major features:
+Stage 8 is complete only when:
 
-Major Feature 1:
-Scheduled execution — the scheduling layer + `Workflow` / `WorkflowRun` model +
-repository, starting an agent run or a single tool chain on a schedule, with
-REST + a minimal UI to define, enable/disable, run on demand, and view runs.
-
-Major Feature 2:
-The workflow composer (multi-step sequences) + event-driven triggers, plus the
-workflow run-history + step-visibility UI.
-
-After each major feature:
-
-- explain decisions
-- list files created / modified
-- wait for approval
+- the entire system boots from zero via `docker-compose.prod.yml`
+- the API is reachable behind the reverse proxy over TLS
+- the database persists across restarts
+- the CI pipeline runs green (lint, tests, security scan, image build)
+- logs are structured and metrics are exposed
+- rate limiting and the security baseline are enforced in production
+- deployment is repeatable, automated, and auto-rolls-back on failed health
