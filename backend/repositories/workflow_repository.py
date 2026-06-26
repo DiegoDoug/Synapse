@@ -7,7 +7,13 @@ and an audit trail of every scheduled/triggered run.
 
 from sqlmodel import Session, select
 
-from backend.models.workflow import Workflow, WorkflowRun
+from backend.models.workflow import (
+    SCHEDULE_EVENT,
+    Workflow,
+    WorkflowRun,
+    WorkflowRunStep,
+    WorkflowStep,
+)
 
 
 class WorkflowRepository:
@@ -34,6 +40,14 @@ class WorkflowRepository:
         statement = select(Workflow).where(Workflow.enabled == True)  # noqa: E712
         return list(self._session.exec(statement).all())
 
+    def list_enabled_events(self) -> list[Workflow]:
+        """All enabled event-triggered workflows — used by the event evaluator."""
+        statement = select(Workflow).where(
+            Workflow.enabled == True,  # noqa: E712
+            Workflow.schedule_kind == SCHEDULE_EVENT,
+        )
+        return list(self._session.exec(statement).all())
+
     def add(self, workflow: Workflow) -> Workflow:
         self._session.add(workflow)
         self._session.commit()
@@ -47,11 +61,39 @@ class WorkflowRepository:
         return workflow
 
     def delete(self, workflow: Workflow) -> None:
-        # Drop the run history with the definition so no orphan rows remain.
+        # Drop the steps + run history (and their step rows) with the definition
+        # so no orphan rows remain.
         for run in self.list_runs(workflow.id, limit=None):
+            for run_step in self.list_run_steps(run.id):
+                self._session.delete(run_step)
             self._session.delete(run)
+        for step in self.list_steps(workflow.id):
+            self._session.delete(step)
         self._session.delete(workflow)
         self._session.commit()
+
+    # --- Steps (the composed sequence) -------------------------------------
+
+    def list_steps(self, workflow_id: int) -> list[WorkflowStep]:
+        statement = (
+            select(WorkflowStep)
+            .where(WorkflowStep.workflow_id == workflow_id)
+            .order_by(WorkflowStep.step_index)  # type: ignore[arg-type]
+        )
+        return list(self._session.exec(statement).all())
+
+    def replace_steps(
+        self, workflow_id: int, steps: list[WorkflowStep]
+    ) -> list[WorkflowStep]:
+        """Swap a workflow's whole sequence for a fresh, re-indexed one."""
+        for existing in self.list_steps(workflow_id):
+            self._session.delete(existing)
+        for index, step in enumerate(steps):
+            step.workflow_id = workflow_id
+            step.step_index = index
+            self._session.add(step)
+        self._session.commit()
+        return self.list_steps(workflow_id)
 
     # --- Runs --------------------------------------------------------------
 
@@ -77,4 +119,26 @@ class WorkflowRepository:
         )
         if limit is not None:
             statement = statement.limit(limit)
+        return list(self._session.exec(statement).all())
+
+    # --- Run steps (the step-visibility trail) -----------------------------
+
+    def add_run_step(self, run_step: WorkflowRunStep) -> WorkflowRunStep:
+        self._session.add(run_step)
+        self._session.commit()
+        self._session.refresh(run_step)
+        return run_step
+
+    def update_run_step(self, run_step: WorkflowRunStep) -> WorkflowRunStep:
+        self._session.add(run_step)
+        self._session.commit()
+        self._session.refresh(run_step)
+        return run_step
+
+    def list_run_steps(self, run_id: int) -> list[WorkflowRunStep]:
+        statement = (
+            select(WorkflowRunStep)
+            .where(WorkflowRunStep.run_id == run_id)
+            .order_by(WorkflowRunStep.step_index)  # type: ignore[arg-type]
+        )
         return list(self._session.exec(statement).all())

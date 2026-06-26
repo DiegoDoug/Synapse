@@ -1,16 +1,17 @@
 /**
- * ScheduleEditor — the personalization surface for *when and how often* a
- * workflow runs. Three modes:
+ * ScheduleEditor — the personalization surface for *when / how often* a
+ * workflow runs. Four modes:
  *
  * - Manual   → no timer; the workflow only runs when triggered.
  * - Interval → repeat every N minutes/hours/days (the frequency).
  * - Daily    → run once a day at a chosen time (UTC).
+ * - Event    → react to an internal event (new synced data).
  *
  * Plus an optional cap on *how many times* it may run before auto-disabling.
  * Emits a normalized patch the form folds into its draft.
  */
 
-import type { ScheduleKind } from "@/features/workflows/api";
+import type { CatalogueEvent, ScheduleKind } from "@/features/workflows/api";
 import {
   type IntervalUnit,
   type ScheduleDraft,
@@ -21,14 +22,16 @@ const MODES: { kind: ScheduleKind; label: string; hint: string }[] = [
   { kind: "manual", label: "On demand", hint: "Run only when you click" },
   { kind: "interval", label: "Repeating", hint: "Every N minutes/hours" },
   { kind: "cron", label: "Daily", hint: "Once a day at a set time" },
+  { kind: "event", label: "On event", hint: "React to new synced data" },
 ];
 
 interface ScheduleEditorProps {
   draft: ScheduleDraft;
+  events: CatalogueEvent[];
   onChange: (patch: Partial<ScheduleDraft>) => void;
 }
 
-export function ScheduleEditor({ draft, onChange }: ScheduleEditorProps) {
+export function ScheduleEditor({ draft, events, onChange }: ScheduleEditorProps) {
   return (
     <div className="space-y-3">
       <label className="text-xs font-medium text-muted-foreground">
@@ -36,7 +39,7 @@ export function ScheduleEditor({ draft, onChange }: ScheduleEditorProps) {
       </label>
 
       {/* Mode picker */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {MODES.map((mode) => (
           <button
             key={mode.kind}
@@ -98,6 +101,25 @@ export function ScheduleEditor({ draft, onChange }: ScheduleEditorProps) {
             className="rounded-md border border-border bg-background px-2 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           <span className="text-xs text-muted-foreground">UTC</span>
+        </div>
+      )}
+
+      {/* Event trigger — what to react to */}
+      {draft.schedule_kind === "event" && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">When</span>
+          <select
+            value={draft.eventType}
+            onChange={(e) => onChange({ eventType: e.target.value })}
+            className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {events.length === 0 && <option value="">No events available</option>}
+            {events.map((event) => (
+              <option key={event.event_type} value={event.event_type}>
+                {event.label}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 

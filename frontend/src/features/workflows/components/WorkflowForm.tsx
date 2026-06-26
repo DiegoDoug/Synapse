@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
-import type { AgentInfo } from "@/features/agents/api";
-import type { Workflow, WorkflowInput } from "@/features/workflows/api";
+import type {
+  Workflow,
+  WorkflowCatalogue,
+  WorkflowInput,
+} from "@/features/workflows/api";
 import { ScheduleEditor } from "@/features/workflows/components/ScheduleEditor";
+import {
+  type StepDraft,
+  StepEditor,
+} from "@/features/workflows/components/StepEditor";
 import {
   type ScheduleDraft,
   draftIntervalMinutes,
@@ -11,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 interface WorkflowFormProps {
-  agents: AgentInfo[];
+  catalogue: WorkflowCatalogue;
   /** When set, the form edits an existing workflow instead of creating one. */
   workflow?: Workflow;
   isSaving: boolean;
@@ -21,11 +28,11 @@ interface WorkflowFormProps {
 }
 
 /**
- * Define or edit a workflow: name, which agent runs, its inputs, and the
- * schedule personalization (time / frequency / run cap).
+ * Define or edit a workflow: name, the composed step sequence, and the
+ * schedule/trigger personalization (time / frequency / event / run cap).
  */
 export function WorkflowForm({
-  agents,
+  catalogue,
   workflow,
   isSaving,
   error,
@@ -34,39 +41,37 @@ export function WorkflowForm({
 }: WorkflowFormProps) {
   const [name, setName] = useState(workflow?.name ?? "");
   const [description, setDescription] = useState(workflow?.description ?? "");
-  const [agentKey, setAgentKey] = useState(
-    workflow?.agent_key ?? agents[0]?.key ?? "",
-  );
-  const [params, setParams] = useState<Record<string, string>>(() =>
-    Object.fromEntries(
-      Object.entries(workflow?.params ?? {}).map(([k, v]) => [k, String(v)]),
-    ),
+  const [steps, setSteps] = useState<StepDraft[]>(() =>
+    initialSteps(workflow, catalogue),
   );
   const [enabled, setEnabled] = useState(workflow?.enabled ?? false);
   const [schedule, setSchedule] = useState<ScheduleDraft>(() =>
-    initialSchedule(workflow),
+    initialSchedule(workflow, catalogue),
   );
-
-  const selectedAgent = agents.find((a) => a.key === agentKey);
 
   const patchSchedule = (patch: Partial<ScheduleDraft>) =>
     setSchedule((prev) => ({ ...prev, ...patch }));
 
   const submit = () => {
+    const isManual = schedule.schedule_kind === "manual";
     const input: WorkflowInput = {
       name: name.trim(),
       description: description.trim() || null,
-      agent_key: agentKey,
-      params: Object.fromEntries(
-        Object.entries(params).filter(([, v]) => v.trim() !== ""),
-      ),
+      steps: steps.map((s) => ({
+        kind: s.kind,
+        ref: s.ref,
+        // Drop empty inputs so the backend / agent applies its own defaults.
+        params: Object.fromEntries(
+          Object.entries(s.params).filter(([, v]) => v.trim() !== ""),
+        ),
+      })),
       schedule_kind: schedule.schedule_kind,
       max_runs:
-        schedule.schedule_kind === "manual" || schedule.maxRuns.trim() === ""
+        isManual || schedule.maxRuns.trim() === ""
           ? null
           : Number(schedule.maxRuns),
-      // Manual workflows have no timer; only interval/cron can be enabled.
-      enabled: schedule.schedule_kind === "manual" ? false : enabled,
+      // Manual workflows have no timer; only timed/event triggers can be enabled.
+      enabled: isManual ? false : enabled,
     };
 
     if (schedule.schedule_kind === "interval") {
@@ -74,12 +79,14 @@ export function WorkflowForm({
     } else if (schedule.schedule_kind === "cron") {
       input.cron_hour = schedule.cronHour;
       input.cron_minute = schedule.cronMinute;
+    } else if (schedule.schedule_kind === "event") {
+      input.event_type = schedule.eventType || null;
     }
 
     onSubmit(input);
   };
 
-  const canSubmit = name.trim() !== "" && agentKey !== "" && !isSaving;
+  const canSubmit = name.trim() !== "" && steps.length > 0 && !isSaving;
 
   return (
     <div className="space-y-4">
@@ -103,44 +110,17 @@ export function WorkflowForm({
         />
       </Field>
 
-      <Field label="Agent to run" required>
-        <select
-          value={agentKey}
-          onChange={(e) => {
-            setAgentKey(e.target.value);
-            setParams({});
-          }}
-          className={inputClass}
-        >
-          {agents.map((agent) => (
-            <option key={agent.key} value={agent.key}>
-              {agent.name}
-            </option>
-          ))}
-        </select>
-        {selectedAgent && (
-          <p className="text-[11px] text-muted-foreground">
-            {selectedAgent.description}
-          </p>
-        )}
-      </Field>
+      <StepEditor
+        catalogue={catalogue.steps}
+        steps={steps}
+        onChange={setSteps}
+      />
 
-      {/* Agent inputs (mirrors the agent's own trigger form). */}
-      {selectedAgent?.parameters.map((param) => (
-        <Field key={param.name} label={param.name} required={param.required}>
-          <input
-            type="text"
-            value={params[param.name] ?? ""}
-            placeholder={param.description ?? ""}
-            onChange={(e) =>
-              setParams((prev) => ({ ...prev, [param.name]: e.target.value }))
-            }
-            className={inputClass}
-          />
-        </Field>
-      ))}
-
-      <ScheduleEditor draft={schedule} onChange={patchSchedule} />
+      <ScheduleEditor
+        draft={schedule}
+        events={catalogue.events}
+        onChange={patchSchedule}
+      />
 
       {schedule.schedule_kind !== "manual" && (
         <label className="flex items-center gap-2 text-sm">
@@ -150,7 +130,7 @@ export function WorkflowForm({
             onChange={(e) => setEnabled(e.target.checked)}
             className="h-4 w-4 rounded border-border"
           />
-          Enable schedule now
+          Enable this trigger now
         </label>
       )}
 
@@ -194,14 +174,37 @@ function Field({
   );
 }
 
+/** Seed the step sequence from an existing workflow (or one default step). */
+function initialSteps(
+  workflow: Workflow | undefined,
+  catalogue: WorkflowCatalogue,
+): StepDraft[] {
+  if (workflow && workflow.steps.length > 0) {
+    return workflow.steps.map((s) => ({
+      kind: (s.kind as "agent" | "tool") ?? "agent",
+      ref: s.ref,
+      params: Object.fromEntries(
+        Object.entries(s.params ?? {}).map(([k, v]) => [k, String(v)]),
+      ),
+    }));
+  }
+  const first = catalogue.steps[0];
+  return first ? [{ kind: first.kind, ref: first.ref, params: {} }] : [];
+}
+
 /** Seed the schedule draft from an existing workflow (or sensible defaults). */
-function initialSchedule(workflow?: Workflow): ScheduleDraft {
+function initialSchedule(
+  workflow: Workflow | undefined,
+  catalogue: WorkflowCatalogue,
+): ScheduleDraft {
   const base: ScheduleDraft = {
     schedule_kind: workflow?.schedule_kind ?? "manual",
     intervalAmount: 1,
     intervalUnit: "hours",
     cronHour: workflow?.cron_hour ?? 8,
     cronMinute: workflow?.cron_minute ?? 0,
+    eventType:
+      workflow?.event_type ?? catalogue.events[0]?.event_type ?? "",
     maxRuns: workflow?.max_runs != null ? String(workflow.max_runs) : "",
   };
   const minutes = workflow?.interval_minutes;

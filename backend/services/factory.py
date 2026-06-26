@@ -420,18 +420,28 @@ def build_ai_service(
 def build_workflow_service(
     session: Session, settings: Settings, user_id: int
 ) -> WorkflowService:
-    """Assemble the WorkflowService over its repository + the agent layer.
+    """Assemble the WorkflowService over its repository + the agent/tool layer.
 
-    A run is executed by handing off to the same ``AgentService`` the agents UI
-    uses, so the agent loop, confirmation flow, and ``AgentRun`` audit trail are
-    reused unchanged. The process-level ``WorkflowScheduler`` is injected so the
-    service can sync jobs when a definition changes; it is None when scheduling
-    is disabled (the service then just persists definitions + runs on demand).
+    Agent steps run through the same ``AgentService`` the agents UI uses, and
+    tool steps through the very same user-scoped ``ToolRegistry`` (confirmation
+    flow + knowledge search wired in) — so the agent loop, the confirmation flow,
+    and the ``AgentRun`` audit trail are reused unchanged. The process-level
+    ``WorkflowScheduler`` is injected so the service can sync jobs when a
+    definition changes; it is None when scheduling is disabled (the service then
+    just persists definitions + runs on demand). The session is passed for event
+    high-water-mark reads used by event triggers.
     """
+    confirmations = build_confirmation_service(session, settings)
+    knowledge = build_knowledge_service(session, settings)
+    tools = build_tool_registry(session, user_id, confirmations, knowledge)
+    runs = AgentRunRepository(session)
+    agents = AgentService(build_agent_registry(), AgentRunner(runs), runs, tools)
     return WorkflowService(
         WorkflowRepository(session),
-        build_agent_service(session, settings, user_id),
-        get_workflow_scheduler(),
+        agents,
+        tools,
+        scheduler=get_workflow_scheduler(),
+        session=session,
     )
 
 

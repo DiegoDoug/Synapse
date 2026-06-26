@@ -20,6 +20,7 @@ from backend.services.workflow_scheduler import (
     set_workflow_scheduler,
 )
 from backend.tasks.notification_tasks import poll_and_deliver, send_daily_summary
+from backend.tasks.workflow_tasks import evaluate_workflow_events
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +69,17 @@ def create_scheduler(settings: Settings) -> BackgroundScheduler | None:
     workflows = WorkflowScheduler(scheduler)
     set_workflow_scheduler(workflows)
     _bootstrap_workflows(workflows)
+
+    # Evaluate event triggers against already-synced data on a fixed cadence.
+    scheduler.add_job(
+        evaluate_workflow_events,
+        "interval",
+        minutes=settings.workflow_event_poll_minutes,
+        id="workflow-events",
+        replace_existing=True,
+        coalesce=True,
+        max_instances=1,
+    )
 
     return scheduler
 

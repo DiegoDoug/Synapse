@@ -219,10 +219,15 @@ def test_scheduler_registers_jobs_with_telegram():
     # Built but not started, so there are no threads to tear down.
     scheduler = create_scheduler(_settings())
     ids = {job.id for job in scheduler.get_jobs()}
-    assert ids == {"notification-poll", "daily-summary", "telegram-commands"}
+    assert ids == {
+        "notification-poll",
+        "daily-summary",
+        "telegram-commands",
+        "workflow-events",
+    }
 
 
 def test_scheduler_without_telegram_skips_command_job():
     scheduler = create_scheduler(_settings(telegram_bot_token=""))
     ids = {job.id for job in scheduler.get_jobs()}
-    assert ids == {"notification-poll", "daily-summary"}
+    assert ids == {"notification-poll", "daily-summary", "workflow-events"}

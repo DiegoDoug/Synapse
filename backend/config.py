@@ -64,6 +64,10 @@ class Settings(BaseSettings):
     notification_poll_minutes: int = 15  # compose + deliver cadence
     daily_summary_hour: int = 8  # UTC hour for the daily summary (0-23)
 
+    # Automation (Stage 7). The event evaluator polls already-synced data and
+    # fires event-triggered workflows when new rows appear since their cursor.
+    workflow_event_poll_minutes: int = 2
+
     # AI layer (Stage 4). The active provider is swappable via AI_PROVIDER;
     # credentials are empty by default so the app boots without AI configured.
     ai_provider: str = "anthropic"  # anthropic | openai | ollama

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 
-import { useAgents } from "@/features/agents/useAgents";
 import type { Workflow, WorkflowInput } from "@/features/workflows/api";
 import { WorkflowCard } from "@/features/workflows/components/WorkflowCard";
 import { WorkflowForm } from "@/features/workflows/components/WorkflowForm";
@@ -12,6 +11,7 @@ import {
   useRunWorkflow,
   useSetWorkflowEnabled,
   useUpdateWorkflow,
+  useWorkflowCatalogue,
   useWorkflowRuns,
   useWorkflows,
 } from "@/features/workflows/useWorkflows";
@@ -21,7 +21,7 @@ type Panel = { mode: "idle" } | { mode: "create" } | { mode: "edit"; workflow: W
 
 /** Automation — define workflows, personalize their schedule, and review runs. */
 export default function AutomationPage() {
-  const agents = useAgents();
+  const catalogue = useWorkflowCatalogue();
   const workflows = useWorkflows();
 
   const create = useCreateWorkflow();
@@ -48,7 +48,7 @@ export default function AutomationPage() {
     if (selectedId === workflow.id) setSelectedId(null);
   };
 
-  const agentList = agents.data ?? [];
+  const cat = catalogue.data ?? { steps: [], events: [] };
   const list = workflows.data ?? [];
 
   return (
@@ -63,7 +63,7 @@ export default function AutomationPage() {
         </div>
         <Button
           onClick={() => setPanel({ mode: "create" })}
-          disabled={agentList.length === 0}
+          disabled={cat.steps.length === 0}
         >
           <Plus className="h-4 w-4" />
           New workflow
@@ -111,7 +111,7 @@ export default function AutomationPage() {
           {panel.mode === "create" && (
             <Card title="New workflow">
               <WorkflowForm
-                agents={agentList}
+                catalogue={cat}
                 isSaving={create.isPending}
                 error={create.isError ? "Couldn't create the workflow." : null}
                 onSubmit={submitCreate}
@@ -123,7 +123,7 @@ export default function AutomationPage() {
           {panel.mode === "edit" && (
             <Card title="Edit workflow">
               <WorkflowForm
-                agents={agentList}
+                catalogue={cat}
                 workflow={panel.workflow}
                 isSaving={update.isPending}
                 error={update.isError ? "Couldn't save the workflow." : null}

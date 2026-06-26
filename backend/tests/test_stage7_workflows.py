@@ -18,20 +18,37 @@ Covers the automation layer end to end without a live scheduler or network:
 import pytest
 from backend.agents.registry import build_agent_registry
 from backend.agents.runner import AgentRunner
+from backend.models.notification import Notification
 from backend.models.workflow import (
     SCHEDULE_CRON,
+    SCHEDULE_EVENT,
     SCHEDULE_INTERVAL,
     SCHEDULE_MANUAL,
+    STEP_AGENT,
+    STEP_TOOL,
+    TRIGGER_EVENT,
     TRIGGER_MANUAL,
     WF_RUN_COMPLETED,
+    WF_RUN_FAILED,
     Workflow,
     WorkflowRun,
 )
 from backend.repositories.agent_run_repository import AgentRunRepository
+from backend.repositories.notification_repository import NotificationRepository
 from backend.repositories.workflow_repository import WorkflowRepository
-from backend.schemas.workflow import WorkflowCreate, WorkflowUpdate
+from backend.schemas.workflow import (
+    WorkflowCreate,
+    WorkflowStepInput,
+    WorkflowUpdate,
+)
 from backend.services.agent_service import AgentService
 from backend.services.factory import build_confirmation_service, build_tool_registry
+from backend.services.tools.registry import ToolRegistry
+from backend.services.workflow_events import (
+    EVENT_NEW_CALENDAR_EVENT,
+    EVENT_NEW_EMAIL,
+    EVENT_NEW_NOTIFICATION,
+)
 from backend.services.workflow_scheduler import WorkflowScheduler
 from backend.services.workflow_service import WorkflowError, WorkflowService
 from sqlalchemy.pool import StaticPool
@@ -53,18 +70,23 @@ def session():
 # --- Builders ----------------------------------------------------------------
 
 
-def _agent_service(session: Session) -> AgentService:
+def _tools(session: Session) -> ToolRegistry:
     confirmations = build_confirmation_service(session, None)
-    tools = build_tool_registry(session, user_id=1, confirmations=confirmations)
-    runs = AgentRunRepository(session)
-    return AgentService(build_agent_registry(), AgentRunner(runs), runs, tools)
+    return build_tool_registry(session, user_id=1, confirmations=confirmations)
 
 
 def _service(
     session: Session, scheduler: WorkflowScheduler | None = None
 ) -> WorkflowService:
+    tools = _tools(session)
+    runs = AgentRunRepository(session)
+    agents = AgentService(build_agent_registry(), AgentRunner(runs), runs, tools)
     return WorkflowService(
-        WorkflowRepository(session), _agent_service(session), scheduler
+        WorkflowRepository(session),
+        agents,
+        tools,
+        scheduler,
+        session=session,
     )
 
 
@@ -209,14 +231,17 @@ def test_unknown_agent_after_definition_fails_gracefully(session):
     """A run never raises — a bad target is captured on the run record."""
     service = _service(session)
     wf = service.create_workflow(1, WorkflowCreate(name="W", agent_key="study"))
-    # Corrupt the stored target to simulate an agent that vanished.
-    stored = WorkflowRepository(session).get(wf.id)
-    stored.agent_key = "ghost"
-    WorkflowRepository(session).update(stored)
+    # Corrupt the stored step to simulate an agent that vanished.
+    repo = WorkflowRepository(session)
+    step = repo.list_steps(wf.id)[0]
+    step.ref = "ghost"
+    repo.replace_steps(wf.id, [step])
 
     run = service.run_now(1, wf.id)
     assert run is not None and run.status == "failed"
     assert "ghost" in run.error
+    # The failure is captured at the step level too (step-visibility).
+    assert run.steps[0].status == "failed" and "ghost" in run.steps[0].error
 
 
 def test_max_runs_cap_auto_disables(session):
@@ -272,3 +297,159 @@ def test_scheduler_ignores_manual_workflow(session):
         1, WorkflowCreate(name="W", agent_key="study", schedule_kind=SCHEDULE_MANUAL)
     )
     assert fake.added == []  # nothing scheduled for a manual workflow
+
+
+# --- MF2: the composer (multi-step sequences) --------------------------------
+
+
+def _steps(*specs) -> list[WorkflowStepInput]:
+    return [
+        WorkflowStepInput(kind=k, ref=r, params=p or {}) for (k, r, p) in specs
+    ]
+
+
+def test_multi_step_sequence_runs_each_step_in_order(session):
+    service = _service(session)
+    wf = service.create_workflow(
+        1,
+        WorkflowCreate(
+            name="Triage then prep",
+            steps=_steps(
+                (STEP_AGENT, "email", {"query": "invoice"}),
+                (STEP_AGENT, "calendar", {}),
+            ),
+        ),
+    )
+    # The composed sequence is persisted in order.
+    assert [s.ref for s in wf.steps] == ["email", "calendar"]
+
+    run = service.run_now(1, wf.id)
+    assert run is not None and run.status == WF_RUN_COMPLETED
+    # Both steps ran, recorded in order, each with its own agent run linked.
+    assert [s.ref for s in run.steps] == ["email", "calendar"]
+    assert all(s.status == WF_RUN_COMPLETED for s in run.steps)
+    assert all(s.agent_run_id is not None for s in run.steps)
+    # The run links the first agent's audit trail.
+    assert run.agent_run_id == run.steps[0].agent_run_id
+
+
+def test_tool_step_runs_through_shared_registry(session):
+    service = _service(session)
+    wf = service.create_workflow(
+        1,
+        WorkflowCreate(
+            name="Read notifications",
+            steps=_steps((STEP_TOOL, "get_notifications", {})),
+        ),
+    )
+    run = service.run_now(1, wf.id)
+    assert run is not None and run.status == WF_RUN_COMPLETED
+    assert run.steps[0].kind == STEP_TOOL
+    assert run.steps[0].agent_run_id is None  # tools don't open an AgentRun
+
+
+def test_sequence_fails_fast_on_first_failure(session):
+    service = _service(session)
+    wf = service.create_workflow(
+        1,
+        WorkflowCreate(
+            name="Bad then good",
+            steps=_steps(
+                (STEP_TOOL, "get_notifications", {}),
+                (STEP_AGENT, "study", {}),
+            ),
+        ),
+    )
+    # Corrupt the first step to fail.
+    repo = WorkflowRepository(session)
+    rows = repo.list_steps(wf.id)
+    rows[0].ref = "missing_tool"
+    repo.replace_steps(wf.id, rows)
+
+    run = service.run_now(1, wf.id)
+    assert run is not None and run.status == WF_RUN_FAILED
+    # The second step never ran (fail-fast): only the failed first step recorded.
+    assert len(run.steps) == 1 and run.steps[0].status == WF_RUN_FAILED
+
+
+def test_unknown_tool_step_is_rejected(session):
+    with pytest.raises(WorkflowError):
+        _service(session).create_workflow(
+            1,
+            WorkflowCreate(name="W", steps=_steps((STEP_TOOL, "nope", {}))),
+        )
+
+
+def test_empty_sequence_is_rejected(session):
+    with pytest.raises(WorkflowError):
+        _service(session).create_workflow(1, WorkflowCreate(name="W"))
+
+
+def test_catalogue_lists_agents_tools_and_events(session):
+    cat = _service(session).catalogue()
+    agent_refs = {e.ref for e in cat.steps if e.kind == STEP_AGENT}
+    tool_refs = {e.ref for e in cat.steps if e.kind == STEP_TOOL}
+    assert {"study", "email", "calendar", "notification"} <= agent_refs
+    assert "get_notifications" in tool_refs
+    assert {e.event_type for e in cat.events} == {
+        EVENT_NEW_EMAIL,
+        EVENT_NEW_CALENDAR_EVENT,
+        EVENT_NEW_NOTIFICATION,
+    }
+
+
+# --- MF2: event-driven triggers ----------------------------------------------
+
+
+def test_event_trigger_requires_event_type(session):
+    with pytest.raises(WorkflowError):
+        _service(session).create_workflow(
+            1,
+            WorkflowCreate(
+                name="W", agent_key="study", schedule_kind=SCHEDULE_EVENT
+            ),
+        )
+
+
+def test_event_trigger_fires_only_on_new_data(session):
+    service = _service(session)
+    wf = service.create_workflow(
+        1,
+        WorkflowCreate(
+            name="On new notification",
+            agent_key="study",
+            schedule_kind=SCHEDULE_EVENT,
+            event_type=EVENT_NEW_NOTIFICATION,
+            enabled=True,
+        ),
+    )
+    # Armed to the current (empty) baseline — the backlog never fires it.
+    assert service.evaluate_events() == 0
+    assert service.list_runs(1, wf.id) == []
+
+    # New synced data arrives → the next evaluation fires exactly once.
+    NotificationRepository(session).add(Notification(user_id=1, title="Ping"))
+    assert service.evaluate_events() == 1
+    runs = service.list_runs(1, wf.id)
+    assert len(runs) == 1 and runs[0].trigger == TRIGGER_EVENT
+
+    # No further new data → no further firing (cursor advanced).
+    assert service.evaluate_events() == 0
+    assert len(service.list_runs(1, wf.id)) == 1
+
+
+def test_event_workflow_takes_no_scheduler_job(session):
+    fake = _FakeScheduler()
+    service = _service(session, WorkflowScheduler(fake))
+    service.create_workflow(
+        1,
+        WorkflowCreate(
+            name="W",
+            agent_key="study",
+            schedule_kind=SCHEDULE_EVENT,
+            event_type=EVENT_NEW_EMAIL,
+            enabled=True,
+        ),
+    )
+    # Event workflows are driven by the central evaluator, not a per-wf job.
+    assert fake.added == []

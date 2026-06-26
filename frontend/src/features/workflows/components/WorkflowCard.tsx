@@ -1,10 +1,20 @@
-import { Clock, Loader2, Pencil, Play, Power, Repeat, Trash2 } from "lucide-react";
+import {
+  Clock,
+  Loader2,
+  Pencil,
+  Play,
+  Power,
+  Repeat,
+  Trash2,
+  Zap,
+} from "lucide-react";
 
 import type { Workflow } from "@/features/workflows/api";
 import {
   runCapSummary,
   scheduleKindLabel,
   scheduleSummary,
+  stepsSummary,
 } from "@/features/workflows/format";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -32,7 +42,12 @@ export function WorkflowCard({
   onDelete,
 }: WorkflowCardProps) {
   const isManual = workflow.schedule_kind === "manual";
-  const ScheduleIcon = workflow.schedule_kind === "cron" ? Clock : Repeat;
+  const ScheduleIcon =
+    workflow.schedule_kind === "cron"
+      ? Clock
+      : workflow.schedule_kind === "event"
+        ? Zap
+        : Repeat;
 
   return (
     <div
@@ -72,7 +87,8 @@ export function WorkflowCard({
           <span className="truncate">{scheduleSummary(workflow)}</span>
         </div>
         <div className="text-right text-muted-foreground">
-          {scheduleKindLabel(workflow.schedule_kind)} · {runCapSummary(workflow)}
+          {stepsSummary(workflow)} · {scheduleKindLabel(workflow.schedule_kind)} ·{" "}
+          {runCapSummary(workflow)}
         </div>
       </dl>
 
