@@ -1,0 +1,31 @@
+# Build context exclusions for the backend image (context = repo root).
+.git
+.github
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.ruff_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Frontend artifacts (built in its own image)
+frontend/node_modules/
+frontend/dist/
+
+# Local data + secrets — never bake into an image
+data/*.db
+data/*.db-journal
+.env
+.env.*
+!.env.example
+
+# Tests + dev tooling not needed at runtime
+backend/tests/
+backend/requirements-dev.txt
+
+# Editor / OS noise
+.DS_Store
+.idea/
+.vscode/
+graphify-out/
