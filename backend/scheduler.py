@@ -12,8 +12,13 @@ from sqlmodel import Session
 
 from backend.config import Settings
 from backend.database import engine
+from backend.repositories.workflow_repository import WorkflowRepository
 from backend.services.factory import build_telegram_integration
 from backend.services.telegram_service import TelegramService
+from backend.services.workflow_scheduler import (
+    WorkflowScheduler,
+    set_workflow_scheduler,
+)
 from backend.tasks.notification_tasks import poll_and_deliver, send_daily_summary
 
 logger = logging.getLogger(__name__)
@@ -58,4 +63,25 @@ def create_scheduler(settings: Settings) -> BackgroundScheduler | None:
         )
         logger.info("Telegram command polling enabled.")
 
+    # Stage 7 — wire the workflow scheduler over the same background scheduler
+    # and bring any already-enabled workflows back online after a restart.
+    workflows = WorkflowScheduler(scheduler)
+    set_workflow_scheduler(workflows)
+    _bootstrap_workflows(workflows)
+
     return scheduler
+
+
+def _bootstrap_workflows(workflows: WorkflowScheduler) -> None:
+    """Register a job for every enabled workflow (e.g. after a restart).
+
+    Best-effort: a database that isn't reachable yet must not stop the
+    scheduler from starting — the workflows simply come online on the next
+    definition change.
+    """
+    try:
+        with Session(engine) as session:
+            for workflow in WorkflowRepository(session).list_enabled():
+                workflows.sync(workflow)
+    except Exception:  # noqa: BLE001 — bootstrapping is best-effort
+        logger.exception("Could not bootstrap scheduled workflows.")

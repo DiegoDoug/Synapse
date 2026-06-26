@@ -25,6 +25,18 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export async function apiPatch<T>(path: string, body?: unknown): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "PATCH",
+    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(`PATCH ${path} failed: ${response.status}`);
+  }
+  return response.json() as Promise<T>;
+}
+
 /** POST multipart/form-data (file uploads). The browser sets the boundary. */
 export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {

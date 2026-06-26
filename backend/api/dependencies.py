@@ -36,6 +36,7 @@ from backend.services.factory import (
     build_stt_service,
     build_tts_service,
     build_wakeword_service,
+    build_workflow_service,
 )
 from backend.services.knowledge_service import KnowledgeService
 from backend.services.notification_service import NotificationService
@@ -44,6 +45,7 @@ from backend.services.sync_service import SyncService
 from backend.services.task_service import TaskService
 from backend.services.tts_service import TTSService
 from backend.services.wakeword_service import WakeWordService
+from backend.services.workflow_service import WorkflowService
 
 # Default owner identity for the single-user Personal OS. A dedicated auth
 # stage will replace this; for now connections attach to the one owner account.
@@ -186,6 +188,16 @@ def get_agent_service(
     # The agent catalogue + runner over the same user-scoped tool registry the
     # chat loop uses (confirmation flow + knowledge search wired in).
     return build_agent_service(session, settings, user_id)
+
+
+def get_workflow_service(
+    session: Session = Depends(get_session),
+    settings: Settings = Depends(get_settings),
+    user_id: int = Depends(get_current_user_id),
+) -> WorkflowService:
+    # The automation layer: workflow definitions + the agent layer that runs
+    # them + the live scheduler (None when scheduling is disabled).
+    return build_workflow_service(session, settings, user_id)
 
 
 def get_stt_service(settings: Settings = Depends(get_settings)) -> STTService:

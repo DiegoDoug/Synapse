@@ -40,6 +40,7 @@ from backend.repositories.sync_state_repository import SyncStateRepository
 from backend.repositories.system_prompt_repository import SystemPromptRepository
 from backend.repositories.task_repository import TaskRepository
 from backend.repositories.widget_repository import WidgetRepository
+from backend.repositories.workflow_repository import WorkflowRepository
 from backend.services.agent_service import AgentService
 from backend.services.ai_service import AIService
 from backend.services.calendar_service import CalendarService
@@ -82,6 +83,8 @@ from backend.services.tts_service import TTSService
 from backend.services.voice_session import VoiceSession, VoiceSessionConfig
 from backend.services.wakeword_service import WakeWordService
 from backend.services.widget_service import WidgetService
+from backend.services.workflow_scheduler import get_workflow_scheduler
+from backend.services.workflow_service import WorkflowService
 
 
 def build_telegram_integration(settings: Settings) -> TelegramIntegration | None:
@@ -411,6 +414,24 @@ def build_ai_service(
         temperature=settings.ai_temperature,
         tools=build_tool_registry(session, user_id, confirmations, knowledge),
         confirmations=confirmations,
+    )
+
+
+def build_workflow_service(
+    session: Session, settings: Settings, user_id: int
+) -> WorkflowService:
+    """Assemble the WorkflowService over its repository + the agent layer.
+
+    A run is executed by handing off to the same ``AgentService`` the agents UI
+    uses, so the agent loop, confirmation flow, and ``AgentRun`` audit trail are
+    reused unchanged. The process-level ``WorkflowScheduler`` is injected so the
+    service can sync jobs when a definition changes; it is None when scheduling
+    is disabled (the service then just persists definitions + runs on demand).
+    """
+    return WorkflowService(
+        WorkflowRepository(session),
+        build_agent_service(session, settings, user_id),
+        get_workflow_scheduler(),
     )
 
 

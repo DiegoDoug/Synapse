@@ -14,6 +14,7 @@ from backend.api.routes import api_router
 from backend.config import get_settings
 from backend.database import create_db_and_tables
 from backend.scheduler import create_scheduler
+from backend.services.workflow_scheduler import set_workflow_scheduler
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -33,6 +34,7 @@ async def lifespan(app: FastAPI):
     finally:
         if scheduler is not None:
             scheduler.shutdown(wait=False)
+        set_workflow_scheduler(None)
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
