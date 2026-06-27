@@ -12,7 +12,8 @@ ENV PIP_NO_CACHE_DIR=1 \
 WORKDIR /build
 
 # Only the runtime requirements (no dev/test deps) go into the production image.
-COPY requirements.txt ./
+# Build context is the repo root, so the file lives under backend/.
+COPY backend/requirements.txt ./requirements.txt
 RUN pip wheel --wheel-dir /wheels -r requirements.txt
 
 # ---- Stage 2: runtime -------------------------------------------------------
