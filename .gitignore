@@ -11,14 +11,29 @@ dist/
 *.local
 *.tsbuildinfo
 
-# Environment
+# Environment — ignore real secret-bearing env files, but track the documented
+# templates (.env.example) and the production/staging templates which hold only
+# public config + empty secret placeholders. Local overrides stay untracked.
 .env
 .env.*
 !.env.example
+!.env.production
+!.env.staging
+.env.production.local
+.env.staging.local
+.env.*.local
 
 # Database (SQLite)
 data/*.db
 data/*.db-journal
+
+# TLS material — never commit certificates or private keys
+nginx/certs/*.pem
+nginx/certs/*.key
+nginx/certs/*.crt
+
+# Database backups produced by scripts/backup-db.sh
+backups/
 
 # OS / editor
 .DS_Store

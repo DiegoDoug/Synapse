@@ -1,0 +1,11 @@
+# Build context exclusions for the frontend image (context = frontend/).
+node_modules/
+dist/
+*.local
+*.tsbuildinfo
+.git
+.DS_Store
+.idea/
+.vscode/
+Dockerfile
+.dockerignore
