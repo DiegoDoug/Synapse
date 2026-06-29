@@ -83,7 +83,9 @@ class Settings(BaseSettings):
 
     # AI layer (Stage 4). The active provider is swappable via AI_PROVIDER;
     # credentials are empty by default so the app boots without AI configured.
-    ai_provider: str = "anthropic"  # anthropic | openai | ollama
+    ai_provider: str = "deepseek"  # deepseek | anthropic | openai | ollama
+    deepseek_api_key: str = ""
+    deepseek_model: str = "deepseek-chat"
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-opus-4-8"
     openai_api_key: str = ""
@@ -209,6 +211,8 @@ class Settings(BaseSettings):
         their API key. Reachability is only known at call time.
         """
         provider = self.ai_provider.lower()
+        if provider == "deepseek":
+            return bool(self.deepseek_api_key)
         if provider == "anthropic":
             return bool(self.anthropic_api_key)
         if provider == "openai":

@@ -12,6 +12,7 @@ from backend.agents.runner import AgentRunner
 from backend.config import Settings
 from backend.integrations.ai.anthropic_provider import AnthropicProvider
 from backend.integrations.ai.base import LLMProvider
+from backend.integrations.ai.deepseek_provider import DeepSeekProvider
 from backend.integrations.ai.ollama_provider import OllamaProvider
 from backend.integrations.ai.openai_provider import OpenAIProvider
 from backend.integrations.browser.service import BrowserService
@@ -142,6 +143,8 @@ def build_ai_provider(settings: Settings) -> LLMProvider:
     Adding a new provider is one ``match`` arm plus its integration module.
     """
     provider = settings.ai_provider.lower()
+    if provider == "deepseek":
+        return DeepSeekProvider(settings.deepseek_api_key, settings.deepseek_model)
     if provider == "anthropic":
         return AnthropicProvider(settings.anthropic_api_key, settings.anthropic_model)
     if provider == "openai":
