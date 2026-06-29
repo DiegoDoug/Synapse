@@ -138,7 +138,7 @@ class DeepSeekProvider(LLMProvider):
                 out.append(
                     {
                         "role": "tool",
-                        "tool_call_id": m.tool_call_id,
+                        "tool_call_id": m.tool_call_id or "",
                         "content": m.content,
                     }
                 )
