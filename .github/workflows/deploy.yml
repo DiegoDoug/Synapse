@@ -19,7 +19,6 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAMESPACE: ${{ github.repository }}
 
 jobs:
   # ---- 1. Build + push images ------------------------------------------------
@@ -31,8 +30,13 @@ jobs:
       packages: write
     outputs:
       image_tag: ${{ steps.meta.outputs.tag }}
+      image_namespace: ${{ steps.namespace.outputs.value }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Compute lowercase image namespace
+        id: namespace
+        run: echo "value=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
       - name: Compute image tag
         id: meta
@@ -55,8 +59,8 @@ jobs:
           file: backend/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:${{ steps.meta.outputs.tag }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:${{ github.ref_name }}
+            ${{ env.REGISTRY }}/${{ steps.namespace.outputs.value }}/backend:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ steps.namespace.outputs.value }}/backend:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -67,8 +71,8 @@ jobs:
           file: frontend/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ steps.meta.outputs.tag }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ github.ref_name }}
+            ${{ env.REGISTRY }}/${{ steps.namespace.outputs.value }}/frontend:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ steps.namespace.outputs.value }}/frontend:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -92,7 +96,7 @@ jobs:
           script: |
             cd ${{ secrets.STAGING_DEPLOY_PATH }}
             git fetch --all && git checkout ${{ github.sha }}
-            export REGISTRY=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}
+            export REGISTRY=${{ env.REGISTRY }}/${{ needs.build-and-push.outputs.image_namespace }}
             export IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}
             ./scripts/deploy-staging.sh
         env:
@@ -118,7 +122,7 @@ jobs:
           script: |
             cd ${{ secrets.PROD_DEPLOY_PATH }}
             git fetch --all && git checkout ${{ github.sha }}
-            export REGISTRY=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}
+            export REGISTRY=${{ env.REGISTRY }}/${{ needs.build-and-push.outputs.image_namespace }}
             export IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}
             ./scripts/deploy-prod.sh
         env:
